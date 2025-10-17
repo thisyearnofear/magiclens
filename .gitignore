@@ -1,0 +1,28 @@
+uv.lock
+__pycache__
+.env
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Flow private keys (IMPORTANT!)
+flow.json.backup
+*_private_key*
+*.pkey
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

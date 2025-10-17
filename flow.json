@@ -1,0 +1,53 @@
+{
+  "emulators": {
+    "default": {
+      "port": 3569,
+      "serviceAccount": "emulator-account"
+    }
+  },
+  "contracts": {
+    "ARAssetNFT": "./contracts/ARAssetNFT.cdc",
+    "CollaborationHub": "./contracts/CollaborationHub.cdc",
+    "MarketplaceCore": "./contracts/MarketplaceCore.cdc",
+    "ForteAutomation": "./contracts/ForteAutomation.cdc"
+  },
+  "networks": {
+    "emulator": "127.0.0.1:3569",
+    "testnet": "access.devnet.nodes.onflow.org:9000",
+    "mainnet": "access.mainnet.nodes.onflow.org:9000"
+  },
+  "accounts": {
+    "emulator-account": {
+      "address": "f8d6e0586b0a20c7",
+      "key": "YOUR_EMULATOR_PRIVATE_KEY"
+    },
+    "testnet-account": {
+      "address": "SERVICE_ACCOUNT_ADDRESS",
+      "key": {
+        "type": "hex",
+        "index": 0,
+        "signatureAlgorithm": "ECDSA_P256",
+        "hashAlgorithm": "SHA3_256",
+        "privateKey": "YOUR_TESTNET_PRIVATE_KEY"
+      }
+    }
+  },
+  "deployments": {
+    "emulator": {
+      "emulator-account": [
+        "ARAssetNFT",
+        "CollaborationHub",
+        "MarketplaceCore",
+        "ForteAutomation"
+      ]
+    },
+    "testnet": {
+      "testnet-account": [
+        "ARAssetNFT",
+        "CollaborationHub",
+        "MarketplaceCore",
+        "ForteAutomation"
+      ]
+    }
+  }
+}
