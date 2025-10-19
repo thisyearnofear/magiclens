@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { SignedIn, SignedOut } from '@/auth/AuthProvider';
+import { SignedIn, SignedOut, useAuthContext } from '@/auth/AuthProvider';
 import LandingPage from './LandingPage';
 import Dashboard from './Dashboard';
 import VideoGallery from './VideoGallery';

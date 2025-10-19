@@ -11,6 +11,7 @@ fcl.config({
   'discovery.wallet': flowConfig.discoveryWallet,
   'discovery.authn.endpoint': flowConfig.discoveryAuthnEndpoint,
   'flow.network': flowConfig.network,
+  // Remove deprecated 'env' config
   
   // Contract addresses
   '0xARAssetNFT': flowConfig.contractAddresses.ARAssetNFT,

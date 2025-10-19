@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { userDetails, logout } = useAuthContext();
+  const { user, logout, isGuest } = useAuthContext();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [recentVideos, setRecentVideos] = useState<Video[]>([]);
   const [recentAssets, setRecentAssets] = useState<ArtistAsset[]>([]);
@@ -19,6 +19,24 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      // If user is a guest, show demo mode
+      if (isGuest) {
+        setLoading(false);
+        // Set a demo profile for guest users
+        setProfile({
+          id: 'guest',
+          user_id: 'guest',
+          username: 'Guest User',
+          user_type: 'both',
+          bio: 'Exploring MagicLens as a guest',
+          created_at: new Date().toISOString(),
+        } as UserProfile);
+        // Set empty arrays for videos and assets in demo mode
+        setRecentVideos([]);
+        setRecentAssets([]);
+        return;
+      }
+
       try {
         // Load user profile
         const profileResponse = await userServiceGetUserProfile();
@@ -31,29 +49,43 @@ export default function Dashboard() {
         }
 
         // Load recent videos
-        const videosResponse = await videoServiceGetVideos({
-          body: { limit: 6, offset: 0 }
-        });
-        if (videosResponse.data) {
-          setRecentVideos(videosResponse.data);
+        try {
+          const videosResponse = await videoServiceGetVideos({
+            body: { limit: 6, offset: 0 }
+          });
+          if (videosResponse.data) {
+            setRecentVideos(videosResponse.data);
+          }
+        } catch (error) {
+          console.warn('Could not load videos:', error);
+          // Continue with empty array
+          setRecentVideos([]);
         }
 
         // Load recent assets
-        const assetsResponse = await assetServiceGetAssets({
-          body: { limit: 6, offset: 0 }
-        });
-        if (assetsResponse.data) {
-          setRecentAssets(assetsResponse.data);
+        try {
+          const assetsResponse = await assetServiceGetAssets({
+            body: { limit: 6, offset: 0 }
+          });
+          if (assetsResponse.data) {
+            setRecentAssets(assetsResponse.data);
+          }
+        } catch (error) {
+          console.warn('Could not load assets:', error);
+          // Continue with empty array
+          setRecentAssets([]);
         }
       } catch (error) {
         console.error('Dashboard loading error:', error);
+        // If backend is not available, show error message
+        alert('Could not connect to backend services. Please make sure the backend is running.');
       } finally {
         setLoading(false);
       }
     };
 
     loadDashboardData();
-  }, [navigate]);
+  }, [navigate, isGuest]);
 
   if (loading) {
     return (

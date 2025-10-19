@@ -12,7 +12,7 @@ import { Upload, User, Camera, Palette } from 'lucide-react';
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
-  const { userDetails } = useAuthContext();
+  const { user } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -33,15 +33,19 @@ export default function ProfileSetup() {
     setLoading(true);
 
     try {
-      await userServiceCreateUserProfile({
-        body: {
-          username: formData.username,
-          user_type: formData.userType,
-          bio: formData.bio || null,
-          avatar: formData.avatar
-        }
-      });
-
+      // For now, just store profile data locally and proceed
+      // TODO: Connect to backend when auth is fully integrated
+      const profileData = {
+        username: formData.username,
+        user_type: formData.userType,
+        bio: formData.bio || null,
+        avatar: formData.avatar?.name || null,
+        created_at: new Date().toISOString()
+      };
+      
+      localStorage.setItem('magiclens_profile', JSON.stringify(profileData));
+      console.log('Profile created locally:', profileData);
+      
       navigate('/dashboard');
     } catch (error) {
       console.error('Profile creation error:', error);
@@ -147,13 +151,24 @@ export default function ProfileSetup() {
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
-              >
-                {loading ? 'Creating Profile...' : 'Create Profile'}
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
+                >
+                  {loading ? 'Creating Profile...' : 'Create Profile'}
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full border-white/20 text-white hover:bg-white/10"
+                >
+                  Skip Setup (Demo Mode)
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>

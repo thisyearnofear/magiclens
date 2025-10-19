@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 export default function UserProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { userDetails } = useAuthContext();
+  const { user } = useAuthContext();
   const [profile, setProfile] = useState<UserProfileType | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -27,11 +27,11 @@ export default function UserProfile() {
     avatar: null as File | null
   });
 
-  const isOwnProfile = !id || id === userDetails?.user_uuid;
+  const isOwnProfile = !id || id === user?.addr;
 
   useEffect(() => {
     loadProfile();
-  }, [id, userDetails]);
+  }, [id, user]);
 
   const loadProfile = async () => {
     setLoading(true);

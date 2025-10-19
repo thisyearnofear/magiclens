@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Play, Palette, Users, Zap } from 'lucide-react';
 
 export default function LandingPage() {
-  const { login } = useAuthContext();
+  const { login, continueAsGuest } = useAuthContext();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -16,9 +16,14 @@ export default function LandingPage() {
             <Zap className="h-8 w-8 text-yellow-400" />
             <h1 className="text-2xl font-bold text-white">MagicLens</h1>
           </div>
-          <Button onClick={login} variant="outline" className="bg-white/10 text-white border-white/20">
-            Sign In
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={login} variant="outline" className="bg-white/10 text-white border-white/20">
+              Connect Wallet
+            </Button>
+            <Button onClick={continueAsGuest} variant="ghost" className="text-white hover:bg-white/10">
+              Guest
+            </Button>
+          </div>
         </nav>
       </header>
 
@@ -33,10 +38,10 @@ export default function LandingPage() {
         </p>
         <div className="flex gap-4 justify-center">
           <Button onClick={login} size="lg" className="bg-yellow-400 text-black hover:bg-yellow-500">
-            Start Creating
+            Connect Wallet & Create
           </Button>
-          <Button variant="outline" size="lg" className="text-white border-white/20">
-            Watch Demo
+          <Button onClick={continueAsGuest} variant="outline" size="lg" className="text-white border-white/20">
+            Continue as Guest
           </Button>
         </div>
       </section>

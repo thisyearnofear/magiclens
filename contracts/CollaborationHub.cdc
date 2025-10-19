@@ -5,8 +5,8 @@
 // access control, and contribution tracking
 
 import ARAssetNFT from "./ARAssetNFT.cdc"
-import FungibleToken from 0x9a0766d93b6608b7
-import FlowToken from 0x7e60df042a9c0868
+import FungibleToken from 0xf8d6e0586b0a20c7
+import FlowToken from 0xf8d6e0586b0a20c7
 
 pub contract CollaborationHub {
 
@@ -19,43 +19,43 @@ pub contract CollaborationHub {
     pub event ProjectCompleted(projectId: UInt64, completedAt: UFix64)
 
     // Storage paths
-    pub let ProjectStoragePath: StoragePath
-    pub let ProjectPublicPath: PublicPath
+    access(all) let ProjectStoragePath: StoragePath
+    access(all) let ProjectPublicPath: PublicPath
 
     // Total projects created
-    pub var totalProjects: UInt64
+    access(all) var totalProjects: UInt64
 
     // Collaborator Roles
-    pub enum Role: UInt8 {
-        pub case owner
-        pub case editor
-        pub case contributor
-        pub case viewer
+    access(all) enum Role: UInt8 {
+        access(all) case owner
+        access(all) case editor
+        access(all) case contributor
+        access(all) case viewer
     }
 
     // Contribution Types
-    pub enum ContributionType: UInt8 {
-        pub case videoUpload
-        pub case assetCreation
-        pub case overlayDesign
-        pub case editing
-        pub case review
+    access(all) enum ContributionType: UInt8 {
+        access(all) case videoUpload
+        access(all) case assetCreation
+        access(all) case overlayDesign
+        access(all) case editing
+        access(all) case review
     }
 
     // Project Status
-    pub enum ProjectStatus: UInt8 {
-        pub case active
-        pub case completed
-        pub case archived
+    access(all) enum ProjectStatus: UInt8 {
+        access(all) case active
+        access(all) case completed
+        access(all) case archived
     }
 
     // Collaborator Info
-    pub struct CollaboratorInfo {
-        pub let address: Address
-        pub let role: Role
-        pub let sharePercentage: UFix64  // Revenue share (0.0 to 100.0)
-        pub var contributionCount: UInt64
-        pub let joinedAt: UFix64
+    access(all) struct CollaboratorInfo {
+        access(all) let address: Address
+        access(all) let role: Role
+        access(all) let sharePercentage: UFix64  // Revenue share (0.0 to 100.0)
+        access(all) var contributionCount: UInt64
+        access(all) let joinedAt: UFix64
 
         init(address: Address, role: Role, sharePercentage: UFix64) {
             self.address = address
@@ -65,18 +65,18 @@ pub contract CollaborationHub {
             self.joinedAt = getCurrentBlock().timestamp
         }
 
-        pub fun incrementContributions() {
+        access(all) fun incrementContributions() {
             self.contributionCount = self.contributionCount + 1
         }
     }
 
     // Contribution Record
-    pub struct Contribution {
-        pub let contributor: Address
-        pub let contributionType: ContributionType
-        pub let description: String
-        pub let timestamp: UFix64
-        pub let metadata: {String: AnyStruct}
+    access(all) struct Contribution {
+        access(all) let contributor: Address
+        access(all) let contributionType: ContributionType
+        access(all) let description: String
+        access(all) let timestamp: UFix64
+        access(all) let metadata: {String: AnyStruct}
 
         init(
             contributor: Address,
@@ -93,18 +93,18 @@ pub contract CollaborationHub {
     }
 
     // Project Resource
-    pub resource Project {
-        pub let id: UInt64
-        pub let name: String
-        pub let description: String
-        pub let creator: Address
-        pub var status: ProjectStatus
-        pub let collaborators: {Address: CollaboratorInfo}
-        pub let contributions: [Contribution]
-        pub let assetIds: [UInt64]  // AR Asset NFT IDs used in project
-        pub var totalRevenue: UFix64
-        pub let createdAt: UFix64
-        pub var completedAt: UFix64?
+    access(all) resource Project {
+        access(all) let id: UInt64
+        access(all) let name: String
+        access(all) let description: String
+        access(all) let creator: Address
+        access(all) var status: ProjectStatus
+        access(all) let collaborators: {Address: CollaboratorInfo}
+        access(all) let contributions: [Contribution]
+        access(all) let assetIds: [UInt64]  // AR Asset NFT IDs used in project
+        access(all) var totalRevenue: UFix64
+        access(all) let createdAt: UFix64
+        access(all) var completedAt: UFix64?
 
         init(
             id: UInt64,
@@ -133,7 +133,7 @@ pub contract CollaborationHub {
         }
 
         // Add collaborator to project
-        pub fun addCollaborator(
+        access(all) fun addCollaborator(
             address: Address,
             role: Role,
             sharePercentage: UFix64
@@ -162,7 +162,7 @@ pub contract CollaborationHub {
         }
 
         // Remove collaborator
-        pub fun removeCollaborator(address: Address) {
+        access(all) fun removeCollaborator(address: Address) {
             pre {
                 self.collaborators[address] != nil: "Collaborator does not exist"
                 address != self.creator: "Cannot remove project creator"
@@ -173,7 +173,7 @@ pub contract CollaborationHub {
         }
 
         // Record contribution
-        pub fun recordContribution(
+        access(all) fun recordContribution(
             contributor: Address,
             contributionType: ContributionType,
             description: String,
@@ -202,7 +202,7 @@ pub contract CollaborationHub {
         }
 
         // Add AR asset to project
-        pub fun addAsset(assetId: UInt64) {
+        access(all) fun addAsset(assetId: UInt64) {
             pre {
                 self.status == ProjectStatus.active: "Project is not active"
             }
@@ -210,7 +210,7 @@ pub contract CollaborationHub {
         }
 
         // Distribute revenue to collaborators
-        pub fun distributeRevenue(amount: UFix64, vault: @FungibleToken.Vault) {
+        access(all) fun distributeRevenue(amount: UFix64, vault: @FungibleToken.Vault) {
             pre {
                 vault.balance == amount: "Vault balance does not match amount"
             }
@@ -236,7 +236,7 @@ pub contract CollaborationHub {
         }
 
         // Complete project
-        pub fun complete() {
+        access(all) fun complete() {
             pre {
                 self.status == ProjectStatus.active: "Project is not active"
             }
@@ -247,7 +247,7 @@ pub contract CollaborationHub {
         }
 
         // Get total share percentage
-        pub fun getTotalSharePercentage(): UFix64 {
+        access(all) fun getTotalSharePercentage(): UFix64 {
             var total: UFix64 = 0.0
             for collaborator in self.collaborators.values {
                 total = total + collaborator.sharePercentage
@@ -256,17 +256,17 @@ pub contract CollaborationHub {
         }
 
         // Check if address is collaborator
-        pub fun isCollaborator(address: Address): Bool {
+        access(all) fun isCollaborator(address: Address): Bool {
             return self.collaborators[address] != nil
         }
 
         // Get collaborator role
-        pub fun getCollaboratorRole(address: Address): Role? {
+        access(all) fun getCollaboratorRole(address: Address): Role? {
             return self.collaborators[address]?.role
         }
 
         // Get project statistics
-        pub fun getStats(): {String: AnyStruct} {
+        access(all) fun getStats(): {String: AnyStruct} {
             return {
                 "totalCollaborators": self.collaborators.length,
                 "totalContributions": self.contributions.length,
@@ -278,21 +278,21 @@ pub contract CollaborationHub {
     }
 
     // Project Manager Interface
-    pub resource interface ProjectManagerPublic {
-        pub fun getProjectIDs(): [UInt64]
-        pub fun borrowProject(id: UInt64): &Project?
+    access(all) resource interface ProjectManagerPublic {
+        access(all) fun getProjectIDs(): [UInt64]
+        access(all) fun borrowProject(id: UInt64): &Project?
     }
 
     // Project Manager Resource
-    pub resource ProjectManager: ProjectManagerPublic {
-        pub var projects: @{UInt64: Project}
+    access(all) resource ProjectManager: ProjectManagerPublic {
+        access(all) var projects: @{UInt64: Project}
 
         init() {
             self.projects <- {}
         }
 
         // Create new project
-        pub fun createProject(
+        access(all) fun createProject(
             name: String,
             description: String
         ): UInt64 {
@@ -313,17 +313,17 @@ pub contract CollaborationHub {
         }
 
         // Get all project IDs
-        pub fun getProjectIDs(): [UInt64] {
+        access(all) fun getProjectIDs(): [UInt64] {
             return self.projects.keys
         }
 
         // Borrow project reference
-        pub fun borrowProject(id: UInt64): &Project? {
+        access(all) fun borrowProject(id: UInt64): &Project? {
             return &self.projects[id] as &Project?
         }
 
         // Get projects by collaborator
-        pub fun getProjectsByCollaborator(address: Address): [UInt64] {
+        access(all) fun getProjectsByCollaborator(address: Address): [UInt64] {
             let projectIds: [UInt64] = []
             for id in self.projects.keys {
                 if let project = &self.projects[id] as &Project? {
@@ -341,7 +341,7 @@ pub contract CollaborationHub {
     }
 
     // Create empty project manager
-    pub fun createProjectManager(): @ProjectManager {
+    access(all) fun createProjectManager(): @ProjectManager {
         return <- create ProjectManager()
     }
 

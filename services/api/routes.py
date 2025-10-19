@@ -4,7 +4,7 @@
 ##############################################################################
 
 
-from fastapi import FastAPI, HTTPException, Request, status, Body, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, status, Body, UploadFile, File, Form, Depends
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import HTMLResponse, Response
@@ -12,6 +12,7 @@ from starlette.responses import HTMLResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse, Response
 from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel
 
 import sys
 import os
@@ -34,6 +35,38 @@ import uuid
 
 from api.utils import get_swagger_ui_html
 from core.user import User
+
+class FlowLoginRequest(BaseModel):
+    wallet_address: str
+    signature: str
+    message: str
+
+class FlowLoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+def get_current_user(request: Request):
+    """Get current user from JWT token in Authorization header."""
+    from core.auth import get_current_user_from_token
+    
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        raise HTTPException(status_code=401, detail="Authorization header missing")
+    
+    try:
+        # Expected format: "Bearer <token>"
+        token_type, token = auth_header.split()
+        if token_type.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid token type")
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid authorization header format")
+    
+    user = get_current_user_from_token(token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    return user
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
@@ -143,6 +176,32 @@ app = FastAPI(
     title="Everyday Magic Video",
     docs_url=None
 )
+
+@app.post('/api/auth/flow/login', response_model=FlowLoginResponse)
+async def flow_login(request: FlowLoginRequest):
+    """Login with Flow wallet and get JWT token."""
+    from core.auth import create_access_token
+    from core.flow_service import flow_service
+    
+    try:
+        # Verify the signature using Flow service
+        is_valid = flow_service.verify_signature(
+            request.wallet_address, 
+            request.message, 
+            request.signature
+        )
+        
+        if not is_valid:
+            raise HTTPException(status_code=401, detail="Invalid signature")
+        
+        # Create token
+        token = create_access_token(request.wallet_address)
+        
+        return FlowLoginResponse(access_token=token)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Invalid signature: {str(e)}")
 
 # Include Flow blockchain routes
 app.include_router(flow_router)
@@ -269,7 +328,7 @@ async def custom_swagger_ui_html():
 
 
 @app.post('/api/user_service/create_user_profile', response_model=CreateUserProfileOutputSchema, operation_id='user_service_create_user_profile')
-async def user_service_create_user_profile(avatar: Optional[UploadFile] = File(None), bio: Optional[str] = Form(None), user_type: str = Form(...), username: str = Form(...)) -> CreateUserProfileOutputSchema:
+async def user_service_create_user_profile(avatar: Optional[UploadFile] = File(None), bio: Optional[str] = Form(None), user_type: str = Form(...), username: str = Form(...), current_user: User = Depends(get_current_user)) -> CreateUserProfileOutputSchema:
     """
     Create a new user profile with username and user type.
     """
@@ -280,7 +339,7 @@ async def user_service_create_user_profile(avatar: Optional[UploadFile] = File(N
         file_size = len(contents)
         avatar = MediaFile(size=file_size, mime_type=content_type, bytes=contents)
 
-    response = await run_sync_in_thread(user_service.create_user_profile,  username=username, user_type=user_type, bio=bio, avatar=avatar)
+    response = await run_sync_in_thread(user_service.create_user_profile, user=current_user, username=username, user_type=user_type, bio=bio, avatar=avatar)
     return response
     
     
@@ -291,7 +350,7 @@ async def user_service_create_user_profile(avatar: Optional[UploadFile] = File(N
 @app.post('/api/user_service/get_user_profile', response_model=GetUserProfileOutputSchema, operation_id='user_service_get_user_profile')
 async def user_service_get_user_profile(current_user: User = Depends(get_current_user)) -> GetUserProfileOutputSchema:
     """
-    Get the current user&#39;s profile.
+    Get the current user's profile.
     """
     response = await run_sync_in_thread(user_service.get_user_profile, user=current_user)
     return response

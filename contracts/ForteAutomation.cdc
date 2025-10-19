@@ -5,7 +5,7 @@
 // for scheduled publishing, royalty distribution, and collaboration triggers
 
 import ARAssetNFT from "./ARAssetNFT.cdc"
-import FungibleToken from 0x9a0766d93b6608b7
+import FungibleToken from 0xf8d6e0586b0a20c7
 
 pub contract ForteAutomation {
 
@@ -17,48 +17,48 @@ pub contract ForteAutomation {
     pub event ContentPublished(contentId: String, publishedAt: UFix64)
 
     // Storage paths
-    pub let WorkflowStoragePath: StoragePath
-    pub let WorkflowPublicPath: PublicPath
+    access(all) let WorkflowStoragePath: StoragePath
+    access(all) let WorkflowPublicPath: PublicPath
 
     // Total workflows created
-    pub var totalWorkflows: UInt64
+    access(all) var totalWorkflows: UInt64
 
     // Workflow Types
-    pub enum WorkflowType: UInt8 {
-        pub case scheduledPublishing
-        pub case royaltyDistribution
-        pub case collaborationNotification
-        pub case contentModeration
+    access(all) enum WorkflowType: UInt8 {
+        access(all) case scheduledPublishing
+        access(all) case royaltyDistribution
+        access(all) case collaborationNotification
+        access(all) case contentModeration
     }
 
     // Action Types (Reusable operations)
-    pub enum ActionType: UInt8 {
-        pub case mintARAsset
-        pub case applyOverlay
-        pub case shareRevenue
-        pub case licenseAsset
-        pub case notifyCollaborators
-        pub case publishContent
+    access(all) enum ActionType: UInt8 {
+        access(all) case mintARAsset
+        access(all) case applyOverlay
+        access(all) case shareRevenue
+        access(all) case licenseAsset
+        access(all) case notifyCollaborators
+        access(all) case publishContent
     }
 
     // Trigger Types
-    pub enum TriggerType: UInt8 {
-        pub case timeBased       // Execute at specific time
-        pub case eventBased      // Execute on blockchain event
-        pub case conditionBased  // Execute when condition met
+    access(all) enum TriggerType: UInt8 {
+        access(all) case timeBased       // Execute at specific time
+        access(all) case eventBased      // Execute on blockchain event
+        access(all) case conditionBased  // Execute when condition met
     }
 
     // Workflow Configuration
-    pub struct WorkflowConfig {
-        pub let workflowType: WorkflowType
-        pub let triggerType: TriggerType
-        pub let actions: [ActionType]
-        pub let schedule: UFix64?  // Unix timestamp for time-based triggers
-        pub let conditions: {String: AnyStruct}  // Conditions for execution
-        pub let parameters: {String: AnyStruct}  // Workflow parameters
-        pub var isActive: Bool
-        pub var executionCount: UInt64
-        pub let createdAt: UFix64
+    access(all) struct WorkflowConfig {
+        access(all) let workflowType: WorkflowType
+        access(all) let triggerType: TriggerType
+        access(all) let actions: [ActionType]
+        access(all) let schedule: UFix64?  // Unix timestamp for time-based triggers
+        access(all) let conditions: {String: AnyStruct}  // Conditions for execution
+        access(all) let parameters: {String: AnyStruct}  // Workflow parameters
+        access(all) var isActive: Bool
+        access(all) var executionCount: UInt64
+        access(all) let createdAt: UFix64
 
         init(
             workflowType: WorkflowType,
@@ -79,25 +79,25 @@ pub contract ForteAutomation {
             self.createdAt = getCurrentBlock().timestamp
         }
 
-        pub fun incrementExecution() {
+        access(all) fun incrementExecution() {
             self.executionCount = self.executionCount + 1
         }
 
-        pub fun deactivate() {
+        access(all) fun deactivate() {
             self.isActive = false
         }
 
-        pub fun activate() {
+        access(all) fun activate() {
             self.isActive = true
         }
     }
 
     // Workflow Resource
-    pub resource Workflow {
-        pub let id: UInt64
-        pub let creator: Address
-        pub let config: WorkflowConfig
-        pub var lastExecuted: UFix64?
+    access(all) resource Workflow {
+        access(all) let id: UInt64
+        access(all) let creator: Address
+        access(all) let config: WorkflowConfig
+        access(all) var lastExecuted: UFix64?
 
         init(
             id: UInt64,
@@ -111,7 +111,7 @@ pub contract ForteAutomation {
         }
 
         // Execute workflow if conditions are met
-        pub fun execute(): Bool {
+        access(all) fun execute(): Bool {
             if !self.config.isActive {
                 return false
             }
@@ -205,21 +205,21 @@ pub contract ForteAutomation {
     }
 
     // Workflow Manager Interface
-    pub resource interface WorkflowManagerPublic {
-        pub fun getWorkflowIDs(): [UInt64]
-        pub fun borrowWorkflow(id: UInt64): &Workflow?
+    access(all) resource interface WorkflowManagerPublic {
+        access(all) fun getWorkflowIDs(): [UInt64]
+        access(all) fun borrowWorkflow(id: UInt64): &Workflow?
     }
 
     // Workflow Manager Resource
-    pub resource WorkflowManager: WorkflowManagerPublic {
-        pub var workflows: @{UInt64: Workflow}
+    access(all) resource WorkflowManager: WorkflowManagerPublic {
+        access(all) var workflows: @{UInt64: Workflow}
 
         init() {
             self.workflows <- {}
         }
 
         // Create new workflow
-        pub fun createWorkflow(
+        access(all) fun createWorkflow(
             workflowType: WorkflowType,
             triggerType: TriggerType,
             actions: [ActionType],
@@ -256,7 +256,7 @@ pub contract ForteAutomation {
         }
 
         // Execute workflow by ID
-        pub fun executeWorkflow(id: UInt64): Bool {
+        access(all) fun executeWorkflow(id: UInt64): Bool {
             if let workflow = &self.workflows[id] as &Workflow? {
                 return workflow.execute()
             }
@@ -264,24 +264,24 @@ pub contract ForteAutomation {
         }
 
         // Get all workflow IDs
-        pub fun getWorkflowIDs(): [UInt64] {
+        access(all) fun getWorkflowIDs(): [UInt64] {
             return self.workflows.keys
         }
 
         // Borrow workflow reference
-        pub fun borrowWorkflow(id: UInt64): &Workflow? {
+        access(all) fun borrowWorkflow(id: UInt64): &Workflow? {
             return &self.workflows[id] as &Workflow?
         }
 
         // Deactivate workflow
-        pub fun deactivateWorkflow(id: UInt64) {
+        access(all) fun deactivateWorkflow(id: UInt64) {
             if let workflow = &self.workflows[id] as &Workflow? {
                 workflow.config.deactivate()
             }
         }
 
         // Activate workflow
-        pub fun activateWorkflow(id: UInt64) {
+        access(all) fun activateWorkflow(id: UInt64) {
             if let workflow = &self.workflows[id] as &Workflow? {
                 workflow.config.activate()
             }
@@ -293,14 +293,14 @@ pub contract ForteAutomation {
     }
 
     // Create empty workflow manager
-    pub fun createWorkflowManager(): @WorkflowManager {
+    access(all) fun createWorkflowManager(): @WorkflowManager {
         return <- create WorkflowManager()
     }
 
     // Helper Functions for Common Workflows
 
     // Create scheduled publishing workflow
-    pub fun createScheduledPublishingWorkflow(
+    access(all) fun createScheduledPublishingWorkflow(
         manager: &WorkflowManager,
         contentId: String,
         publishTime: UFix64
@@ -320,7 +320,7 @@ pub contract ForteAutomation {
     }
 
     // Create royalty distribution workflow
-    pub fun createRoyaltyDistributionWorkflow(
+    access(all) fun createRoyaltyDistributionWorkflow(
         manager: &WorkflowManager,
         assetId: UInt64,
         amount: UFix64,
@@ -343,7 +343,7 @@ pub contract ForteAutomation {
     }
 
     // Create collaboration notification workflow
-    pub fun createCollaborationWorkflow(
+    access(all) fun createCollaborationWorkflow(
         manager: &WorkflowManager,
         projectId: String,
         milestoneConditions: {String: AnyStruct}

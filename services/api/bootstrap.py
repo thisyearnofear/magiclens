@@ -4,6 +4,13 @@ from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
+# Initialize database
+try:
+    from core.database import init_db
+    init_db()
+except Exception as e:
+    print(f"Warning: Failed to initialize database: {e}")
+
 Path("../logs").mkdir(exist_ok=True)
 
 def report(exc_type, exc_val, exc_tb):

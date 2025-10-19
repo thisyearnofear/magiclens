@@ -4,8 +4,8 @@
 export const FLOW_NETWORKS = {
   emulator: {
     accessNode: 'http://localhost:8888',
-    discoveryWallet: 'http://localhost:8701/fcl/authn',
-    discoveryAuthnEndpoint: 'http://localhost:8701/fcl/authn',
+    discoveryWallet: 'https://fcl-discovery.onflow.org/testnet/authn', // Use testnet discovery for local dev
+    discoveryAuthnEndpoint: 'https://fcl-discovery.onflow.org/api/testnet/authn',
   },
   testnet: {
     accessNode: 'https://rest-testnet.onflow.org',

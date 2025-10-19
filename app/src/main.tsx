@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import Router from './components/Router'
 import SystemErrorBoundary from './SystemErrorBoundary'
@@ -14,10 +15,12 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SystemErrorBoundary viewName="App">
       <ThemeProvider>
-        <AuthProvider>
-          <Router />
-          <Toaster />
-        </AuthProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <Router />
+            <Toaster />
+          </AuthProvider>
+        </BrowserRouter>
       </ThemeProvider>
     </SystemErrorBoundary>
   </StrictMode>,

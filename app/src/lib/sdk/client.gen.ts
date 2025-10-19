@@ -2,4 +2,20 @@
 
 import { createClient, createConfig } from '@hey-api/client-fetch';
 
-export const client = createClient(createConfig());
+// Custom middleware to add JWT token to requests
+const authMiddleware = {
+  onRequest: (request: Request) => {
+    const token = localStorage.getItem('magiclens_token');
+    if (token) {
+      request.headers.set('Authorization', `Bearer ${token}`);
+    }
+    return request;
+  },
+};
+
+export const client = createClient(
+  createConfig({
+    baseUrl: '', // Will use relative paths
+    middleware: [authMiddleware],
+  })
+);

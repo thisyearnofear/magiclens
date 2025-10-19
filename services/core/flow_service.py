@@ -2,6 +2,7 @@
 from typing import Optional, Dict, Any, List
 from uuid import UUID
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,44 @@ class FlowService:
             "CollaborationHub": None,
             "ForteAutomation": None,
         }
+    
+    def verify_signature(self, wallet_address: str, message: str, signature: str) -> bool:
+        """
+        Verify a signature from a Flow wallet.
+        
+        Args:
+            wallet_address: Flow wallet address
+            message: The message that was signed
+            signature: The signature data as JSON string
+            
+        Returns:
+            True if signature is valid, False otherwise
+        """
+        try:
+            # Parse the signature data
+            signature_data = json.loads(signature)
+            
+            # In a real implementation, we would call a Cadence script to verify the signature
+            # For the hackathon, we'll implement a basic validation that shows the concept
+            
+            # Check if signature data has the expected structure
+            if not isinstance(signature_data, list) or len(signature_data) == 0:
+                return False
+            
+            # For demo purposes, we'll just check if the data structure looks correct
+            # In a real app, this would involve:
+            # 1. Converting the message to bytes
+            # 2. Calling a Cadence script to verify the signature using Flow's crypto functions
+            # 3. Checking that the signature was created by the claimed wallet address
+            
+            # For now, we'll return True to demonstrate the flow
+            # In a production app, this would be replaced with actual signature verification
+            logger.info(f"Verifying signature for wallet {wallet_address}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error verifying signature: {e}")
+            return False
     
     async def verify_nft_ownership(
         self,

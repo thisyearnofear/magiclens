@@ -1,34 +1,45 @@
-# MagicLens Backend
+# MagicLens Backend Services
 
-This is the backend for the MagicLens application, a Python-based microservices architecture built with FastAPI.
+This directory contains the Python-based backend microservices for MagicLens, built with FastAPI.
 
-## Architecture
+## 📚 Documentation
 
-The backend is composed of several microservices, each responsible for a specific domain:
+See the main project documentation in the root [README.md](../README.md) and detailed docs in the [docs/](../docs) directory:
 
-- **`user_service`:** Manages user profiles (Web3 wallet-based)
-- **`video_service`:** Handles video uploading, processing, and management
-- **`asset_service`:** Manages AR assets
-- **`collaboration_service`:** Powers the collaborative workspace
-- **`render_service`:** Manages video rendering jobs
-- **`recommendation_engine`:** Provides AI-powered recommendations
-- **`ai_analysis_service`:** Analyzes videos for AR overlay suggestions
+- [API Documentation](../docs/API_DOCS.md) - API endpoints and usage
+- [Flow Integration](../docs/FLOW_INTEGRATION_README.md) - Blockchain integration details
 
-## Authentication
+## 🚀 Quick Start
 
-The backend is designed to work with Web3 on-chain authentication. Traditional JWT-based authentication has been removed in favor of a decentralized approach where users authenticate using their blockchain wallet signatures.
+```bash
+# Install dependencies
+pip install -r requirements.txt
+pip install pyjwt
 
-## Getting Started
+# Run the server
+python main.py
+```
 
-1.  Install the Python dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-2.  Run the backend server:
-    ```bash
-    uvicorn main:app --reload
-    ```
+## 🏗️ Services
 
-## API Documentation
+- **user_service** - User profiles with Flow authentication
+- **video_service** - Video management and processing
+- **asset_service** - AR asset management
+- **collaboration_service** - Collaborative workspace
+- **render_service** - Video rendering jobs
+- **recommendation_engine** - AI-powered suggestions
+- **ai_analysis_service** - Video content analysis
+- **flow_service** - Flow blockchain integration
 
-Once the server is running, visit `/docs` for interactive API documentation powered by Swagger UI.
+## 🗄️ Database
+
+- **PostgreSQL** with user_profiles, videos, and artist_assets tables
+- Automatic table creation on startup
+
+## 🔐 Authentication
+
+JWT-based authentication with Flow wallet signature verification.
+
+## 📄 License
+
+MIT License - see [LICENSE](../LICENSE) for details.
