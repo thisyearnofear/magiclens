@@ -16,6 +16,7 @@ htmlcov/
 
 # Flow private keys (IMPORTANT!)
 flow.json.backup
+flow.json
 *_private_key*
 *.pkey
 

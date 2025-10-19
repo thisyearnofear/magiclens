@@ -83,6 +83,13 @@ export default defineConfig(({ mode }) => {
       headers: {
         "Access-Control-Allow-Origin": "*",
       },
+      proxy: {
+        '/api': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+          secure: false,
+        }
+      }
     },
     customLogger: isProd ? undefined : preTransformLogger(createLogger(), '../logs/vite.log')
   }

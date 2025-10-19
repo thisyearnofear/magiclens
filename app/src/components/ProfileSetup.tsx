@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { userServiceCreateUserProfile } from '@/lib/sdk';
@@ -8,11 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Upload, User, Camera, Palette } from 'lucide-react';
+import { Upload, User, Camera, Palette, Zap, AlertCircle } from 'lucide-react';
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user, isGuest } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -20,6 +20,13 @@ export default function ProfileSetup() {
     bio: '',
     avatar: null as File | null
   });
+
+  // Redirect guest users to dashboard since they can't create profiles
+  useEffect(() => {
+    if (isGuest) {
+      navigate('/dashboard');
+    }
+  }, [isGuest, navigate]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,19 +40,31 @@ export default function ProfileSetup() {
     setLoading(true);
 
     try {
-      // For now, just store profile data locally and proceed
-      // TODO: Connect to backend when auth is fully integrated
-      const profileData = {
-        username: formData.username,
-        user_type: formData.userType,
-        bio: formData.bio || null,
-        avatar: formData.avatar?.name || null,
-        created_at: new Date().toISOString()
-      };
+      // For guest users, just redirect to dashboard
+      if (isGuest) {
+        navigate('/dashboard');
+        return;
+      }
+
+      // For authenticated users, create profile
+      const formDataToSend = new FormData();
+      formDataToSend.append('username', formData.username);
+      formDataToSend.append('user_type', formData.userType);
+      formDataToSend.append('bio', formData.bio || '');
       
-      localStorage.setItem('magiclens_profile', JSON.stringify(profileData));
-      console.log('Profile created locally:', profileData);
-      
+      if (formData.avatar) {
+        formDataToSend.append('avatar', formData.avatar);
+      }
+
+      const response = await userServiceCreateUserProfile({
+        body: formDataToSend
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create profile');
+      }
+
+      console.log('Profile created successfully:', response.data);
       navigate('/dashboard');
     } catch (error) {
       console.error('Profile creation error:', error);
@@ -54,6 +73,11 @@ export default function ProfileSetup() {
       setLoading(false);
     }
   };
+
+  // Don't render for guest users
+  if (isGuest) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
@@ -67,6 +91,19 @@ export default function ProfileSetup() {
           </CardHeader>
 
           <CardContent>
+            <div className="mb-6 p-4 rounded-lg bg-blue-500/20 border border-blue-500/30">
+              <div className="flex items-start space-x-3">
+                <Zap className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="text-white font-medium">Connected with Flow Wallet</h4>
+                  <p className="text-gray-300 text-sm mt-1">
+                    Your profile will be permanently linked to your Flow wallet address: 
+                    <span className="font-mono text-xs block mt-1">{user.addr}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Username */}
               <div className="space-y-2">

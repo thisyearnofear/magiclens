@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Palette, Users, Zap } from 'lucide-react';
+import { Check, Upload, Users, X, Zap, Play, Palette, TrendingUp } from 'lucide-react';
 
 export default function LandingPage() {
   const { login, continueAsGuest } = useAuthContext();
@@ -43,6 +43,105 @@ export default function LandingPage() {
           <Button onClick={continueAsGuest} variant="outline" size="lg" className="text-white border-white/20">
             Continue as Guest
           </Button>
+        </div>
+      </section>
+
+      {/* Value Proposition Section */}
+      <section className="container mx-auto px-4 py-20">
+        <h3 className="text-4xl font-bold text-white text-center mb-16">Why Connect Your Flow Wallet?</h3>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all">
+            <CardHeader>
+              <div className="p-3 bg-blue-500/20 rounded-full w-fit">
+                <Upload className="h-8 w-8 text-blue-400" />
+              </div>
+              <CardTitle className="text-white mt-4">Full Creative Control</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-gray-300">
+                Upload your videos and assets, collaborate with other creators, and build your portfolio 
+                on the Flow blockchain.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all">
+            <CardHeader>
+              <div className="p-3 bg-green-500/20 rounded-full w-fit">
+                <Users className="h-8 w-8 text-green-400" />
+              </div>
+              <CardTitle className="text-white mt-4">Earn From Your Work</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-gray-300">
+                Get paid for collaborations, receive tips from viewers, and participate in the creator economy.
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all">
+            <CardHeader>
+              <div className="p-3 bg-purple-500/20 rounded-full w-fit">
+                <Zap className="h-8 w-8 text-purple-400" />
+              </div>
+              <CardTitle className="text-white mt-4">Own Your Creations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="text-gray-300">
+                Mint your AR assets as NFTs, maintain ownership of your intellectual property, 
+                and build lasting value.
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="bg-gradient-to-r from-yellow-400/20 to-purple-400/20 rounded-3xl p-8 text-center max-w-4xl mx-auto">
+          <h4 className="text-2xl font-bold text-white mb-4">Guest Mode vs Full Access</h4>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <h5 className="text-lg font-semibold text-yellow-400 mb-3">Guest Mode</h5>
+              <ul className="text-gray-300 text-left space-y-2">
+                <li className="flex items-start">
+                  <X className="h-4 w-4 text-red-400 mt-1 mr-2 flex-shrink-0" />
+                  No uploads or publishing
+                </li>
+                <li className="flex items-start">
+                  <X className="h-4 w-4 text-red-400 mt-1 mr-2 flex-shrink-0" />
+                  No earnings or payments
+                </li>
+                <li className="flex items-start">
+                  <X className="h-4 w-4 text-red-400 mt-1 mr-2 flex-shrink-0" />
+                  No profile or portfolio
+                </li>
+                <li className="flex items-start">
+                  <X className="h-4 w-4 text-red-400 mt-1 mr-2 flex-shrink-0" />
+                  No collaboration features
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="text-lg font-semibold text-green-400 mb-3">Connected Wallet</h5>
+              <ul className="text-gray-300 text-left space-y-2">
+                <li className="flex items-start">
+                  <Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />
+                  Full upload and publishing access
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />
+                  Earn from collaborations and tips
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />
+                  Persistent profile and portfolio
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />
+                  Advanced collaboration tools
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -89,9 +188,14 @@ export default function LandingPage() {
           <p className="text-xl text-gray-300 mb-8">
             Join the community of creators bringing wonder to everyday moments.
           </p>
-          <Button onClick={login} size="lg" className="bg-yellow-400 text-black hover:bg-yellow-500">
-            Get Started Now
-          </Button>
+          <div className="flex gap-4 justify-center">
+            <Button onClick={login} size="lg" className="bg-yellow-400 text-black hover:bg-yellow-500">
+              Get Started Now
+            </Button>
+            <Button onClick={continueAsGuest} variant="outline" size="lg" className="text-white border-white/20">
+              Explore as Guest
+            </Button>
+          </div>
         </div>
       </section>
 

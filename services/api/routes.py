@@ -40,6 +40,7 @@ class FlowLoginRequest(BaseModel):
     wallet_address: str
     signature: str
     message: str
+    message_hex: Optional[str] = None
 
 class FlowLoginResponse(BaseModel):
     access_token: str

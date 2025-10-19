@@ -27,6 +27,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const flowAuth = useFlowAuth();
   const [tokenValid, setTokenValid] = useState(true);
 
+  // Log the flowAuth values for debugging
+  useEffect(() => {
+    console.log('AuthProvider - flowAuth values:', flowAuth);
+  }, [flowAuth]);
+
   // Add login alias for connectWallet
   const authValue = {
     ...flowAuth,

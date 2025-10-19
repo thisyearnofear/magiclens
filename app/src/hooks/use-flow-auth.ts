@@ -34,14 +34,23 @@ export function useFlowAuth() {
   }, []);
 
   const loginToBackend = useCallback(async (walletAddress: string) => {
+    console.log('loginToBackend called with walletAddress:', walletAddress);
     try {
       // Create a message to sign
       const message = `MagicLens Login Request\nWallet: ${walletAddress}\nTimestamp: ${Date.now()}`;
       
+      // Convert message to hex string as required by Flow FCL (browser-compatible)
+      const messageHex = Array.from(new TextEncoder().encode(message))
+        .map(byte => byte.toString(16).padStart(2, '0'))
+        .join('');
+      
+      console.log('Requesting signature for message:', message);
       // Request signature from the wallet
-      const signature = await fcl.currentUser.signUserMessage(message);
+      const signature = await fcl.currentUser.signUserMessage(messageHex);
+      console.log('Received signature:', signature);
       
       // Send wallet address and signature to backend
+      console.log('Sending login request to backend');
       const response = await fetch('/api/auth/flow/login', {
         method: 'POST',
         headers: {
@@ -50,15 +59,18 @@ export function useFlowAuth() {
         body: JSON.stringify({
           wallet_address: walletAddress,
           signature: JSON.stringify(signature), // Send the actual signature
-          message: message, // Send the message that was signed
+          message: message, // Send the original message (not hex) for backend verification
+          message_hex: messageHex, // Send hex version for reference
         }),
       });
+      console.log('Login response status:', response.status);
 
       if (!response.ok) {
         throw new Error('Failed to login to backend');
       }
 
       const data = await response.json();
+      console.log('Login response data:', data);
       
       // Store the JWT token in localStorage
       localStorage.setItem('magiclens_token', data.access_token);
@@ -86,11 +98,16 @@ export function useFlowAuth() {
 
   // Update the subscription to automatically login to backend
   useEffect(() => {
+    console.log('useFlowAuth - user state changed:', user, 'isGuest:', isGuest);
+    console.log('Checking conditions - user.loggedIn:', user.loggedIn, 'user.addr:', user.addr);
     if (user.loggedIn && user.addr) {
+      console.log('Conditions met, calling loginToBackend with:', user.addr);
       // Login to backend when Flow authentication is successful
       loginToBackend(user.addr);
+    } else {
+      console.log('Conditions not met - not calling loginToBackend');
     }
-  }, [user.loggedIn, user.addr, loginToBackend]);
+  }, [user.loggedIn, user.addr, loginToBackend, user, isGuest]);
 
   const disconnectWallet = useCallback(async () => {
     try {
@@ -105,6 +122,7 @@ export function useFlowAuth() {
   }, []);
 
   const continueAsGuest = useCallback(() => {
+    console.log('Setting isGuest to true');
     setIsGuest(true);
     setIsLoading(false);
   }, []);

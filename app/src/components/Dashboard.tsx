@@ -19,8 +19,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadDashboardData = async () => {
+      console.log('Dashboard loading - isGuest:', isGuest);
+      
       // If user is a guest, show demo mode
       if (isGuest) {
+        console.log('Loading guest mode dashboard');
         setLoading(false);
         // Set a demo profile for guest users
         setProfile({
@@ -37,9 +40,15 @@ export default function Dashboard() {
         return;
       }
 
+      console.log('Loading authenticated user dashboard');
+
       try {
         // Load user profile
+        console.log('Calling userServiceGetUserProfile');
+        const token = localStorage.getItem('magiclens_token');
+        console.log('Token before API call:', token);
         const profileResponse = await userServiceGetUserProfile();
+        console.log('userServiceGetUserProfile response:', profileResponse);
         if (profileResponse.data) {
           setProfile(profileResponse.data);
         } else {
@@ -50,9 +59,11 @@ export default function Dashboard() {
 
         // Load recent videos
         try {
+          console.log('Calling videoServiceGetVideos');
           const videosResponse = await videoServiceGetVideos({
             body: { limit: 6, offset: 0 }
           });
+          console.log('videoServiceGetVideos response:', videosResponse);
           if (videosResponse.data) {
             setRecentVideos(videosResponse.data);
           }
@@ -64,9 +75,11 @@ export default function Dashboard() {
 
         // Load recent assets
         try {
+          console.log('Calling assetServiceGetAssets');
           const assetsResponse = await assetServiceGetAssets({
             body: { limit: 6, offset: 0 }
           });
+          console.log('assetServiceGetAssets response:', assetsResponse);
           if (assetsResponse.data) {
             setRecentAssets(assetsResponse.data);
           }
@@ -101,6 +114,7 @@ export default function Dashboard() {
 
   const isVideographer = profile.user_type === 'videographer' || profile.user_type === 'both';
   const isArtist = profile.user_type === 'artist' || profile.user_type === 'both';
+  const isGuestUser = isGuest;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -123,9 +137,22 @@ export default function Dashboard() {
               <Button variant="ghost" onClick={() => navigate('/profile')} className="text-white">
                 Profile
               </Button>
-              <Button variant="outline" onClick={logout} className="border-white/20 text-white">
-                Sign Out
-              </Button>
+              {isGuestUser ? (
+                <Button 
+                  onClick={() => {
+                    // Redirect to landing page to connect wallet
+                    window.location.href = '/';
+                  }}
+                  className="bg-yellow-400 text-black hover:bg-yellow-500 flex items-center gap-2"
+                >
+                  <User className="h-4 w-4" />
+                  Connect Wallet
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={logout} className="border-white/20 text-white">
+                  Sign Out
+                </Button>
+              )}
             </nav>
             <div className="md:hidden">
               <Sheet>
@@ -145,9 +172,22 @@ export default function Dashboard() {
                     <Button variant="ghost" onClick={() => navigate('/profile')} className="text-white">
                       Profile
                     </Button>
-                    <Button variant="outline" onClick={logout} className="border-white/20 text-white">
-                      Sign Out
-                    </Button>
+                    {isGuestUser ? (
+                      <Button 
+                        onClick={() => {
+                          // Redirect to landing page to connect wallet
+                          window.location.href = '/';
+                        }}
+                        className="bg-yellow-400 text-black hover:bg-yellow-500 flex items-center gap-2"
+                      >
+                        <User className="h-4 w-4" />
+                        Connect Wallet
+                      </Button>
+                    ) : (
+                      <Button variant="outline" onClick={logout} className="border-white/20 text-white">
+                        Sign Out
+                      </Button>
+                    )}
                   </nav>
                 </SheetContent>
               </Sheet>
@@ -157,10 +197,33 @@ export default function Dashboard() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Guest Mode Banner */}
+        {isGuestUser && (
+          <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-yellow-400/20 to-purple-400/20 border border-yellow-400/30">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white mb-1">Guest Mode</h3>
+                <p className="text-gray-300 text-sm">
+                  Explore MagicLens features. Connect your Flow wallet to unlock full platform capabilities.
+                </p>
+              </div>
+              <Button 
+                onClick={() => {
+                  // Redirect to landing page to connect wallet
+                  window.location.href = '/';
+                }}
+                className="bg-yellow-400 text-black hover:bg-yellow-500 whitespace-nowrap"
+              >
+                Connect Wallet
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            Welcome back, {profile.username}!
+            Welcome{!isGuestUser && `, ${profile.username}`}!
           </h2>
           <div className="flex items-center space-x-2">
             <Badge className={`${
@@ -171,12 +234,81 @@ export default function Dashboard() {
               {profile.user_type === 'both' ? 'Artist & Videographer' : 
                profile.user_type.charAt(0).toUpperCase() + profile.user_type.slice(1)}
             </Badge>
+            {isGuestUser && (
+              <Badge className="bg-yellow-500 text-black">
+                Guest Mode
+              </Badge>
+            )}
           </div>
         </div>
 
+        {/* Guest Mode Feature Comparison */}
+        {isGuestUser && (
+          <div className="mb-8">
+            <h3 className="text-xl font-bold text-white mb-4">Unlock Full Platform Features</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="mt-1 p-2 bg-green-500/20 rounded-full">
+                      <Upload className="h-4 w-4 text-green-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-medium text-sm">Upload Content</h4>
+                      <p className="text-gray-400 text-xs mt-1">Share your videos and assets</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="mt-1 p-2 bg-blue-500/20 rounded-full">
+                      <Users className="h-4 w-4 text-blue-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-medium text-sm">Collaborate</h4>
+                      <p className="text-gray-400 text-xs mt-1">Work with other creators</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="mt-1 p-2 bg-purple-500/20 rounded-full">
+                      <Zap className="h-4 w-4 text-purple-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-medium text-sm">Earn Rewards</h4>
+                      <p className="text-gray-400 text-xs mt-1">Get paid for your creations</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="mt-1 p-2 bg-yellow-500/20 rounded-full">
+                      <Palette className="h-4 w-4 text-yellow-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-medium text-sm">NFT Integration</h4>
+                      <p className="text-gray-400 text-xs mt-1">Mint your assets as NFTs</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {isVideographer && (
+          {isVideographer && !isGuestUser && (
             <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer"
                   onClick={() => navigate('/upload-video')}>
               <CardContent className="p-6 text-center">
@@ -187,7 +319,7 @@ export default function Dashboard() {
             </Card>
           )}
 
-          {isArtist && (
+          {isArtist && !isGuestUser && (
             <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer"
                   onClick={() => navigate('/upload-asset')}>
               <CardContent className="p-6 text-center">
@@ -216,6 +348,22 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Guest Mode Limitation Notice */}
+        {isGuestUser && (
+          <div className="mb-8 p-4 rounded-lg bg-gray-800/50 border border-gray-700">
+            <div className="flex items-start space-x-3">
+              <Info className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="text-white font-medium">Guest Mode Limitations</h4>
+                <p className="text-gray-400 text-sm mt-1">
+                  In guest mode, you can browse content and explore features, but uploads, collaborations, 
+                  and earnings are disabled. Connect your Flow wallet to unlock the full MagicLens experience.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Recent Content */}
         <div className="grid lg:grid-cols-2 gap-8">
