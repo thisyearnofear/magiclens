@@ -1,21 +1,21 @@
 import path from 'path'
-import { defineConfig, createLogger, Logger } from 'vite'
+import { defineConfig, createLogger } from 'vite'
 import react from '@vitejs/plugin-react'
-import { runtimeLogger, preTransformLogger} from './src/vite-logger-plugin';
+import { runtimeLogger, preTransformLogger } from './src/vite-logger-plugin';
 
 function createJsxLocationPlugin() {
-  return (babel) => {
+  return (babel: any) => {
     const { types: t } = babel;
 
     return {
       name: "jsx-source-location",
       visitor: {
-        JSXElement(path, state) {
+        JSXElement(path: any, state: any) {
           const loc = path.node.loc;
           const openingElement = path.node.openingElement;
 
-          if (!loc || openingElement.attributes.some(attr =>
-              (t.isJSXAttribute(attr) && attr?.name?.name === "data-jsx-location"))) {
+          if (!loc || openingElement.attributes.some((attr: any) =>
+            (t.isJSXAttribute(attr) && attr?.name?.name === "data-jsx-location"))) {
             return;
           }
 
@@ -34,8 +34,8 @@ function createJsxLocationPlugin() {
           const fileName = pathComponents[pathComponents.length - 1];
           const locationString = `${fileName}|${loc.start.line}|${loc.start.column}|${componentName}`;
           const sourceAttribute = t.jsxAttribute(
-              t.jsxIdentifier("data-jsx-location"),
-              t.stringLiteral(locationString)
+            t.jsxIdentifier("data-jsx-location"),
+            t.stringLiteral(locationString)
           );
 
           openingElement.attributes.push(sourceAttribute);
@@ -45,7 +45,7 @@ function createJsxLocationPlugin() {
   };
 }
 
-function getFullMemberExpressionName(expr) {
+function getFullMemberExpressionName(expr: any) {
   let result = "";
 
   if (expr.type === "JSXMemberExpression") {
@@ -60,7 +60,7 @@ function getFullMemberExpressionName(expr) {
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production';
-  
+
   return {
     plugins: [react({
       babel: {
@@ -91,6 +91,17 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
-    customLogger: isProd ? undefined : preTransformLogger(createLogger(), '../logs/vite.log')
+    customLogger: isProd ? undefined : preTransformLogger(createLogger(), '../logs/vite.log'),
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+        },
+      },
+    },
+    preview: {
+      port: 4173,
+      strictPort: true,
+    },
   }
 })
