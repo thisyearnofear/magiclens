@@ -1,4 +1,6 @@
 {
+  "buildCommand": "cd app && npm run build:prod",
+  "outputDirectory": "app/dist",
   "rewrites": [
     {
       "source": "/(.*)",
