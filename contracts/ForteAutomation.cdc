@@ -5,16 +5,16 @@
 // for scheduled publishing, royalty distribution, and collaboration triggers
 
 import ARAssetNFT from "./ARAssetNFT.cdc"
-import FungibleToken from 0xf8d6e0586b0a20c7
+import FungibleToken from 0xee82856bf20e2aa6
 
-pub contract ForteAutomation {
+access(all) contract ForteAutomation {
 
     // Events
-    pub event WorkflowCreated(id: UInt64, creator: Address, workflowType: String)
-    pub event WorkflowExecuted(id: UInt64, timestamp: UFix64)
-    pub event ActionTriggered(actionType: String, triggeredBy: Address)
-    pub event RoyaltyDistributed(assetId: UInt64, amount: UFix64, recipient: Address)
-    pub event ContentPublished(contentId: String, publishedAt: UFix64)
+    access(all) event WorkflowCreated(id: UInt64, creator: Address, workflowType: String)
+    access(all) event WorkflowExecuted(id: UInt64, timestamp: UFix64)
+    access(all) event ActionTriggered(actionType: String, triggeredBy: Address)
+    access(all) event RoyaltyDistributed(assetId: UInt64, amount: UFix64, recipient: Address)
+    access(all) event ContentPublished(contentId: String, publishedAt: UFix64)
 
     // Storage paths
     access(all) let WorkflowStoragePath: StoragePath
@@ -110,8 +110,8 @@ pub contract ForteAutomation {
             self.lastExecuted = nil
         }
 
-        // Execute workflow if conditions are met
-        access(all) fun execute(): Bool {
+        // Execute workflow if conditions are met  
+        access(all) fun run(): Bool {
             if !self.config.isActive {
                 return false
             }
@@ -258,7 +258,7 @@ pub contract ForteAutomation {
         // Execute workflow by ID
         access(all) fun executeWorkflow(id: UInt64): Bool {
             if let workflow = &self.workflows[id] as &Workflow? {
-                return workflow.execute()
+                return workflow.run()
             }
             return false
         }
@@ -287,9 +287,7 @@ pub contract ForteAutomation {
             }
         }
 
-        destroy() {
-            destroy self.workflows
-        }
+
     }
 
     // Create empty workflow manager
@@ -369,12 +367,10 @@ pub contract ForteAutomation {
 
         // Create workflow manager for deployer
         let manager <- create WorkflowManager()
-        self.account.save(<-manager, to: self.WorkflowStoragePath)
+        self.account.storage.save(<-manager, to: self.WorkflowStoragePath)
 
         // Create public capability
-        self.account.link<&WorkflowManager{WorkflowManagerPublic}>(
-            self.WorkflowPublicPath,
-            target: self.WorkflowStoragePath
-        )
+        let workflowCap = self.account.capabilities.storage.issue<&{WorkflowManagerPublic}>(self.WorkflowStoragePath)
+        self.account.capabilities.publish(workflowCap, at: self.WorkflowPublicPath)
     }
 }

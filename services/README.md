@@ -6,8 +6,8 @@ This directory contains the Python-based backend microservices for MagicLens, bu
 
 See the main project documentation in the root [README.md](../README.md) and detailed docs in the [docs/](../docs) directory:
 
-- [API Documentation](../docs/API_DOCS.md) - API endpoints and usage
-- [Flow Integration](../docs/FLOW_INTEGRATION_README.md) - Blockchain integration details
+- [Deployment & API](../docs/DEPLOYMENT_AND_API.md) - API endpoints and deployment
+- [Flow Integration](../docs/FLOW_INTEGRATION.md) - Blockchain integration details
 
 ## 🚀 Quick Start
 

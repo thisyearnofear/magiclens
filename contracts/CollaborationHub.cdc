@@ -5,18 +5,18 @@
 // access control, and contribution tracking
 
 import ARAssetNFT from "./ARAssetNFT.cdc"
-import FungibleToken from 0xf8d6e0586b0a20c7
-import FlowToken from 0xf8d6e0586b0a20c7
+import FungibleToken from 0xee82856bf20e2aa6
+import FlowToken from 0x0ae53cb6e3f42a79
 
-pub contract CollaborationHub {
+access(all) contract CollaborationHub {
 
     // Events
-    pub event ProjectCreated(id: UInt64, creator: Address, name: String)
-    pub event CollaboratorAdded(projectId: UInt64, collaborator: Address, role: String)
-    pub event CollaboratorRemoved(projectId: UInt64, collaborator: Address)
-    pub event ContributionRecorded(projectId: UInt64, contributor: Address, contributionType: String)
-    pub event RevenueShared(projectId: UInt64, amount: UFix64, recipients: [Address])
-    pub event ProjectCompleted(projectId: UInt64, completedAt: UFix64)
+    access(all) event ProjectCreated(id: UInt64, creator: Address, name: String)
+    access(all) event CollaboratorAdded(projectId: UInt64, collaborator: Address, role: String)
+    access(all) event CollaboratorRemoved(projectId: UInt64, collaborator: Address)
+    access(all) event ContributionRecorded(projectId: UInt64, contributor: Address, contributionType: String)
+    access(all) event RevenueShared(projectId: UInt64, amount: UFix64, recipients: [Address])
+    access(all) event ProjectCompleted(projectId: UInt64, completedAt: UFix64)
 
     // Storage paths
     access(all) let ProjectStoragePath: StoragePath
@@ -210,7 +210,7 @@ pub contract CollaborationHub {
         }
 
         // Distribute revenue to collaborators
-        access(all) fun distributeRevenue(amount: UFix64, vault: @FungibleToken.Vault) {
+        access(all) fun distributeRevenue(amount: UFix64, vault: @{FungibleToken.Vault}) {
             pre {
                 vault.balance == amount: "Vault balance does not match amount"
             }
@@ -335,9 +335,7 @@ pub contract CollaborationHub {
             return projectIds
         }
 
-        destroy() {
-            destroy self.projects
-        }
+
     }
 
     // Create empty project manager
@@ -352,12 +350,10 @@ pub contract CollaborationHub {
 
         // Create project manager for deployer
         let manager <- create ProjectManager()
-        self.account.save(<-manager, to: self.ProjectStoragePath)
+        self.account.storage.save(<-manager, to: self.ProjectStoragePath)
 
         // Create public capability
-        self.account.link<&ProjectManager{ProjectManagerPublic}>(
-            self.ProjectPublicPath,
-            target: self.ProjectStoragePath
-        )
+        let managerCap = self.account.capabilities.storage.issue<&{ProjectManagerPublic}>(self.ProjectStoragePath)
+        self.account.capabilities.publish(managerCap, at: self.ProjectPublicPath)
     }
 }

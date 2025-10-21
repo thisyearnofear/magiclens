@@ -4,33 +4,58 @@ MagicLens is a web-based platform that allows users to add augmented reality ove
 
 ## 🏆 Hackathon Submission
 
-This project is submitted for the **Forte Hacks** hackathon. See our [concise submission document](./docs/HACKATHON_SUBMISSION_CONCISE.md) for key details.
+This project is submitted for the **Forte Hacks** hackathon. See [Hackathon & Status](./docs/HACKATHON_AND_STATUS.md) for submission details and current progress.
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Updated October 2024)
+
+**Prerequisites:** Flow CLI v2.2.16+, Node.js 18+, Python 3.8+, PostgreSQL
 
 ```bash
-# Database setup
+# 1. Start Flow Emulator (in background)
+flow emulator start --rest-port 8889 &
+
+# 2. Deploy Smart Contracts
+flow project deploy --network emulator
+# ✅ ALL CONTRACTS DEPLOYED SUCCESSFULLY!
+# ✅ ARAssetNFT → 0xf8d6e0586b0a20c7 
+# ✅ CollaborationHub → 0xf8d6e0586b0a20c7
+# ✅ ForteAutomation → 0xf8d6e0586b0a20c7
+
+# 3. Frontend Setup
+cd app
+pnpm install
+cp .env.example .env  # Configure VITE_FLOW_NETWORK=emulator
+pnpm dev  # Starts on http://localhost:5173
+
+# 4. Backend Setup
+cd services
+pip install -r requirements.txt
+python main.py  # Starts on http://localhost:8000
+
+# 5. Database (if needed)
 psql -c "CREATE DATABASE magiclens;" -U postgres
 psql -c "CREATE USER magiclens_user WITH PASSWORD 'magiclens_pass';" -U postgres
 psql -c "GRANT ALL PRIVILEGES ON DATABASE magiclens TO magiclens_user;" -U postgres
-
-# Frontend
-cd app && pnpm install && pnpm run dev
-
-# Backend
-cd services && pip install -r requirements.txt && pip install pyjwt && python main.py
 ```
+
+### 🎉 **FULLY OPERATIONAL (Updated Oct 21, 2024)**
+- **Frontend**: React app running on `http://localhost:5173`
+- **Backend**: FastAPI services running on `http://localhost:8000`
+- **Blockchain**: ALL 3 contracts deployed to Flow emulator
+  - ARAssetNFT (NFT minting & management)
+  - CollaborationHub (Multi-party projects)
+  - ForteAutomation (Automated workflows)
+- **Flow Emulator**: Running on ports 3569 (gRPC) & 8889 (REST)
+- **Authentication**: Flow wallet integration ready
 
 ## 📚 Documentation
 
-All detailed documentation is available in the [`docs/`](./docs) directory:
+All documentation is available in the [`docs/`](./docs) directory:
 
-- [Quick Start Guide](./docs/QUICKSTART.md) - Step-by-step setup instructions
-- [Flow Integration](./docs/FLOW_INTEGRATION_README.md) - Flow blockchain integration details
-- [Deployment Guide](./docs/DEPLOYMENT_GUIDE.md) - Production deployment instructions
-- [API Documentation](./docs/API_DOCS.md) - API endpoints and usage
-- [Implementation Status](./docs/IMPLEMENTATION_STATUS.md) - Current feature status
-- [Hackathon Submission](./docs/HACKATHON_SUBMISSION_CONCISE.md) - Forte Hacks entry details
+- [Quick Start Guide](./docs/QUICKSTART.md) - 5-minute setup and demo (195 lines)
+- [Flow Integration](./docs/FLOW_INTEGRATION.md) - Blockchain features and usage (286 lines)
+- [Deployment & API](./docs/DEPLOYMENT_AND_API.md) - Deployment guide and API docs (466 lines)
+- [Hackathon & Status](./docs/HACKATHON_AND_STATUS.md) - Submission details and progress (246 lines)
 
 ## 🔐 Authentication Flow
 
