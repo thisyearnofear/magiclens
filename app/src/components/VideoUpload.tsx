@@ -1,6 +1,6 @@
-import { Upload, ArrowLeft, CircleCheck, Sparkles, Eye, House } from "lucide-react";
+import { Upload, ArrowLeft, CircleCheck, Sparkles, Eye, Home, FileVideo, Clock, CheckCircle, AlertCircle } from "lucide-react";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { videoServiceUploadVideo } from '@/lib/sdk';
 import { Video } from '@/lib/sdk';
@@ -10,12 +10,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 
 export default function VideoUpload() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedVideo, setUploadedVideo] = useState<Video | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -24,49 +29,119 @@ export default function VideoUpload() {
   });
 
   const categories = ['urban', 'nature', 'indoor', 'street', 'park', 'office'];
+  const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+  const MAX_DURATION = 30; // 30 seconds
+
+  const validateVideoFile = (file: File): string[] => {
+    const errors: string[] = [];
+
+    if (!file.type.startsWith('video/')) {
+      errors.push('Please select a valid video file');
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      errors.push(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+    }
+
+    return errors;
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      handleFileSelection(files[0]);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Basic validation
-      if (file.type.startsWith('video/')) {
-        setFormData(prev => ({ ...prev, videoFile: file }));
-      } else {
-        alert('Please select a video file');
+      handleFileSelection(file);
+    }
+  };
+
+  const handleFileSelection = (file: File) => {
+    const errors = validateVideoFile(file);
+    setValidationErrors(errors);
+
+    if (errors.length === 0) {
+      setFormData(prev => ({ ...prev, videoFile: file }));
+      // Auto-generate title from filename if empty
+      if (!formData.title) {
+        const titleFromFile = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+        setFormData(prev => ({ ...prev, title: titleFromFile }));
       }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
     if (!formData.videoFile) {
-      alert('Please select a video file');
+      setValidationErrors(['Please select a video file']);
       return;
     }
 
+    if (!formData.title.trim()) {
+      setValidationErrors(['Please provide a title for your video']);
+      return;
+    }
+
+    setValidationErrors([]);
     setLoading(true);
+    setUploadProgress(0);
 
     try {
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
       const response = await videoServiceUploadVideo({
         body: {
-          title: formData.title,
-          description: formData.description || null,
+          title: formData.title.trim(),
+          description: formData.description.trim() || null,
           category: formData.category,
           video_file: formData.videoFile
         }
       });
 
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
       if (response.data) {
         setUploadedVideo(response.data);
       } else {
-        alert('Video uploaded successfully, but we could not get the details. Redirecting to dashboard.');
+        setValidationErrors(['Video uploaded successfully, but we could not get the details.']);
         setLoading(false);
-        navigate('/dashboard');
+        setTimeout(() => navigate('/dashboard'), 2000);
       }
     } catch (error) {
       console.error('Video upload error:', error);
-      alert('Failed to upload video. Please try again.');
+      setValidationErrors(['Failed to upload video. Please check your connection and try again.']);
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -163,33 +238,84 @@ export default function VideoUpload() {
               {/* Video File Upload */}
               <div className="space-y-2">
                 <Label htmlFor="video" className="text-white">Video File</Label>
-                <div className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center">
-                  <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <Label htmlFor="video" className="cursor-pointer">
-                    <span className="text-white hover:text-yellow-400">
-                      Click to upload your video
-                    </span>
-                    <p className="text-gray-400 text-sm mt-2">
-                      Maximum 30 seconds • MP4, MOV, or AVI format
-                    </p>
-                    <Input
-                      id="video"
-                      type="file"
-                      accept="video/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      required
-                    />
-                  </Label>
-                  {formData.videoFile && (
-                    <div className="mt-4 p-3 bg-green-500/20 rounded-lg">
-                      <p className="text-green-400">Selected: {formData.videoFile.name}</p>
-                      <p className="text-gray-400 text-sm">
-                        Size: {(formData.videoFile.size / (1024 * 1024)).toFixed(2)} MB
-                      </p>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    dragActive
+                      ? 'border-yellow-400 bg-yellow-400/10'
+                      : 'border-white/20 hover:border-white/40'
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  {formData.videoFile ? (
+                    <div className="space-y-4">
+                      <FileVideo className="h-12 w-12 mx-auto text-green-400" />
+                      <div>
+                        <p className="text-green-400 font-medium">{formData.videoFile.name}</p>
+                        <p className="text-gray-400 text-sm">
+                          Size: {(formData.videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-2 border-white/20 text-white hover:bg-white/10"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          Choose Different File
+                        </Button>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                      <Label htmlFor="video" className="cursor-pointer">
+                        <span className="text-white hover:text-yellow-400 font-medium">
+                          Click to upload or drag and drop
+                        </span>
+                        <p className="text-gray-400 text-sm mt-2">
+                          Maximum 100MB • MP4, MOV, or AVI format
+                        </p>
+                      </Label>
+                    </>
                   )}
+
+                  <Input
+                    ref={fileInputRef}
+                    id="video"
+                    type="file"
+                    accept="video/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    required={!formData.videoFile}
+                  />
                 </div>
+
+                {/* Validation Errors */}
+                {validationErrors.length > 0 && (
+                  <div className="flex items-start space-x-2 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                    <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      {validationErrors.map((error, index) => (
+                        <p key={index} className="text-red-400 text-sm">{error}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Progress */}
+                {loading && (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Clock className="h-4 w-4 text-yellow-400" />
+                      <span className="text-white text-sm">Uploading video...</span>
+                    </div>
+                    <Progress value={uploadProgress} className="h-2" />
+                    <p className="text-gray-400 text-xs">{uploadProgress}% complete</p>
+                  </div>
+                )}
               </div>
 
               {/* Title */}
@@ -202,7 +328,9 @@ export default function VideoUpload() {
                   placeholder="Give your video a descriptive title"
                   required
                   className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  maxLength={100}
                 />
+                <p className="text-gray-400 text-xs">{formData.title.length}/100 characters</p>
               </div>
 
               {/* Category */}
@@ -232,15 +360,24 @@ export default function VideoUpload() {
                   placeholder="Describe the setting, mood, or any special elements in your video..."
                   className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                   rows={3}
+                  maxLength={500}
                 />
+                <p className="text-gray-400 text-xs">{formData.description.length}/500 characters</p>
               </div>
 
               <Button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
+                disabled={loading || !formData.videoFile || !formData.title.trim()}
+                className="w-full bg-yellow-400 text-black hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Uploading...' : 'Upload Video'}
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                    <span>Uploading Video...</span>
+                  </div>
+                ) : (
+                  'Upload Video'
+                )}
               </Button>
             </form>
 
