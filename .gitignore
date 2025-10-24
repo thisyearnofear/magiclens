@@ -20,9 +20,15 @@ flow.json
 *_private_key*
 *.pkey
 
+# Alembic generated files
+alembic/versions/*.py
+
 # Logs
 logs/
 *.log
+
+# Logging server
+logging-server/.env
 
 # OS
 .DS_Store
