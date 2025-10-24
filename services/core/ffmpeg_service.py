@@ -3,10 +3,34 @@ from uuid import UUID
 import subprocess
 import json
 import os
+from dataclasses import dataclass
 from core.videos import Video
 from core.overlays import Overlay
 from core.artist_assets import ArtistAsset
 from core.media import get_from_bucket, save_to_bucket, MediaFile
+
+
+@dataclass
+class VideoInfo:
+    """Video information data class."""
+    duration: float
+    width: int
+    height: int
+    fps: float
+    format: str
+
+
+@dataclass
+class OverlayConfig:
+    """Overlay configuration data class."""
+    image_path: str
+    x: int
+    y: int
+    width: int
+    height: int
+    start_time: float
+    end_time: float
+    opacity: float
 
 class FFmpegRenderer:
     """Service for rendering videos with overlays using FFmpeg."""
@@ -208,6 +232,123 @@ class FFmpegRenderer:
             raise RuntimeError(f"FFprobe failed: {result.stderr}")
         
         return json.loads(result.stdout)
+
+class FFmpegService:
+    """FFmpeg service class for compatibility with tests."""
+    
+    def __init__(self):
+        self.renderer = FFmpegRenderer()
+    
+    def get_video_info(self, video_path: str) -> VideoInfo:
+        """Get video information using FFprobe."""
+        cmd = [
+            'ffprobe',
+            '-v', 'quiet',
+            '-print_format', 'json',
+            '-show_format',
+            '-show_streams',
+            video_path
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            raise Exception(f"ffprobe failed: {result.stderr}")
+        
+        data = json.loads(result.stdout)
+        
+        # Extract video stream info
+        video_stream = None
+        for stream in data.get('streams', []):
+            if stream.get('codec_type') == 'video':
+                video_stream = stream
+                break
+        
+        if not video_stream:
+            raise Exception("No video stream found")
+        
+        # Parse frame rate
+        fps_str = video_stream.get('r_frame_rate', '30/1')
+        if '/' in fps_str:
+            num, den = fps_str.split('/')
+            fps = float(num) / float(den) if float(den) != 0 else 30.0
+        else:
+            fps = float(fps_str)
+        
+        return VideoInfo(
+            duration=float(data['format'].get('duration', 0)),
+            width=int(video_stream.get('width', 0)),
+            height=int(video_stream.get('height', 0)),
+            fps=fps,
+            format=data['format'].get('format_name', 'unknown')
+        )
+    
+    def apply_overlay(self, input_path: str, output_path: str, overlay_config: OverlayConfig):
+        """Apply overlay to video using FFmpeg."""
+        cmd = [
+            'ffmpeg', '-y',
+            '-i', input_path,
+            '-i', overlay_config.image_path,
+            '-filter_complex',
+            f'[1]scale={overlay_config.width}:{overlay_config.height}[scaled];'
+            f'[0][scaled]overlay={overlay_config.x}:{overlay_config.y}:'
+            f'enable=between(t,{overlay_config.start_time},{overlay_config.end_time})',
+            '-c:a', 'copy',
+            output_path
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            raise Exception(f"ffmpeg failed: {result.stderr}")
+    
+    def extract_frames(self, video_path: str, output_dir: str, fps: float = 1.0, max_frames: Optional[int] = None) -> List[str]:
+        """Extract frames from video."""
+        os.makedirs(output_dir, exist_ok=True)
+        
+        cmd = [
+            'ffmpeg', '-y',
+            '-i', video_path,
+            '-vf', f'fps={fps}',
+            '-q:v', '2',
+            f'{output_dir}/frame_%04d.jpg'
+        ]
+        
+        if max_frames:
+            cmd.extend(['-frames:v', str(max_frames)])
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            raise Exception(f"ffmpeg failed: {result.stderr}")
+        
+        # Return list of generated frame files
+        frame_files = []
+        for filename in sorted(os.listdir(output_dir)):
+            if filename.startswith('frame_') and filename.endswith('.jpg'):
+                frame_files.append(os.path.join(output_dir, filename))
+        
+        return frame_files
+
+
+# Standalone functions for compatibility
+def get_video_info(video_path: str) -> VideoInfo:
+    """Get video information using FFprobe."""
+    service = FFmpegService()
+    return service.get_video_info(video_path)
+
+
+def apply_overlay(input_path: str, output_path: str, overlay_config: OverlayConfig):
+    """Apply overlay to video using FFmpeg."""
+    service = FFmpegService()
+    return service.apply_overlay(input_path, output_path, overlay_config)
+
+
+def extract_frames(video_path: str, output_dir: str, fps: float = 1.0, max_frames: Optional[int] = None) -> List[str]:
+    """Extract frames from video."""
+    service = FFmpegService()
+    return service.extract_frames(video_path, output_dir, fps, max_frames)
+
 
 # Example usage function that would be called by the render service
 def render_video_with_overlays(video_path: str, overlays: List[Overlay], assets: List[ArtistAsset], settings: Dict) -> str:

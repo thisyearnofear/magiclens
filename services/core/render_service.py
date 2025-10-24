@@ -8,6 +8,7 @@ from core.videos import Video
 from core.overlays import Overlay
 from core.artist_assets import ArtistAsset
 from core.media import generate_presigned_url
+from core.render_queue import render_queue
 import json
 
 @authenticated
@@ -63,9 +64,14 @@ def queue_render(user: User, collaboration_id: UUID, render_settings: Optional[D
     )
     render.sync()
     
-    # TODO: Here we would typically queue this job with a task queue like Celery
-    # For now, we'll simulate the start of processing
-    _start_render_processing(render.id)
+    # Queue the render job with Redis
+    success = render_queue.enqueue_render(render.id, collaboration_id, default_settings)
+    if not success:
+        # If queueing fails, mark render as failed
+        render.render_status = 'failed'
+        render.error_message = 'Failed to queue render job'
+        render.sync()
+        raise RuntimeError("Failed to queue render job")
     
     return render
 
@@ -172,13 +178,14 @@ def cancel_render(user: User, render_id: UUID) -> bool:
     if render_data['render_status'] not in ['queued', 'processing']:
         raise ValueError("Can only cancel queued or processing renders")
     
+    # Cancel the job in the queue
+    queue_cancelled = render_queue.cancel_render(str(render_id))
+    
     # Update render status
     Render.sql(
         "UPDATE renders SET render_status = 'cancelled' WHERE id = %(render_id)s",
         {"render_id": render_id}
     )
-    
-    # TODO: Cancel the actual background job
     
     return True
 
@@ -232,93 +239,50 @@ def retry_render(user: User, render_id: UUID) -> Render:
     
     render = Render(**updated_renders[0])
     
-    # Restart processing
-    _start_render_processing(render.id)
+    # Re-queue the render job
+    collaboration_id = render_data['collaboration_id']
+    render_settings = render_data.get('render_settings', {})
+    success = render_queue.enqueue_render(render.id, UUID(collaboration_id), render_settings)
+    if not success:
+        # If queueing fails, mark render as failed again
+        Render.sql(
+            "UPDATE renders SET render_status = 'failed', error_message = 'Failed to re-queue render job' WHERE id = %(render_id)s",
+            {"render_id": render_id}
+        )
+        raise RuntimeError("Failed to re-queue render job")
     
     return render
-
-def _start_render_processing(render_id: UUID):
-    """Internal function to start render processing."""
-    # TODO: This would integrate with a proper task queue system
-    # For now, we'll just update the status to indicate processing has started
-    
-    Render.sql(
-        "UPDATE renders SET render_status = 'processing', started_at = NOW() WHERE id = %(render_id)s",
-        {"render_id": render_id}
-    )
-    
-    # In a real implementation, this would:
-    # 1. Load the collaboration data
-    # 2. Load the video file and overlay assets
-    # 3. Use FFmpeg to composite the overlays onto the video
-    # 4. Save the output file to media storage
-    # 5. Update the render record with the output path and completion status
 
 @public
 def get_render_queue_status() -> Dict[str, int]:
     """Get general render queue statistics."""
     
-    stats = Render.sql(
+    # Get real-time queue stats from Redis
+    queue_stats = render_queue.get_queue_stats()
+    
+    # Get database stats for completed/failed renders in last 24h
+    db_stats = Render.sql(
         """
         SELECT 
             render_status,
             COUNT(*) as count
         FROM renders 
         WHERE created_at > NOW() - INTERVAL '24 hours'
+        AND render_status IN ('completed', 'failed', 'cancelled')
         GROUP BY render_status
         """
     )
     
     result = {
-        'queued': 0,
-        'processing': 0,
+        'queued': queue_stats.get('queued', 0),
+        'processing': queue_stats.get('processing', 0),
+        'stuck': queue_stats.get('stuck', 0),
         'completed': 0,
         'failed': 0,
         'cancelled': 0
     }
     
-    for stat in stats:
+    for stat in db_stats:
         result[stat['render_status']] = stat['count']
     
     return result
-
-# Mock function to simulate render completion (would be called by background worker)
-def _complete_render(render_id: UUID, output_path: str, processing_time: float, file_size: int):
-    """Mark a render as completed with output information."""
-    
-    Render.sql(
-        """
-        UPDATE renders SET 
-            render_status = 'completed',
-            progress = 1.0,
-            output_path = %(output_path)s,
-            processing_time = %(processing_time)s,
-            file_size = %(file_size)s,
-            completed_at = NOW()
-        WHERE id = %(render_id)s
-        """,
-        {
-            "render_id": render_id,
-            "output_path": output_path, 
-            "processing_time": processing_time,
-            "file_size": file_size
-        }
-    )
-
-# Mock function to simulate render failure
-def _fail_render(render_id: UUID, error_message: str):
-    """Mark a render as failed with error information."""
-    
-    Render.sql(
-        """
-        UPDATE renders SET 
-            render_status = 'failed',
-            error_message = %(error_message)s,
-            completed_at = NOW()
-        WHERE id = %(render_id)s
-        """,
-        {
-            "render_id": render_id,
-            "error_message": error_message
-        }
-    )

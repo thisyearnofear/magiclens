@@ -6,7 +6,7 @@ MagicLens is a web-based platform that allows users to add augmented reality ove
 
 This project is submitted for the **Forte Hacks** hackathon. See [Hackathon & Status](./docs/HACKATHON_AND_STATUS.md) for submission details and current progress.
 
-## 🚀 Quick Start (Updated October 2024)
+## 🚀 Quick Start 
 
 **Prerequisites:** Flow CLI v2.2.16+, Node.js 18+, Python 3.8+, PostgreSQL
 
@@ -17,7 +17,7 @@ flow emulator start --rest-port 8889 &
 # 2. Deploy Smart Contracts
 flow project deploy --network emulator
 # ✅ ALL CONTRACTS DEPLOYED SUCCESSFULLY!
-# ✅ ARAssetNFT → 0xf8d6e0586b0a20c7 
+# ✅ ARAssetNFT → 0xf8d6e0586b0a20c7
 # ✅ CollaborationHub → 0xf8d6e0586b0a20c7
 # ✅ ForteAutomation → 0xf8d6e0586b0a20c7
 
@@ -38,7 +38,7 @@ psql -c "CREATE USER magiclens_user WITH PASSWORD 'magiclens_pass';" -U postgres
 psql -c "GRANT ALL PRIVILEGES ON DATABASE magiclens TO magiclens_user;" -U postgres
 ```
 
-### 🎉 **FULLY OPERATIONAL (Updated Oct 21, 2024)**
+### 🎉 **FULLY OPERATIONAL (Updated Oct 24, 2024)**
 - **Frontend**: React app running on `http://localhost:5173`
 - **Backend**: FastAPI services running on `http://localhost:8000`
 - **Blockchain**: ALL 3 contracts deployed to Flow emulator
@@ -52,10 +52,17 @@ psql -c "GRANT ALL PRIVILEGES ON DATABASE magiclens TO magiclens_user;" -U postg
 
 All documentation is available in the [`docs/`](./docs) directory:
 
-- [Quick Start Guide](./docs/QUICKSTART.md) - 5-minute setup and demo (195 lines)
+- [Quick Start Guide](./docs/QUICKSTART.md) - 5-minute setup and demo (200 lines)
 - [Flow Integration](./docs/FLOW_INTEGRATION.md) - Blockchain features and usage (286 lines)
-- [Deployment & API](./docs/DEPLOYMENT_AND_API.md) - Deployment guide and API docs (466 lines)
-- [Hackathon & Status](./docs/HACKATHON_AND_STATUS.md) - Submission details and progress (246 lines)
+- [Deployment & API](./docs/DEPLOYMENT_AND_API.md) - Deployment guide and API docs (479 lines)
+- [Hackathon & Status](./docs/HACKATHON_AND_STATUS.md) - Submission details and progress (247 lines)
+
+### 📊 Production Monitoring
+- `GET /health` - Comprehensive system health status
+- `GET /health/live` - Kubernetes liveness probe
+- `GET /health/ready` - Kubernetes readiness probe
+- `GET /metrics` - Prometheus metrics
+- `WS /api/ws/{id}` - Real-time collaboration WebSocket
 
 ## 🔐 Authentication Flow
 

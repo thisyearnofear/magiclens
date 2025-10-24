@@ -76,10 +76,51 @@ class VideoAnalyzer:
             frame_pil.save(buffer, format='JPEG', quality=85)
             frame_b64 = base64.b64encode(buffer.getvalue()).decode()
             
-            # TODO: Replace with actual AI analysis when LLM integration is available
-            # For now, return mock analysis based on simple heuristics
+            # Provider-backed analysis when configured; otherwise fallback heuristics
+            import os, json
+            api_key = os.getenv("OPENROUTER_API_KEY") or os.getenv("AI_API_KEY")
+            model = os.getenv("AI_MODEL", "gpt-4o-mini")
+            provider_url = os.getenv("AI_PROVIDER_URL", "https://openrouter.ai/api/v1/chat/completions")
             
-            # Mock analysis based on frame content
+            if api_key:
+                import httpx, re
+                payload = {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": "You analyze a single video frame and return JSON with fields: scene_type, activity, mood, objects[], people_count, motion_level, color_palette[], overlay_zones{safe_areas[[x,y,w,h]...], avoid_areas[[x,y,w,h]...]}. Keep responses concise."},
+                        {"role": "user", "content": [
+                            {"type": "text", "text": f"Analyze this frame at timestamp {round(timestamp,2)} seconds. Return ONLY JSON."},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{frame_b64}"}}
+                        ]}
+                    ],
+                    "temperature": 0.2,
+                }
+                headers = {
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                }
+                try:
+                    with httpx.Client(timeout=20) as client:
+                        resp = client.post(provider_url, headers=headers, json=payload)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                            # Parse JSON from content
+                            try:
+                                parsed = json.loads(content)
+                                parsed["timestamp"] = timestamp
+                                return parsed
+                            except Exception:
+                                m = re.search(r"\{[\s\S]*\}", content)
+                                if m:
+                                    parsed = json.loads(m.group(0))
+                                    parsed["timestamp"] = timestamp
+                                    return parsed
+                except Exception:
+                    # Provider call failed; fall through to heuristics
+                    pass
+            
+            # Heuristic fallback if provider is not configured or fails
             analysis = {
                 'timestamp': timestamp,
                 'scene_type': 'general',

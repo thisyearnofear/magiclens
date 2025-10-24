@@ -7,9 +7,20 @@ from core.user import User
 import uuid
 
 # JWT configuration
-JWT_SECRET = os.getenv("JWT_SECRET", "magiclens_secret_key")
-JWT_ALGORITHM = "HS256"
-JWT_EXPIRATION_HOURS = 24
+# Enforce secret from environment; support both JWT_SECRET_KEY and JWT_SECRET
+JWT_SECRET = os.getenv("JWT_SECRET_KEY") or os.getenv("JWT_SECRET")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_EXPIRATION_HOURS = int(os.getenv("JWT_EXPIRATION_HOURS", "24"))
+
+# Enforce presence of JWT secret in production
+ENV = os.getenv("ENV", "development")
+if not JWT_SECRET:
+    if ENV.lower() == "production":
+        raise RuntimeError("JWT secret not configured. Set JWT_SECRET_KEY or JWT_SECRET.")
+    else:
+        # Generate a temporary secret for dev/test to avoid insecure defaults
+        import secrets
+        JWT_SECRET = secrets.token_urlsafe(32)
 
 def create_access_token(wallet_address: str) -> str:
     """Create a JWT access token for a Flow wallet address."""

@@ -4,23 +4,47 @@ version = "0.1.0"
 description = "MagicLens AR Video Platform"
 requires-python = ">=3.11"
 dependencies = [
-    "beautifulsoup4>=4.13.3",
+    "alembic>=1.13.0",
     "boto3>=1.38.10",
-    "browser-use>=0.1.40",
-    "dotenv>=0.9.9",
     "fastapi>=0.115.12",
-    "h11>=0.16.0",
-    "httpcore>=1.0.9",
     "httpx>=0.28.1",
     "loguru>=0.7.3",
     "numpy>=2.2.6",
     "opencv-python>=4.12.0.88",
     "pillow>=11.3.0",
+    "prometheus-fastapi-instrumentator>=7.0.0",
+    "psutil>=5.9.0",
     "psycopg>=3.2.6",
     "psycopg-pool>=3.2.6",
     "pydantic>=2.11.3",
+    "pyjwt>=2.8.0",
     "python-dotenv>=1.1.0",
     "python-multipart>=0.0.20",
-    "requests>=2.32.3",
-    "uvicorn>=0.34.1",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.12.0",
+    "redis>=5.0.0",
+    "ruff>=0.8.0",
+    "sentry-sdk[fastapi]>=2.19.0",
+    "slowapi>=0.1.9",
+    "uvicorn[standard]>=0.34.1",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "T20"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "api"]

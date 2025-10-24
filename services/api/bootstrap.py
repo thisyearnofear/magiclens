@@ -4,6 +4,13 @@ from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
+# Initialize Sentry first
+try:
+    from core.sentry_config import init_sentry
+    init_sentry()
+except Exception as e:
+    print(f"Warning: Failed to initialize Sentry: {e}")
+
 # Initialize database
 try:
     from core.database import init_db

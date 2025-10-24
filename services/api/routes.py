@@ -26,6 +26,9 @@ import requests
 from pathlib import Path
 import builtins
 
+from core.render_queue import start_render_worker
+from core.metrics import metrics_manager, track_video_upload
+
 from datetime import datetime, date, time, timedelta
 from concurrent.futures import ThreadPoolExecutor
 from typing import Callable, Any, TypeVar, Awaitable, List, Optional, Dict, Union, Literal, Annotated, Tuple, Set
@@ -178,6 +181,15 @@ app = FastAPI(
     docs_url=None
 )
 
+# Initialize metrics
+metrics_manager.init_metrics(app)
+metrics_manager.expose_metrics(app)
+
+# Start render worker in the background on startup
+@app.on_event("startup")
+async def startup_render_worker():
+    start_render_worker()
+
 @app.post('/api/auth/flow/login', response_model=FlowLoginResponse)
 async def flow_login(request: FlowLoginRequest):
     """Login with Flow wallet and get JWT token."""
@@ -206,6 +218,19 @@ async def flow_login(request: FlowLoginRequest):
 
 # Include Flow blockchain routes
 app.include_router(flow_router)
+
+# WebSocket routes for real-time collaboration
+from api.websocket_routes import websocket_endpoint, get_collaboration_presence
+
+@app.websocket("/api/ws/{collaboration_id}")
+async def websocket_collaboration(websocket: WebSocket, collaboration_id: str, token: str):
+    """WebSocket endpoint for real-time collaboration."""
+    await websocket_endpoint(websocket, collaboration_id, token)
+
+@app.get("/api/collaborations/{collaboration_id}/presence")
+async def collaboration_presence(collaboration_id: str):
+    """Get current presence information for a collaboration."""
+    return await get_collaboration_presence(collaboration_id)
 
 ###############################################################################
 # Simple Request Logging Middleware
@@ -276,17 +301,63 @@ async def handle_validation_errors(request: Request, exc: RequestValidationError
     )
 
 
+# Tightened CORS configuration
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+allowed_methods_env = os.getenv("ALLOWED_METHODS", "GET,POST,OPTIONS")
+allowed_methods = [m.strip().upper() for m in allowed_methods_env.split(",") if m.strip()]
+allowed_headers_env = os.getenv("ALLOWED_HEADERS", "Authorization,Content-Type,X-Requested-With")
+allowed_headers = [h.strip() for h in allowed_headers_env.split(",") if h.strip()]
+allow_credentials = os.getenv("ALLOW_CREDENTIALS", "false").lower() == "true"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=allowed_origins,
+    allow_credentials=allow_credentials,
+    allow_methods=allowed_methods,
+    allow_headers=allowed_headers,
 )
 
-@app.head("/docs", include_in_schema=False)
+# Add rate limiting
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Health check endpoints
+@app.get("/health", include_in_schema=False, tags=["monitoring"])
 async def health_check():
-    return {"status": "healthy"}
+    """Basic health check endpoint."""
+    from core.health import health_check
+    return await health_check.get_full_health_status()
+
+@app.get("/health/live", include_in_schema=False, tags=["monitoring"])
+async def liveness_check():
+    """Kubernetes liveness probe endpoint."""
+    return {"status": "alive"}
+
+@app.get("/health/ready", include_in_schema=False, tags=["monitoring"])
+async def readiness_check():
+    """Kubernetes readiness probe endpoint."""
+    from core.health import health_check
+    db_status = await health_check.check_database()
+    
+    if db_status["status"] == "down":
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    
+    return {"status": "ready"}
+
+@app.head("/docs", include_in_schema=False)
+async def docs_head_check():
+    return {"status": "ok"}
+
+@app.get("/api/health", include_in_schema=False)
+async def health():
+    """Health check endpoint."""
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
     
 ##############################################################################
 # Synchronous Function Helpers
@@ -375,7 +446,7 @@ async def user_service_get_public_profile(body: BodyUserServiceGetPublicProfile 
 
 
 @app.post('/api/user_service/update_user_profile', response_model=UpdateUserProfileOutputSchema, operation_id='user_service_update_user_profile')
-async def user_service_update_user_profile(avatar: Optional[UploadFile] = File(None), bio: Optional[str] = Form(None), username: Optional[str] = Form(None)) -> UpdateUserProfileOutputSchema:
+async def user_service_update_user_profile(avatar: Optional[UploadFile] = File(None), bio: Optional[str] = Form(None), username: Optional[str] = Form(None), current_user: User = Depends(get_current_user)) -> UpdateUserProfileOutputSchema:
     """
     Update the current user&#39;s profile.
     """
@@ -386,7 +457,7 @@ async def user_service_update_user_profile(avatar: Optional[UploadFile] = File(N
         file_size = len(contents)
         avatar = MediaFile(size=file_size, mime_type=content_type, bytes=contents)
 
-    response = await run_sync_in_thread(user_service.update_user_profile,  username=username, bio=bio, avatar=avatar)
+    response = await run_sync_in_thread(user_service.update_user_profile,  user=current_user, username=username, bio=bio, avatar=avatar)
     return response
     
     
@@ -421,7 +492,7 @@ async def user_service_get_videographers() -> GetVideographersOutputSchema:
 
 
 @app.post('/api/video_service/upload_video', response_model=UploadVideoOutputSchema, operation_id='video_service_upload_video')
-async def video_service_upload_video(category: str = Form("urban"), description: Optional[str] = Form(None), title: str = Form(...), video_file: UploadFile = File(...)) -> UploadVideoOutputSchema:
+async def video_service_upload_video(category: str = Form("urban"), description: Optional[str] = Form(None), title: str = Form(...), video_file: UploadFile = File(...), current_user: User = Depends(get_current_user)) -> UploadVideoOutputSchema:
     """
     Upload a new video with validation.
     """
@@ -430,7 +501,22 @@ async def video_service_upload_video(category: str = Form("urban"), description:
         content_type = video_file.content_type or "application/octet-stream"
         contents = await video_file.read()
         file_size = len(contents)
+        
+        # Enforce file size limits
+        max_mb = int(os.getenv("MAX_UPLOAD_SIZE_MB", "200"))
+        max_bytes = max_mb * 1024 * 1024
+        if file_size > max_bytes:
+            raise HTTPException(status_code=413, detail=f"File too large. Max {max_mb}MB")
+        
+        # Enforce allowed content types
+        allowed_types = set((os.getenv("ALLOWED_VIDEO_MIME_TYPES", "video/mp4,video/quicktime,video/webm")).split(","))
+        if content_type not in allowed_types:
+            raise HTTPException(status_code=415, detail="Unsupported media type")
+        
         video_file = MediaFile(size=file_size, mime_type=content_type, bytes=contents)
+        
+        # Track video upload metrics
+        metrics_manager.track_video_upload(file_size)
 
     response = await run_sync_in_thread(video_service.upload_video,  video_file=video_file, title=title, description=description, category=category)
     return response
@@ -480,11 +566,11 @@ async def video_service_get_my_videos(current_user: User = Depends(get_current_u
 
 
 @app.post('/api/video_service/update_video', response_model=UpdateVideoOutputSchema, operation_id='video_service_update_video')
-async def video_service_update_video(body: BodyVideoServiceUpdateVideo = Body(...)) -> UpdateVideoOutputSchema:
+async def video_service_update_video(body: BodyVideoServiceUpdateVideo = Body(...), current_user: User = Depends(get_current_user)) -> UpdateVideoOutputSchema:
     """
     Update video metadata (only by owner).
     """
-    response = await run_sync_in_thread(video_service.update_video,  video_id=body.video_id, title=body.title, description=body.description, category=body.category)
+    response = await run_sync_in_thread(video_service.update_video,  user=current_user, video_id=body.video_id, title=body.title, description=body.description, category=body.category)
     return response
     
     
@@ -493,11 +579,11 @@ async def video_service_update_video(body: BodyVideoServiceUpdateVideo = Body(..
 
 
 @app.post('/api/video_service/delete_video', response_model=DeleteVideoOutputSchema, operation_id='video_service_delete_video')
-async def video_service_delete_video(body: BodyVideoServiceDeleteVideo = Body(...)) -> DeleteVideoOutputSchema:
+async def video_service_delete_video(body: BodyVideoServiceDeleteVideo = Body(...), current_user: User = Depends(get_current_user)) -> DeleteVideoOutputSchema:
     """
     Delete a video (only by owner).
     """
-    response = await run_sync_in_thread(video_service.delete_video,  video_id=body.video_id)
+    response = await run_sync_in_thread(video_service.delete_video,  user=current_user, video_id=body.video_id)
     return response
     
     
@@ -532,7 +618,7 @@ async def video_service_search_videos(body: BodyVideoServiceSearchVideos = Body(
 
 
 @app.post('/api/asset_service/upload_asset', response_model=UploadAssetOutputSchema, operation_id='asset_service_upload_asset')
-async def asset_service_upload_asset(asset_file: UploadFile = File(...), category: str = Form("effects"), is_public: bool = Form(True), name: str = Form(...)) -> UploadAssetOutputSchema:
+async def asset_service_upload_asset(asset_file: UploadFile = File(...), category: str = Form("effects"), is_public: bool = Form(True), name: str = Form(...), current_user: User = Depends(get_current_user)) -> UploadAssetOutputSchema:
     """
     Upload a new artist asset.
     """
@@ -541,9 +627,21 @@ async def asset_service_upload_asset(asset_file: UploadFile = File(...), categor
         content_type = asset_file.content_type or "application/octet-stream"
         contents = await asset_file.read()
         file_size = len(contents)
+        
+        # Enforce file size limits
+        max_mb = int(os.getenv("MAX_UPLOAD_SIZE_MB", "200"))
+        max_bytes = max_mb * 1024 * 1024
+        if file_size > max_bytes:
+            raise HTTPException(status_code=413, detail=f"File too large. Max {max_mb}MB")
+        
+        # Enforce allowed content types (basic image/video types)
+        allowed_types = set((os.getenv("ALLOWED_ASSET_MIME_TYPES", "image/png,image/jpeg,image/webp,video/mp4,application/octet-stream")).split(","))
+        if content_type not in allowed_types:
+            raise HTTPException(status_code=415, detail="Unsupported media type")
+        
         asset_file = MediaFile(size=file_size, mime_type=content_type, bytes=contents)
 
-    response = await run_sync_in_thread(asset_service.upload_asset,  asset_file=asset_file, name=name, category=category, is_public=is_public)
+    response = await run_sync_in_thread(asset_service.upload_asset,  user=current_user, asset_file=asset_file, name=name, category=category, is_public=is_public)
     return response
     
     
@@ -591,7 +689,7 @@ async def asset_service_get_asset(body: BodyAssetServiceGetAsset = Body(...)) ->
 
 
 @app.post('/api/asset_service/update_asset', response_model=UpdateAssetOutputSchema, operation_id='asset_service_update_asset')
-async def asset_service_update_asset(body: BodyAssetServiceUpdateAsset = Body(...)) -> UpdateAssetOutputSchema:
+async def asset_service_update_asset(body: BodyAssetServiceUpdateAsset = Body(...), current_user: User = Depends(get_current_user)) -> UpdateAssetOutputSchema:
     """
     Update asset metadata (only by owner).
     """
@@ -604,7 +702,7 @@ async def asset_service_update_asset(body: BodyAssetServiceUpdateAsset = Body(..
 
 
 @app.post('/api/asset_service/delete_asset', response_model=DeleteAssetOutputSchema, operation_id='asset_service_delete_asset')
-async def asset_service_delete_asset(body: BodyAssetServiceDeleteAsset = Body(...)) -> DeleteAssetOutputSchema:
+async def asset_service_delete_asset(body: BodyAssetServiceDeleteAsset = Body(...), current_user: User = Depends(get_current_user)) -> DeleteAssetOutputSchema:
     """
     Delete an asset (only by owner).
     """
@@ -643,7 +741,7 @@ async def asset_service_search_assets(body: BodyAssetServiceSearchAssets = Body(
 
 
 @app.post('/api/asset_service/increment_asset_usage', response_model=IncrementAssetUsageOutputSchema, operation_id='asset_service_increment_asset_usage')
-async def asset_service_increment_asset_usage(body: BodyAssetServiceIncrementAssetUsage = Body(...)) -> IncrementAssetUsageOutputSchema:
+async def asset_service_increment_asset_usage(body: BodyAssetServiceIncrementAssetUsage = Body(...), current_user: User = Depends(get_current_user)) -> IncrementAssetUsageOutputSchema:
     """
     Increment usage count when asset is used in collaboration.
     """
@@ -656,7 +754,7 @@ async def asset_service_increment_asset_usage(body: BodyAssetServiceIncrementAss
 
 
 @app.post('/api/collaboration_service/start_collaboration', response_model=StartCollaborationOutputSchema, operation_id='collaboration_service_start_collaboration')
-async def collaboration_service_start_collaboration(body: BodyCollaborationServiceStartCollaboration = Body(...)) -> StartCollaborationOutputSchema:
+async def collaboration_service_start_collaboration(body: BodyCollaborationServiceStartCollaboration = Body(...), current_user: User = Depends(get_current_user)) -> StartCollaborationOutputSchema:
     """
     Start a new collaboration on a video.
     """
@@ -669,7 +767,7 @@ async def collaboration_service_start_collaboration(body: BodyCollaborationServi
 
 
 @app.post('/api/collaboration_service/get_my_collaborations', response_model=GetMyCollaborationsOutputSchema, operation_id='collaboration_service_get_my_collaborations')
-async def collaboration_service_get_my_collaborations(body: BodyCollaborationServiceGetMyCollaborations = Body(...)) -> GetMyCollaborationsOutputSchema:
+async def collaboration_service_get_my_collaborations(body: BodyCollaborationServiceGetMyCollaborations = Body(...), current_user: User = Depends(get_current_user)) -> GetMyCollaborationsOutputSchema:
     """
     Get collaborations for the current user.
     """
@@ -682,7 +780,7 @@ async def collaboration_service_get_my_collaborations(body: BodyCollaborationSer
 
 
 @app.post('/api/collaboration_service/get_collaborations_for_my_videos', response_model=GetCollaborationsForMyVideosOutputSchema, operation_id='collaboration_service_get_collaborations_for_my_videos')
-async def collaboration_service_get_collaborations_for_my_videos(body: BodyCollaborationServiceGetCollaborationsForMyVideos = Body(...)) -> GetCollaborationsForMyVideosOutputSchema:
+async def collaboration_service_get_collaborations_for_my_videos(body: BodyCollaborationServiceGetCollaborationsForMyVideos = Body(...), current_user: User = Depends(get_current_user)) -> GetCollaborationsForMyVideosOutputSchema:
     """
     Get collaborations on videos uploaded by the current user.
     """
@@ -708,7 +806,7 @@ async def collaboration_service_get_collaboration(body: BodyCollaborationService
 
 
 @app.post('/api/collaboration_service/update_collaboration_status', response_model=UpdateCollaborationStatusOutputSchema, operation_id='collaboration_service_update_collaboration_status')
-async def collaboration_service_update_collaboration_status(body: BodyCollaborationServiceUpdateCollaborationStatus = Body(...)) -> UpdateCollaborationStatusOutputSchema:
+async def collaboration_service_update_collaboration_status(body: BodyCollaborationServiceUpdateCollaborationStatus = Body(...), current_user: User = Depends(get_current_user)) -> UpdateCollaborationStatusOutputSchema:
     """
     Update collaboration status.
     """
@@ -721,7 +819,7 @@ async def collaboration_service_update_collaboration_status(body: BodyCollaborat
 
 
 @app.post('/api/collaboration_service/add_overlay_to_collaboration', response_model=AddOverlayToCollaborationOutputSchema, operation_id='collaboration_service_add_overlay_to_collaboration')
-async def collaboration_service_add_overlay_to_collaboration(body: BodyCollaborationServiceAddOverlayToCollaboration = Body(...)) -> AddOverlayToCollaborationOutputSchema:
+async def collaboration_service_add_overlay_to_collaboration(body: BodyCollaborationServiceAddOverlayToCollaboration = Body(...), current_user: User = Depends(get_current_user)) -> AddOverlayToCollaborationOutputSchema:
     """
     Add an overlay to a collaboration.
     """
@@ -734,7 +832,7 @@ async def collaboration_service_add_overlay_to_collaboration(body: BodyCollabora
 
 
 @app.post('/api/collaboration_service/get_collaboration_overlays', response_model=GetCollaborationOverlaysOutputSchema, operation_id='collaboration_service_get_collaboration_overlays')
-async def collaboration_service_get_collaboration_overlays(body: BodyCollaborationServiceGetCollaborationOverlays = Body(...)) -> GetCollaborationOverlaysOutputSchema:
+async def collaboration_service_get_collaboration_overlays(body: BodyCollaborationServiceGetCollaborationOverlays = Body(...), current_user: User = Depends(get_current_user)) -> GetCollaborationOverlaysOutputSchema:
     """
     Get all overlays for a collaboration.
     """
@@ -747,7 +845,7 @@ async def collaboration_service_get_collaboration_overlays(body: BodyCollaborati
 
 
 @app.post('/api/collaboration_service/update_overlay', response_model=UpdateOverlayOutputSchema, operation_id='collaboration_service_update_overlay')
-async def collaboration_service_update_overlay(body: BodyCollaborationServiceUpdateOverlay = Body(...)) -> UpdateOverlayOutputSchema:
+async def collaboration_service_update_overlay(body: BodyCollaborationServiceUpdateOverlay = Body(...), current_user: User = Depends(get_current_user)) -> UpdateOverlayOutputSchema:
     """
     Update an overlay (only by the artist who created it).
     """
@@ -760,7 +858,7 @@ async def collaboration_service_update_overlay(body: BodyCollaborationServiceUpd
 
 
 @app.post('/api/collaboration_service/delete_overlay', response_model=DeleteOverlayOutputSchema, operation_id='collaboration_service_delete_overlay')
-async def collaboration_service_delete_overlay(body: BodyCollaborationServiceDeleteOverlay = Body(...)) -> DeleteOverlayOutputSchema:
+async def collaboration_service_delete_overlay(body: BodyCollaborationServiceDeleteOverlay = Body(...), current_user: User = Depends(get_current_user)) -> DeleteOverlayOutputSchema:
     """
     Delete an overlay (only by the artist who created it).
     """
@@ -773,7 +871,7 @@ async def collaboration_service_delete_overlay(body: BodyCollaborationServiceDel
 
 
 @app.post('/api/render_service/queue_render', response_model=QueueRenderOutputSchema, operation_id='render_service_queue_render')
-async def render_service_queue_render(body: BodyRenderServiceQueueRender = Body(...)) -> QueueRenderOutputSchema:
+async def render_service_queue_render(body: BodyRenderServiceQueueRender = Body(...), current_user: User = Depends(get_current_user)) -> QueueRenderOutputSchema:
     """
     Queue a new render job for a collaboration.
     """
@@ -786,7 +884,7 @@ async def render_service_queue_render(body: BodyRenderServiceQueueRender = Body(
 
 
 @app.post('/api/render_service/get_render_status', response_model=GetRenderStatusOutputSchema, operation_id='render_service_get_render_status')
-async def render_service_get_render_status(body: BodyRenderServiceGetRenderStatus = Body(...)) -> GetRenderStatusOutputSchema:
+async def render_service_get_render_status(body: BodyRenderServiceGetRenderStatus = Body(...), current_user: User = Depends(get_current_user)) -> GetRenderStatusOutputSchema:
     """
     Get the status of a render job.
     """
@@ -799,7 +897,7 @@ async def render_service_get_render_status(body: BodyRenderServiceGetRenderStatu
 
 
 @app.post('/api/render_service/get_collaboration_renders', response_model=GetCollaborationRendersOutputSchema, operation_id='render_service_get_collaboration_renders')
-async def render_service_get_collaboration_renders(body: BodyRenderServiceGetCollaborationRenders = Body(...)) -> GetCollaborationRendersOutputSchema:
+async def render_service_get_collaboration_renders(body: BodyRenderServiceGetCollaborationRenders = Body(...), current_user: User = Depends(get_current_user)) -> GetCollaborationRendersOutputSchema:
     """
     Get all renders for a collaboration.
     """
@@ -812,7 +910,7 @@ async def render_service_get_collaboration_renders(body: BodyRenderServiceGetCol
 
 
 @app.post('/api/render_service/cancel_render', response_model=CancelRenderOutputSchema, operation_id='render_service_cancel_render')
-async def render_service_cancel_render(body: BodyRenderServiceCancelRender = Body(...)) -> CancelRenderOutputSchema:
+async def render_service_cancel_render(body: BodyRenderServiceCancelRender = Body(...), current_user: User = Depends(get_current_user)) -> CancelRenderOutputSchema:
     """
     Cancel a queued or processing render.
     """
@@ -825,7 +923,7 @@ async def render_service_cancel_render(body: BodyRenderServiceCancelRender = Bod
 
 
 @app.post('/api/render_service/retry_render', response_model=RetryRenderOutputSchema, operation_id='render_service_retry_render')
-async def render_service_retry_render(body: BodyRenderServiceRetryRender = Body(...)) -> RetryRenderOutputSchema:
+async def render_service_retry_render(body: BodyRenderServiceRetryRender = Body(...), current_user: User = Depends(get_current_user)) -> RetryRenderOutputSchema:
     """
     Retry a failed render.
     """
@@ -851,7 +949,7 @@ async def render_service_get_render_queue_status() -> GetRenderQueueStatusOutput
 
 
 @app.post('/api/recommendation_engine/get_video_overlay_recommendations', response_model=GetVideoOverlayRecommendationsOutputSchema, operation_id='recommendation_engine_get_video_overlay_recommendations')
-async def recommendation_engine_get_video_overlay_recommendations(body: BodyRecommendationEngineGetVideoOverlayRecommendations = Body(...)) -> GetVideoOverlayRecommendationsOutputSchema:
+async def recommendation_engine_get_video_overlay_recommendations(body: BodyRecommendationEngineGetVideoOverlayRecommendations = Body(...), current_user: User = Depends(get_current_user)) -> GetVideoOverlayRecommendationsOutputSchema:
     """
     Get overlay recommendations for a video with multiple recommendation strategies.
     """
@@ -864,7 +962,7 @@ async def recommendation_engine_get_video_overlay_recommendations(body: BodyReco
 
 
 @app.post('/api/recommendation_engine/get_similar_style_recommendations', response_model=GetSimilarStyleRecommendationsOutputSchema, operation_id='recommendation_engine_get_similar_style_recommendations')
-async def recommendation_engine_get_similar_style_recommendations(body: BodyRecommendationEngineGetSimilarStyleRecommendations = Body(...)) -> GetSimilarStyleRecommendationsOutputSchema:
+async def recommendation_engine_get_similar_style_recommendations(body: BodyRecommendationEngineGetSimilarStyleRecommendations = Body(...), current_user: User = Depends(get_current_user)) -> GetSimilarStyleRecommendationsOutputSchema:
     """
     Get recommendations similar to a specific asset.
     """
@@ -877,7 +975,7 @@ async def recommendation_engine_get_similar_style_recommendations(body: BodyReco
 
 
 @app.post('/api/recommendation_engine/track_recommendation_interaction', response_model=TrackRecommendationInteractionOutputSchema, operation_id='recommendation_engine_track_recommendation_interaction')
-async def recommendation_engine_track_recommendation_interaction(body: BodyRecommendationEngineTrackRecommendationInteraction = Body(...)) -> TrackRecommendationInteractionOutputSchema:
+async def recommendation_engine_track_recommendation_interaction(body: BodyRecommendationEngineTrackRecommendationInteraction = Body(...), current_user: User = Depends(get_current_user)) -> TrackRecommendationInteractionOutputSchema:
     """
     Track user interaction with recommendations for learning.
     """
@@ -890,7 +988,7 @@ async def recommendation_engine_track_recommendation_interaction(body: BodyRecom
 
 
 @app.post('/api/ai_analysis_service/analyze_video_for_overlays', response_model=AnalyzeVideoForOverlaysOutputSchema, operation_id='ai_analysis_service_analyze_video_for_overlays')
-async def ai_analysis_service_analyze_video_for_overlays(body: BodyAiAnalysisServiceAnalyzeVideoForOverlays = Body(...)) -> AnalyzeVideoForOverlaysOutputSchema:
+async def ai_analysis_service_analyze_video_for_overlays(body: BodyAiAnalysisServiceAnalyzeVideoForOverlays = Body(...), current_user: User = Depends(get_current_user)) -> AnalyzeVideoForOverlaysOutputSchema:
     """
     Analyze a video and return AI-powered overlay recommendations.
     """
@@ -903,12 +1001,22 @@ async def ai_analysis_service_analyze_video_for_overlays(body: BodyAiAnalysisSer
 
 
 @app.post('/api/ai_analysis_service/get_smart_overlay_recommendations', response_model=GetSmartOverlayRecommendationsOutputSchema, operation_id='ai_analysis_service_get_smart_overlay_recommendations')
-async def ai_analysis_service_get_smart_overlay_recommendations(body: BodyAiAnalysisServiceGetSmartOverlayRecommendations = Body(...)) -> GetSmartOverlayRecommendationsOutputSchema:
+async def ai_analysis_service_get_smart_overlay_recommendations(body: BodyAiAnalysisServiceGetSmartOverlayRecommendations = Body(...), current_user: User = Depends(get_current_user)) -> GetSmartOverlayRecommendationsOutputSchema:
     """
     Get AI-recommended overlays for a specific video.
     """
     response = await run_sync_in_thread(ai_analysis_service.get_smart_overlay_recommendations,  video_id=body.video_id, limit=body.limit)
     return response
+
+
+# Mount static files for local media serving (development fallback)
+local_media_dir = os.environ.get("LOCAL_MEDIA_DIR", "/tmp/magiclens-media")
+if os.path.exists(local_media_dir):
+    app.mount("/media", StaticFiles(directory=local_media_dir), name="media")
+else:
+    # Create directory if it doesn't exist
+    os.makedirs(local_media_dir, exist_ok=True)
+    app.mount("/media", StaticFiles(directory=local_media_dir), name="media")
     
     
 

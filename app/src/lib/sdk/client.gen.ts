@@ -19,7 +19,7 @@ const authMiddleware = {
 
 export const client = createClient(
   createConfig({
-    baseUrl: '', // Will use relative paths
+    baseUrl: import.meta.env.VITE_API_BASE_URL || '', // Falls back to relative paths for dev proxy
     middleware: [authMiddleware],
   })
 );

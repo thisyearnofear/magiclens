@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+    environment:
+      # Database connection used by core.database.init_db()
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: magiclens
+      DB_USER: magiclens_user
+      DB_PASSWORD: magiclens_pass
+      # Redis URL for render queue and websocket progress
+      REDIS_URL: redis://redis:6379/0
+      # Local media storage directory (falls back when S3 not configured)
+      LOCAL_MEDIA_DIR: /data/media
+      # Optional: enable/disable render worker startup (defaults true if not set)
+      ENABLE_RENDER_WORKER: "true"
+    volumes:
+      - media-data:/data/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: magiclens
+      POSTGRES_USER: magiclens_user
+      POSTGRES_PASSWORD: magiclens_pass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres-data:
+  media-data:
