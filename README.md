@@ -1,6 +1,10 @@
 # MagicLens - Augmented Reality Video Platform
 
-MagicLens is a web-based platform that allows users to add augmented reality overlays to their videos. It features a React-based frontend with Flow blockchain authentication, a Python backend with a microservices architecture, and a dedicated logging server.
+MagicLens is a web-based platform that allows users to add augmented reality overlays to their videos. It features a React-based frontend with Flow blockchain authentication and a distributed backend with three specialized services:
+
+- **Main API Service** (Python/FastAPI) - Core business logic and REST API
+- **Logging Server** (Python/FastAPI) - Log aggregation and error reporting  
+- **Collaboration Server** (Node.js/Socket.IO) - Real-time WebSocket collaboration
 
 ## 🏆 Hackathon Submission
 
@@ -21,16 +25,26 @@ flow project deploy --network emulator
 # ✅ CollaborationHub → 0xf8d6e0586b0a20c7
 # ✅ ForteAutomation → 0xf8d6e0586b0a20c7
 
-# 3. Frontend Setup
+# 3. Start Backend Services
+# Terminal 1: Main API Service
+cd services
+pip install -r requirements.txt
+python main.py  # Starts on http://localhost:8000
+
+# Terminal 2: Logging Server  
+cd logging-server
+pip install -e .
+python logging-server.py  # Starts on http://localhost:9000
+
+# Terminal 3: Collaboration Server
+cd app/server
+node index.js  # Starts on http://localhost:3001
+
+# 4. Frontend Setup
 cd app
 pnpm install
 cp .env.example .env  # Configure VITE_FLOW_NETWORK=emulator
 pnpm dev  # Starts on http://localhost:5173
-
-# 4. Backend Setup
-cd services
-pip install -r requirements.txt
-python main.py  # Starts on http://localhost:8000
 
 # 5. Database (if needed)
 psql -c "CREATE DATABASE magiclens;" -U postgres
@@ -40,7 +54,10 @@ psql -c "GRANT ALL PRIVILEGES ON DATABASE magiclens TO magiclens_user;" -U postg
 
 ### 🎉 **FULLY OPERATIONAL (Updated Oct 24, 2024)**
 - **Frontend**: React app running on `http://localhost:5173`
-- **Backend**: FastAPI services running on `http://localhost:8000`
+- **Backend Services**: Distributed across 3 specialized servers
+  - Main API Service: `http://localhost:8000` (Core business logic)
+  - Logging Server: `http://localhost:9000` (Log aggregation)
+  - Collaboration Server: `http://localhost:3001` (Real-time WebSocket)
 - **Blockchain**: ALL 3 contracts deployed to Flow emulator
   - ARAssetNFT (NFT minting & management)
   - CollaborationHub (Multi-party projects)
@@ -56,6 +73,7 @@ All documentation is available in the [`docs/`](./docs) directory:
 - [Flow Integration](./docs/FLOW_INTEGRATION.md) - Blockchain features and usage (286 lines)
 - [Deployment & API](./docs/DEPLOYMENT_AND_API.md) - Deployment guide and API docs (479 lines)
 - [Hackathon & Status](./docs/HACKATHON_AND_STATUS.md) - Submission details and progress (247 lines)
+- [Server Architecture](./docs/SERVER_ARCHITECTURE.md) - Distributed backend architecture (150 lines)
 
 ### 📊 Production Monitoring
 - `GET /health` - Comprehensive system health status

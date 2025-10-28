@@ -14,6 +14,11 @@
 - **Performance:** Uvloop, HTTP tools, multi-worker support
 - **Testing:** 51 tests passing across auth, FFmpeg, media, render queue
 
+### 🏗️ Distributed Architecture
+- **Main API Service** (Python/FastAPI) - Core business logic and REST API
+- **Logging Server** (Python/FastAPI) - Log aggregation and error reporting  
+- **Collaboration Server** (Node.js/Socket.IO) - Real-time WebSocket collaboration
+
 ### 🚀 Quick Production Setup
 ```bash
 # Install dependencies
@@ -52,16 +57,25 @@ flow emulator start --rest-port 8889 &
 # 2. Deploy Smart Contracts
 flow project deploy --network emulator
 
-# 3. Frontend
-cd app && pnpm install && cp .env.example .env && pnpm dev
-
-# 4. Backend
+# 3. Start Backend Services (3 terminals)
+# Terminal 1: Main API Service
 cd services && pip install -r requirements.txt && python main.py
+
+# Terminal 2: Logging Server  
+cd logging-server && pip install -e . && python logging-server.py
+
+# Terminal 3: Collaboration Server
+cd app/server && node index.js
+
+# 4. Frontend
+cd app && pnpm install && cp .env.example .env && pnpm dev
 ```
 
 ### 🎉 Live Services
 - **Frontend**: http://localhost:5173
-- **Backend**: http://localhost:8000
+- **Main API Service**: http://localhost:8000
+- **Logging Server**: http://localhost:9000
+- **Collaboration Server**: http://localhost:3001
 - **Flow Emulator**: http://localhost:8889
 
 ## 📋 Current Status (October 2024)

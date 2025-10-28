@@ -52,11 +52,17 @@
 - 51 tests passing across 4 modules
 - Auth, FFmpeg, media, and render queue test coverage
 
+#### 8. Distributed Architecture
+- **Main API Service** (Python/FastAPI) - Core business logic (port 8000)
+- **Logging Server** (Python/FastAPI) - Log aggregation (port 9000)
+- **Collaboration Server** (Node.js/Socket.IO) - Real-time collaboration (port 3001)
+
 ### 📊 Production Statistics
 - **Flow Service:** 516 lines (from stubs to production)
 - **Health Monitoring:** 126 lines
 - **WebSocket System:** 488 lines
 - **Database Migrations:** 343 lines
+- **Distributed Services:** 3 servers (Main API, Logging, Collaboration)
 - **Total Production Code:** 2,473 lines
 - **Documentation:** 1,826 lines
 
