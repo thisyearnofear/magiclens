@@ -22,6 +22,14 @@ interface OverlayOperation {
   overlayId?: string;
 }
 
+interface PoseAnalysisUpdate {
+  videoId: string;
+  poseAnalysis: any; // Pose analysis results
+  smartPlacement?: any; // Smart placement suggestions
+  userId: string;
+  timestamp: number;
+}
+
 interface CollaborationState {
   sessionId: string;
   users: UserPresence[];
@@ -35,11 +43,13 @@ export const useRealtimeCollaboration = (
   userId: string,
   username: string,
   initialOverlays: EnhancedOverlayData[],
-  onOverlaysUpdate: (overlays: EnhancedOverlayData[]) => void
+  onOverlaysUpdate: (overlays: EnhancedOverlayData[]) => void,
+  onPoseAnalysisUpdate?: (update: PoseAnalysisUpdate) => void
 ) => {
   const [isConnected, setIsConnected] = useState(false);
   const [users, setUsers] = useState<UserPresence[]>([]);
   const [isSynced, setIsSynced] = useState(false);
+  const [currentPoseAnalysis, setCurrentPoseAnalysis] = useState<PoseAnalysisUpdate | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const operationsRef = useRef<OverlayOperation[]>([]);
   const localUserId = useRef(userId);
@@ -107,23 +117,31 @@ export const useRealtimeCollaboration = (
     socket.on('operation', (operation: OverlayOperation) => {
       handleRemoteOperation(operation);
     });
-    
+
+    // Handle pose analysis updates
+    socket.on('pose-analysis-update', (update: PoseAnalysisUpdate) => {
+      setCurrentPoseAnalysis(update);
+      if (onPoseAnalysisUpdate) {
+        onPoseAnalysisUpdate(update);
+      }
+    });
+
     // Handle initial state sync
     socket.on('session-state', (state: CollaborationState) => {
       // Apply initial state
       setIsSynced(true);
       setUsers(state.users);
-      
+
       // Replay operations in order
       const sortedOps = [...state.operations].sort((a, b) => a.timestamp - b.timestamp);
       operationsRef.current = sortedOps;
-      
+
       // Apply operations to overlays
       let currentOverlays = [...initialOverlays];
       for (const op of sortedOps) {
         currentOverlays = applyOperation(currentOverlays, op);
       }
-      
+
       onOverlaysUpdate(currentOverlays);
     });
     
@@ -247,6 +265,31 @@ export const useRealtimeCollaboration = (
   const updateCursorPosition = useCallback((x: number, y: number) => {
     updateUserPresence({ cursorPosition: { x, y } });
   }, [updateUserPresence]);
+
+  // Broadcast pose analysis updates to all users in session
+  const broadcastPoseAnalysis = useCallback((
+    videoId: string,
+    poseAnalysis: any,
+    smartPlacement?: any
+  ) => {
+    if (!socketRef.current || !isConnected) return;
+
+    const update: PoseAnalysisUpdate = {
+      videoId,
+      poseAnalysis,
+      smartPlacement,
+      userId: localUserId.current,
+      timestamp: Date.now(),
+    };
+
+    socketRef.current.emit('pose-analysis-update', {
+      sessionId: collaborationId,
+      update,
+    });
+
+    // Update local state
+    setCurrentPoseAnalysis(update);
+  }, [collaborationId, isConnected]);
   
   // Conflict resolution for simultaneous edits
   const resolveConflict = useCallback((
@@ -265,11 +308,13 @@ export const useRealtimeCollaboration = (
     isConnected,
     isSynced,
     users,
+    currentPoseAnalysis,
     createOverlay,
     updateOverlay,
     deleteOverlay,
     transformOverlay,
     selectOverlay,
     updateCursorPosition,
+    broadcastPoseAnalysis,
   };
 };

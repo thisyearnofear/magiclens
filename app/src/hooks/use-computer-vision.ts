@@ -1,110 +1,48 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { client } from '@/lib/sdk/client.gen';
 
-// Mock computer vision functions - would be replaced with actual CV implementation
-const mockObjectDetection = async (imageData: ImageData) => {
-  // In a real implementation, this would use a computer vision library like TensorFlow.js
-  // or call an external API for object detection
-  
-  // Mock implementation returning random objects
-  return [
-    {
-      id: 'obj1',
-      type: 'person',
-      boundingBox: {
-        x: Math.random() * imageData.width * 0.5,
-        y: Math.random() * imageData.height * 0.5,
-        width: 100 + Math.random() * 100,
-        height: 150 + Math.random() * 100
-      },
-      confidence: 0.85 + Math.random() * 0.15
-    },
-    {
-      id: 'obj2',
-      type: 'vehicle',
-      boundingBox: {
-        x: Math.random() * imageData.width * 0.3,
-        y: Math.random() * imageData.height * 0.7,
-        width: 150 + Math.random() * 100,
-        height: 100 + Math.random() * 50
-      },
-      confidence: 0.75 + Math.random() * 0.20
-    }
-  ];
-};
+// Types for pose-aware computer vision
+interface PoseSequence {
+  frames: number[][];
+  normalized: boolean;
+}
 
-const mockSurfaceDetection = async (imageData: ImageData) => {
-  // Mock implementation for detecting flat surfaces
-  return [
-    {
-      id: 'surf1',
-      type: 'flat_surface',
-      boundingBox: {
-        x: 50,
-        y: 300,
-        width: 400,
-        height: 200
-      },
-      normalVector: { x: 0, y: 0, z: 1 }, // Facing camera
-      confidence: 0.92
-    }
-  ];
-};
+interface PoseAnalysis {
+  pose_sequences: number[][][];
+  normalized_poses: number[][][];
+  confidence_avg: number;
+  frame_count: number;
+  processing_time_ms: number;
+  cached: boolean;
+}
 
-const mockMotionTracking = async (videoFrame: ImageData, previousFrame: ImageData | null) => {
-  // Mock implementation for motion tracking
-  if (!previousFrame) return [];
-  
-  return [
-    {
-      id: 'motion1',
-      centerX: videoFrame.width / 2 + (Math.random() - 0.5) * 100,
-      centerY: videoFrame.height / 2 + (Math.random() - 0.5) * 100,
-      velocity: {
-        x: (Math.random() - 0.5) * 10,
-        y: (Math.random() - 0.5) * 10
-      },
-      confidence: 0.8 + Math.random() * 0.2
-    }
-  ];
-};
-
-interface DetectedObject {
-  id: string;
-  type: string;
-  boundingBox: {
+interface PlacementSuggestion {
+  position: {
     x: number;
     y: number;
+    scaleX: number;
+    scaleY: number;
+    angle: number;
     width: number;
     height: number;
   };
   confidence: number;
+  reason: string;
+  anchor_type: string;
 }
 
-interface Surface {
-  id: string;
-  type: string;
-  boundingBox: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+interface SmartPlacementResult {
+  suggestions: PlacementSuggestion[];
+  analysis_metadata: {
+    pose_aware: boolean;
+    motion_level: string;
+    safe_zones_count: number;
   };
-  normalVector: { x: number; y: number; z: number };
-  confidence: number;
-}
-
-interface MotionPoint {
-  id: string;
-  centerX: number;
-  centerY: number;
-  velocity: { x: number; y: number };
-  confidence: number;
 }
 
 interface ComputerVisionResult {
-  objects: DetectedObject[];
-  surfaces: Surface[];
-  motionPoints: MotionPoint[];
+  poseAnalysis: PoseAnalysis | null;
+  smartPlacement: SmartPlacementResult | null;
 }
 
 export const useComputerVision = () => {
@@ -112,22 +50,34 @@ export const useComputerVision = () => {
   const [results, setResults] = useState<ComputerVisionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const analyzeFrame = useCallback(async (imageData: ImageData, previousFrame: ImageData | null = null) => {
+  // Analyze poses in a video using real backend API
+  const analyzeVideoPoses = useCallback(async (videoId: string) => {
     setIsProcessing(true);
     setError(null);
-    
+
     try {
-      // In a real implementation, these would run in parallel
-      const objects = await mockObjectDetection(imageData);
-      const surfaces = await mockSurfaceDetection(imageData);
-      const motionPoints = await mockMotionTracking(imageData, previousFrame);
-      
-      const result: ComputerVisionResult = {
-        objects,
-        surfaces,
-        motionPoints
+      const response = await client.POST('/api/computer_vision/analyze_video_poses', {
+        body: { video_id: videoId }
+      });
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to analyze video poses');
+      }
+
+      const poseAnalysis: PoseAnalysis = {
+        pose_sequences: response.data.pose_sequences || [],
+        normalized_poses: response.data.normalized_poses || [],
+        confidence_avg: response.data.confidence_avg || 0,
+        frame_count: response.data.frame_count || 0,
+        processing_time_ms: response.data.processing_time_ms || 0,
+        cached: response.data.cached || false
       };
-      
+
+      const result: ComputerVisionResult = {
+        poseAnalysis,
+        smartPlacement: null
+      };
+
       setResults(result);
       return result;
     } catch (err) {
@@ -139,108 +89,48 @@ export const useComputerVision = () => {
     }
   }, []);
 
-  const getSuggestedPlacement = useCallback((
+  // Get smart overlay placement suggestions from backend
+  const getSmartPlacement = useCallback(async (
+    videoId: string,
     overlayWidth: number,
     overlayHeight: number,
-    videoWidth: number,
-    videoHeight: number,
-    cvResults: ComputerVisionResult
+    frameTimestamp?: number
   ) => {
-    // Priority for placement:
-    // 1. Flat surfaces (highest confidence)
-    // 2. Areas away from detected objects
-    // 3. Center of motion if tracking is available
-    
-    // Find the best flat surface
-    const bestSurface = cvResults.surfaces
-      .filter(surface => surface.confidence > 0.8)
-      .sort((a, b) => b.confidence - a.confidence)[0];
-    
-    if (bestSurface) {
-      // Place in the center of the surface with some padding
-      const paddingX = overlayWidth * 0.1;
-      const paddingY = overlayHeight * 0.1;
-      
-      return {
-        x: bestSurface.boundingBox.x + (bestSurface.boundingBox.width - overlayWidth) / 2,
-        y: bestSurface.boundingBox.y + (bestSurface.boundingBox.height - overlayHeight) / 2,
-        scaleX: 1,
-        scaleY: 1,
-        angle: 0,
-        width: overlayWidth,
-        height: overlayHeight
+    try {
+      const response = await client.POST('/api/computer_vision/get_smart_placement', {
+        body: {
+          video_id: videoId,
+          overlay_width: overlayWidth,
+          overlay_height: overlayHeight,
+          frame_timestamp: frameTimestamp || 0
+        }
+      });
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || 'Failed to get smart placement');
+      }
+
+      const smartPlacement: SmartPlacementResult = {
+        suggestions: response.data.suggestions || [],
+        analysis_metadata: response.data.analysis_metadata || {
+          pose_aware: false,
+          motion_level: 'unknown',
+          safe_zones_count: 0
+        }
       };
+
+      // Update results with smart placement data
+      setResults(prev => prev ? { ...prev, smartPlacement } : { poseAnalysis: null, smartPlacement });
+
+      return smartPlacement;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to get smart placement';
+      setError(errorMessage);
+      throw err;
     }
-    
-    // If no surfaces, avoid detected objects
-    const safeAreas = calculateSafeAreas(cvResults.objects, videoWidth, videoHeight, overlayWidth, overlayHeight);
-    
-    if (safeAreas.length > 0) {
-      // Return center of the largest safe area
-      const bestArea = safeAreas.sort((a, b) => 
-        (b.width * b.height) - (a.width * a.height)
-      )[0];
-      
-      return {
-        x: bestArea.x + (bestArea.width - overlayWidth) / 2,
-        y: bestArea.y + (bestArea.height - overlayHeight) / 2,
-        scaleX: 1,
-        scaleY: 1,
-        angle: 0,
-        width: overlayWidth,
-        height: overlayHeight
-      };
-    }
-    
-    // Fallback to center placement
-    return {
-      x: (videoWidth - overlayWidth) / 2,
-      y: (videoHeight - overlayHeight) / 2,
-      scaleX: 1,
-      scaleY: 1,
-      angle: 0,
-      width: overlayWidth,
-      height: overlayHeight
-    };
   }, []);
 
-  const calculateSafeAreas = (
-    objects: DetectedObject[],
-    videoWidth: number,
-    videoHeight: number,
-    overlayWidth: number,
-    overlayHeight: number
-  ) => {
-    // Simple algorithm to find safe areas - in reality, this would be more sophisticated
-    const safeAreas = [];
-    
-    // Top area (above all objects)
-    const topArea = {
-      x: 0,
-      y: 0,
-      width: videoWidth,
-      height: Math.min(...objects.map(obj => obj.boundingBox.y)) - 20
-    };
-    
-    if (topArea.height > overlayHeight) {
-      safeAreas.push(topArea);
-    }
-    
-    // Bottom area (below all objects)
-    const bottomY = Math.max(...objects.map(obj => obj.boundingBox.y + obj.boundingBox.height));
-    const bottomArea = {
-      x: 0,
-      y: bottomY + 20,
-      width: videoWidth,
-      height: videoHeight - bottomY - 20
-    };
-    
-    if (bottomArea.height > overlayHeight) {
-      safeAreas.push(bottomArea);
-    }
-    
-    return safeAreas;
-  };
+
 
   const clearResults = useCallback(() => {
     setResults(null);
@@ -251,8 +141,8 @@ export const useComputerVision = () => {
     isProcessing,
     results,
     error,
-    analyzeFrame,
-    getSuggestedPlacement,
+    analyzeVideoPoses,
+    getSmartPlacement,
     clearResults
   };
 };

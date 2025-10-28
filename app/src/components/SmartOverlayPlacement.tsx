@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useComputerVision } from '@/hooks/use-computer-vision';
-import { Target, Sparkles, Zap, Loader } from 'lucide-react';
+import { useRealtimeCollaboration } from '@/hooks/use-realtime-collaboration';
+import { Target, Sparkles, Zap, Loader, Brain, Users } from 'lucide-react';
 import { EnhancedOverlayData } from '@/types/enhanced-overlay-types';
 import ComputerVisionVisualization from '@/components/ComputerVisionVisualization';
 
@@ -14,6 +15,10 @@ interface SmartOverlayPlacementProps {
   selectedOverlay: string | null;
   setSelectedOverlay: React.Dispatch<React.SetStateAction<string | null>>;
   onPlaceOverlay: (position: { x: number; y: number; width: number; height: number; scaleX: number; scaleY: number; angle: number }) => void;
+  videoId?: string; // UUID of the video for pose analysis
+  collaborationId?: string; // For real-time collaboration
+  userId?: string;
+  username?: string;
 }
 
 export default function SmartOverlayPlacement({
@@ -23,170 +28,189 @@ export default function SmartOverlayPlacement({
   setOverlays,
   selectedOverlay,
   setSelectedOverlay,
-  onPlaceOverlay
+  onPlaceOverlay,
+  videoId,
+  collaborationId,
+  userId,
+  username
 }: SmartOverlayPlacementProps) {
   const [isEnabled, setIsEnabled] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const frameCaptureRef = useRef<HTMLCanvasElement>(null);
-  const previousFrameRef = useRef<ImageData | null>(null);
-  
-  const { analyzeFrame, results, isProcessing, error, getSuggestedPlacement } = useComputerVision();
+  const [showVisualization, setShowVisualization] = useState(false);
 
-  const captureAndAnalyzeFrame = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
-    
-    setIsAnalyzing(true);
-    
+  const { analyzeVideoPoses, getSmartPlacement, results, isProcessing, error, clearResults } = useComputerVision();
+
+  // Real-time collaboration hook
+  const {
+    isConnected: isCollaborationConnected,
+    broadcastPoseAnalysis,
+    currentPoseAnalysis
+  } = useRealtimeCollaboration(
+    collaborationId || '',
+    userId || '',
+    username || 'Anonymous',
+    overlays,
+    setOverlays,
+    (poseUpdate) => {
+      // Handle incoming pose analysis updates from other users
+      console.log('Received pose analysis update:', poseUpdate);
+    }
+  );
+
+  const analyzeVideo = async () => {
+    if (!videoId) {
+      console.error('No video ID provided for analysis');
+      return;
+    }
+
     try {
-      // Create a temporary canvas to capture the current frame
-      const tempCanvas = document.createElement('canvas');
-      const ctx = tempCanvas.getContext('2d');
-      
-      if (!ctx) {
-        throw new Error('Could not get 2D context');
+      // Analyze video poses
+      await analyzeVideoPoses(videoId);
+      setShowVisualization(true);
+
+      // Broadcast to collaborators if connected
+      if (isCollaborationConnected && results?.poseAnalysis) {
+        broadcastPoseAnalysis(videoId, results.poseAnalysis);
       }
-      
-      tempCanvas.width = videoRef.current.videoWidth;
-      tempCanvas.height = videoRef.current.videoHeight;
-      
-      // Draw the current video frame to the temporary canvas
-      ctx.drawImage(videoRef.current, 0, 0, tempCanvas.width, tempCanvas.height);
-      
-      // Get image data
-      const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-      
-      // Analyze the frame
-      await analyzeFrame(imageData, previousFrameRef.current);
-      
-      // Store current frame for next comparison
-      previousFrameRef.current = imageData;
-      
-      setShowSuggestions(true);
     } catch (err) {
-      console.error('Error analyzing frame:', err);
-    } finally {
-      setIsAnalyzing(false);
+      console.error('Error analyzing video:', err);
+    }
+  };
+
+  const getPlacementSuggestions = async () => {
+    if (!videoId || !videoRef.current) return;
+
+    try {
+      // Get smart placement suggestions for a typical overlay size
+      const overlayWidth = 200;
+      const overlayHeight = 200;
+
+      await getSmartPlacement(videoId, overlayWidth, overlayHeight);
+
+      // Broadcast to collaborators if connected
+      if (isCollaborationConnected && results?.poseAnalysis && results?.smartPlacement) {
+        broadcastPoseAnalysis(videoId, results.poseAnalysis, results.smartPlacement);
+      }
+    } catch (err) {
+      console.error('Error getting placement suggestions:', err);
     }
   };
 
   const placeSmartOverlay = () => {
-    if (!videoRef.current || !results) return;
-    
-    // For demo purposes, let's assume we're placing a 200x200 overlay
-    const overlayWidth = 200;
-    const overlayHeight = 200;
-    
-    const suggestedPosition = getSuggestedPlacement(
-      overlayWidth,
-      overlayHeight,
-      videoRef.current.videoWidth,
-      videoRef.current.videoHeight,
-      results
-    );
-    
-    onPlaceOverlay(suggestedPosition);
-    setShowSuggestions(false);
+    if (!results?.smartPlacement?.suggestions?.[0]) return;
+
+    const bestSuggestion = results.smartPlacement.suggestions[0];
+    onPlaceOverlay(bestSuggestion.position);
   };
 
   const clearAnalysis = () => {
-    setShowSuggestions(false);
+    clearResults();
+    setShowVisualization(false);
   };
 
-  // Auto-analyze when enabled
+  // Analyze video when enabled and videoId is available
   useEffect(() => {
-    if (isEnabled && videoRef.current) {
-      const interval = setInterval(() => {
-        if (!isAnalyzing && !isProcessing) {
-          captureAndAnalyzeFrame();
-        }
-      }, 2000); // Analyze every 2 seconds
-      
-      return () => clearInterval(interval);
+    if (isEnabled && videoId && !results?.poseAnalysis) {
+      analyzeVideo();
     }
-  }, [isEnabled, isAnalyzing, isProcessing]);
+  }, [isEnabled, videoId]);
 
   return (
     <Card className="bg-white/10 border-white/20">
       <CardHeader>
-        <CardTitle className="text-white flex items-center space-x-2">
-          <Sparkles className="h-5 w-5 text-yellow-400" />
-          <span>Smart Placement</span>
+      <CardTitle className="text-white flex items-center space-x-2">
+      <Brain className="h-5 w-5 text-green-400" />
+      <span>Pose Analysis & Smart Placement</span>
+        {isCollaborationConnected && (
+            <div className="flex items-center space-x-1 text-xs text-green-400">
+              <Users className="h-3 w-3" />
+              <span>Live</span>
+            </div>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col space-y-3">
-          <Button
-            variant={isEnabled ? "default" : "outline"}
-            onClick={() => setIsEnabled(!isEnabled)}
-            className={isEnabled ? "bg-yellow-400 text-black hover:bg-yellow-500" : ""}
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader className="h-4 w-4 mr-2 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Target className="h-4 w-4 mr-2" />
-                {isEnabled ? "Disable Smart Placement" : "Enable Smart Placement"}
-              </>
-            )}
-          </Button>
-          
-          {isEnabled && !isAnalyzing && !isProcessing && (
-            <Button
-              variant="outline"
-              onClick={captureAndAnalyzeFrame}
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              Analyze Current Frame
-            </Button>
+        <Button
+        variant={isEnabled ? "default" : "outline"}
+        onClick={() => setIsEnabled(!isEnabled)}
+        className={isEnabled ? "bg-green-400 text-black hover:bg-green-500" : ""}
+        >
+        {isProcessing ? (
+        <>
+        <Loader className="h-4 w-4 mr-2 animate-spin" />
+        Analyzing...
+        </>
+        ) : (
+        <>
+        <Brain className="h-4 w-4 mr-2" />
+        {isEnabled ? "Disable Pose Analysis" : "Enable Pose Analysis"}
+        </>
+        )}
+        </Button>
+
+        {isEnabled && videoId && !results?.poseAnalysis && !isProcessing && (
+        <Button
+        variant="outline"
+        onClick={analyzeVideo}
+        >
+        <Zap className="h-4 w-4 mr-2" />
+        Analyze Video Poses
+        </Button>
+        )}
+
+        {isEnabled && results?.poseAnalysis && !results?.smartPlacement && !isProcessing && (
+        <Button
+        variant="outline"
+        onClick={getPlacementSuggestions}
+        >
+        <Target className="h-4 w-4 mr-2" />
+        Get Smart Placement
+        </Button>
+        )}
+
+          {isProcessing && (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+              <span className="text-white">Processing pose analysis...</span>
+            </div>
           )}
         </div>
         
-        {showSuggestions && results && (
-          <div className="space-y-3 p-3 bg-yellow-400/10 rounded-lg border border-yellow-400/20">
-            <h4 className="text-yellow-400 font-medium text-sm">Smart Placement Suggestions</h4>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-300">Detected Objects:</span>
-                <span className="text-white">{results.objects.length}</span>
-              </div>
-              
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-300">Flat Surfaces:</span>
-                <span className="text-white">{results.surfaces.length}</span>
-              </div>
-              
-              {results.motionPoints.length > 0 && (
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-300">Motion Points:</span>
-                  <span className="text-white">{results.motionPoints.length}</span>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex space-x-2">
-              <Button
-                size="sm"
-                onClick={placeSmartOverlay}
-                className="flex-1 bg-yellow-400 text-black hover:bg-yellow-500"
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                Place Here
+        {showVisualization && results && (
+        <div className="space-y-3">
+        <ComputerVisionVisualization
+        poseAnalysis={results.poseAnalysis}
+        smartPlacement={results.smartPlacement}
+        videoWidth={videoRef.current?.videoWidth || 640}
+        videoHeight={videoRef.current?.videoHeight || 480}
+          isLoading={isProcessing}
+            />
+
+        {results.smartPlacement?.suggestions && results.smartPlacement.suggestions.length > 0 && (
+        <div className="p-3 bg-green-400/10 rounded-lg border border-green-400/20">
+        <h4 className="text-green-400 font-medium text-sm mb-2">Smart Placement Available</h4>
+
+          <div className="flex space-x-2">
+            <Button
+              size="sm"
+            onClick={placeSmartOverlay}
+          className="flex-1 bg-green-400 text-black hover:bg-green-500"
+        >
+            <Sparkles className="h-4 w-4 mr-2" />
+              Place Overlay
               </Button>
-              
+
               <Button
-                size="sm"
-                variant="outline"
-                onClick={clearAnalysis}
-              >
-                Clear
-              </Button>
-            </div>
-          </div>
+              size="sm"
+            variant="outline"
+            onClick={clearAnalysis}
+          >
+              Clear
+          </Button>
+        </div>
+        </div>
+        )}
+        </div>
         )}
         
         {error && (
@@ -196,18 +220,10 @@ export default function SmartOverlayPlacement({
         )}
         
         <div className="text-xs text-gray-400 space-y-1">
-          <p>Smart placement automatically analyzes your video to find optimal positions for overlays.</p>
-          <p>It detects objects, surfaces, and movement to suggest the best placement.</p>
+        <p>Pose-aware placement analyzes human movement in your video to suggest optimal overlay positions.</p>
+        <p>AI detects keypoints and motion patterns to avoid blocking important action areas.</p>
         </div>
-      </CardContent>
-      
-      {/* Hidden canvas for frame capture */}
-      <canvas 
-        ref={frameCaptureRef} 
-        className="hidden" 
-        width="640" 
-        height="480"
-      />
-    </Card>
+        </CardContent>
+        </Card>
   );
 }

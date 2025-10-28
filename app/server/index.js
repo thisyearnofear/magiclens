@@ -102,15 +102,29 @@ io.on('connection', (socket) => {
   // Operations
   socket.on('operation', (data) => {
     const { sessionId, operation } = data;
-    
+
     if (sessions.has(sessionId)) {
       const session = sessions.get(sessionId);
-      
+
       // Store operation
       session.operations.push(operation);
-      
+
       // Broadcast to others
       socket.to(sessionId).emit('operation', operation);
+    }
+  });
+
+  // Pose analysis updates
+  socket.on('pose-analysis-update', (data) => {
+    const { sessionId, update } = data;
+
+    if (sessions.has(sessionId)) {
+      // Store the latest pose analysis for the session
+      const session = sessions.get(sessionId);
+      session.poseAnalysis = update;
+
+      // Broadcast to all users in session (including sender for consistency)
+      io.to(sessionId).emit('pose-analysis-update', update);
     }
   });
   
