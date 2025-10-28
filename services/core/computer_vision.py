@@ -6,10 +6,14 @@ Handles MediaPipe pose data normalization and similarity detection.
 import numpy as np
 from typing import List, Tuple, Optional
 import math
+import mediapipe as mp
+import cv2
+import time
+from uuid import UUID
 
 
 class PoseAnalyzer:
-    """Handles pose sequence normalization and matching operations."""
+    """Handles pose sequence normalization and matching operations with MediaPipe integration."""
 
     # MediaPipe pose landmark indices for key body points
     # These are the most stable landmarks for pose comparison
@@ -43,6 +47,146 @@ class PoseAnalyzer:
         "left_knee",
         "right_knee",
     ]
+
+    def __init__(self):
+        """Initialize MediaPipe pose detection."""
+        self.mp_pose = mp.solutions.pose
+        self.pose = self.mp_pose.Pose(
+            static_image_mode=False,
+            model_complexity=1,
+            enable_segmentation=False,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
+        )
+
+    def extract_pose_from_image(self, image: np.ndarray) -> List[float]:
+        """
+        Extract pose landmarks from image using MediaPipe.
+        Returns format: [x1, y1, z1, visibility1, x2, y2, z2, visibility2, ...]
+        """
+        try:
+            # Convert BGR to RGB for MediaPipe
+            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+            # Process the image
+            results = self.pose.process(rgb_image)
+
+            if results.pose_landmarks:
+                landmarks = []
+                # Extract first 7 key landmarks for our format
+                key_indices = [0, 11, 12, 13, 14, 15, 16]  # nose, shoulders, elbows, wrists
+
+                for idx in key_indices:
+                    if idx < len(results.pose_landmarks.landmark):
+                        landmark = results.pose_landmarks.landmark[idx]
+                        landmarks.extend([landmark.x, landmark.y, landmark.z, landmark.visibility])
+
+                return landmarks
+            else:
+                return []
+        except Exception as e:
+            print(f"Error extracting pose: {e}")
+            return []
+
+    def extract_pose_from_video(
+        self, video_path: str, max_frames: int = 30, video_id: UUID = None
+    ) -> List[List[float]]:
+        """
+        Extract pose sequences from video file with caching support.
+        Returns list of frames, each with 28 values (7 landmarks × 4 properties).
+        """
+        # Check cache first if video_id provided
+        if video_id:
+            try:
+                from core.pose_cache import get_video_pose_analysis
+
+                cached_analysis = get_video_pose_analysis(video_id)
+                if cached_analysis and cached_analysis.pose_sequences:
+                    sequences = cached_analysis.pose_sequences.get("sequences", [])
+                    if sequences:
+                        print(f"✅ Using cached pose analysis for video {video_id}")
+                        return sequences
+            except ImportError:
+                pass  # Cache not available
+
+        start_time = time.time()
+
+        try:
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                print(f"Error: Cannot open video {video_path}")
+                return []
+
+            pose_sequences = []
+            frame_count = 0
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+            # Sample frames evenly if video is long
+            frame_skip = max(1, total_frames // max_frames) if total_frames > max_frames else 1
+
+            while cap.isOpened() and len(pose_sequences) < max_frames:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+
+                if frame_count % frame_skip == 0:
+                    pose_data = self.extract_pose_from_image(frame)
+                    if pose_data and len(pose_data) == 28:  # Ensure complete pose data
+                        pose_sequences.append(pose_data)
+
+                frame_count += 1
+
+            cap.release()
+
+            # Cache the results if video_id provided
+            if video_id and pose_sequences:
+                try:
+                    from core.pose_cache import cache_video_pose_analysis
+                    from core.computer_vision import normalize_pose_sequence
+
+                    processing_time_ms = int((time.time() - start_time) * 1000)
+                    normalized_poses = normalize_pose_sequence(pose_sequences)
+
+                    # Basic movement analysis
+                    movement_analysis = {
+                        "frame_count": len(pose_sequences),
+                        "avg_confidence": self._calculate_average_confidence(pose_sequences),
+                        "processing_time_ms": processing_time_ms,
+                    }
+
+                    cache_video_pose_analysis(
+                        video_id,
+                        pose_sequences,
+                        normalized_poses,
+                        movement_analysis,
+                        processing_time_ms,
+                    )
+                    print(f"✅ Cached pose analysis for video {video_id}")
+                except ImportError:
+                    pass  # Cache not available
+
+            return pose_sequences
+
+        except Exception as e:
+            print(f"Error processing video: {e}")
+            return []
+
+    def _calculate_average_confidence(self, pose_sequences: List[List[float]]) -> float:
+        """Calculate average confidence from pose sequences."""
+        if not pose_sequences:
+            return 0.0
+
+        total_confidence = 0.0
+        confidence_count = 0
+
+        for sequence in pose_sequences:
+            # Extract confidence values (every 4th value starting from index 3)
+            for i in range(3, len(sequence), 4):
+                if i < len(sequence):
+                    total_confidence += sequence[i]
+                    confidence_count += 1
+
+        return total_confidence / confidence_count if confidence_count > 0 else 0.0
 
     @staticmethod
     def extract_coordinates_from_frame(frame_data: List[float]) -> List[Tuple[float, float]]:
@@ -185,6 +329,7 @@ class PoseAnalyzer:
     ) -> float:
         """
         Find if sequence_b appears within sequence_a using sliding window comparison.
+        Enhanced with caching for performance.
 
         Args:
             sequence_a: Longer sequence to search within
@@ -198,6 +343,18 @@ class PoseAnalyzer:
 
         if len(sequence_b) > len(sequence_a):
             return 0.0
+
+        # Check cache first
+        try:
+            from core.pose_cache import get_cached_sequence_match, cache_sequence_match
+
+            cached_result = get_cached_sequence_match(sequence_a, sequence_b)
+            if cached_result is not None:
+                return cached_result
+        except ImportError:
+            pass  # Cache not available, proceed without caching
+
+        start_time = time.time()
 
         # Normalize both sequences first
         norm_a = PoseAnalyzer.normalize_pose_sequence(sequence_a)
@@ -224,7 +381,28 @@ class PoseAnalyzer:
                 avg_similarity = sum(frame_similarities) / len(frame_similarities)
                 max_similarity = max(max_similarity, avg_similarity)
 
+        # Cache the result
+        try:
+            from core.pose_cache import cache_sequence_match
+
+            computation_time_ms = int((time.time() - start_time) * 1000)
+            cache_sequence_match(sequence_a, sequence_b, max_similarity, computation_time_ms)
+        except ImportError:
+            pass  # Cache not available
+
         return max_similarity
+
+
+# Singleton instance for performance (avoid reinitializing MediaPipe)
+_pose_analyzer_instance = None
+
+
+def get_pose_analyzer() -> PoseAnalyzer:
+    """Get singleton PoseAnalyzer instance for performance."""
+    global _pose_analyzer_instance
+    if _pose_analyzer_instance is None:
+        _pose_analyzer_instance = PoseAnalyzer()
+    return _pose_analyzer_instance
 
 
 # Convenience functions for direct use
@@ -236,3 +414,17 @@ def normalize_pose_sequence(sequence_data: List[List[float]]) -> List[List[float
 def find_pose_sequence_match(sequence_a: List[List[float]], sequence_b: List[List[float]]) -> float:
     """Find if sequence_b appears within sequence_a."""
     return PoseAnalyzer.find_pose_sequence_match(sequence_a, sequence_b)
+
+
+def extract_pose_from_video(
+    video_path: str, max_frames: int = 30, video_id: UUID = None
+) -> List[List[float]]:
+    """Extract pose sequences from video file using MediaPipe with caching."""
+    analyzer = get_pose_analyzer()
+    return analyzer.extract_pose_from_video(video_path, max_frames, video_id)
+
+
+def extract_pose_from_image(image: np.ndarray) -> List[float]:
+    """Extract pose landmarks from single image using MediaPipe."""
+    analyzer = get_pose_analyzer()
+    return analyzer.extract_pose_from_image(image)

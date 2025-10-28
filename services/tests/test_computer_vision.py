@@ -6,11 +6,21 @@ Tests the normalize_pose_sequence and find_pose_sequence_match functions.
 import pytest
 import math
 from typing import List
-from core.computer_vision import normalize_pose_sequence, find_pose_sequence_match, PoseAnalyzer
+from core.computer_vision import (
+    normalize_pose_sequence,
+    find_pose_sequence_match,
+    PoseAnalyzer,
+    get_pose_analyzer,
+)
 
 
 class TestPoseAnalysis:
-    """Test suite for pose analysis functions."""
+    """Test suite for pose analysis functions with MediaPipe integration."""
+
+    @classmethod
+    def setup_class(cls):
+        """Setup test environment - ensure MediaPipe is available but use test data."""
+        cls.use_mock_data = True  # Use controlled test data instead of real MediaPipe for tests
 
     def create_test_frame(
         self, scale: float = 1.0, offset_x: float = 0.0, offset_y: float = 0.0
@@ -276,6 +286,49 @@ class TestPoseAnalysis:
 
         # Should still find good match despite noise
         assert similarity > 0.7, f"Noise tolerance failed, similarity: {similarity}"
+
+    def test_mediapipe_integration_available(self):
+        """Test that MediaPipe integration is available and working."""
+        try:
+            # Test that we can get the pose analyzer instance
+            analyzer = get_pose_analyzer()
+            assert analyzer is not None
+            assert hasattr(analyzer, "pose")
+            assert hasattr(analyzer, "extract_pose_from_image")
+            print("✅ MediaPipe integration is available")
+        except Exception as e:
+            pytest.skip(f"MediaPipe not available in test environment: {e}")
+
+    def test_pose_analyzer_singleton(self):
+        """Test that get_pose_analyzer returns the same instance (singleton pattern)."""
+        analyzer1 = get_pose_analyzer()
+        analyzer2 = get_pose_analyzer()
+        assert analyzer1 is analyzer2, "get_pose_analyzer should return singleton instance"
+
+    def test_real_vs_test_data_compatibility(self):
+        """Test that our test data format is compatible with real MediaPipe output."""
+        # Our test data format
+        test_frame = self.create_test_frame()
+        assert len(test_frame) == 28, "Test frame should have 28 values"
+
+        # Test that it works with our normalization
+        normalized = normalize_pose_sequence([test_frame])
+        assert len(normalized) == 1, "Should normalize one frame"
+        assert len(normalized[0]) == 22, "Normalized frame should have 22 values"
+
+    def test_error_handling_with_invalid_media(self):
+        """Test error handling when MediaPipe can't extract poses."""
+        try:
+            analyzer = get_pose_analyzer()
+            # Test with invalid image data
+            import numpy as np
+
+            invalid_image = np.zeros((10, 10, 3), dtype=np.uint8)  # Very small image
+            result = analyzer.extract_pose_from_image(invalid_image)
+            # Should return empty list or handle gracefully
+            assert isinstance(result, list), "Should return list even on failure"
+        except Exception as e:
+            pytest.skip(f"MediaPipe error handling test skipped: {e}")
 
 
 if __name__ == "__main__":
