@@ -18,6 +18,24 @@ services:
       LOCAL_MEDIA_DIR: /data/media
       # Optional: enable/disable render worker startup (defaults true if not set)
       ENABLE_RENDER_WORKER: "true"
+      # Server configuration
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8000
+      LOG_LEVEL: info
+      # Flow blockchain configuration (set for production)
+      FLOW_NETWORK: mainnet
+      # JWT Configuration
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ALGORITHM: HS256
+      # CORS Configuration for your Vercel frontend
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://your-vercel-app.vercel.app,http://localhost:5173}
+      ALLOWED_METHODS: GET,POST,OPTIONS,PUT,DELETE
+      ALLOWED_HEADERS: Authorization,Content-Type,X-Requested-With
+      ALLOW_CREDENTIALS: "true"
+      # Upload validation
+      MAX_UPLOAD_SIZE_MB: 200
+      # Environment
+      ENV: production
     volumes:
       - media-data:/data/media
     ports:
@@ -25,6 +43,7 @@ services:
     depends_on:
       - postgres
       - redis
+    restart: unless-stopped
 
   postgres:
     image: postgres:16-alpine
@@ -36,11 +55,13 @@ services:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    restart: unless-stopped
 
 volumes:
   postgres-data:
