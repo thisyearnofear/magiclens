@@ -53,7 +53,9 @@ All documentation is available in the [`docs/`](./docs) directory:
 - **Video and Asset Management** with PostgreSQL backend
 - **Augmented Reality Editor** for overlay positioning
 - **Collaboration Workspace** for artists and videographers
-- **AI-Powered Recommendations** for smart overlay suggestions
+- **AI-Powered Overlay Selection** - Smart GIF recommendations + asset suggestions
+- **Tenor/GIPHY Integration** - Millions of GIFs for magical overlays
+- **Pexels Environmental Gallery** - Professional footage inspiration for videographers
 - **🧠 Real MediaPipe Pose Analysis** - 85-90% accurate human pose detection
 - **⚡ Database Caching System** - 200-2000x speedup for operations
 - **🔄 Background Processing** - Non-blocking video analysis

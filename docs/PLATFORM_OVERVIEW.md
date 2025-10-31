@@ -28,10 +28,11 @@ MagicLens is a web-based platform that allows users to add augmented reality ove
 - Presence tracking and chat
 - Multi-party project management
 
-### AI-Powered Recommendations
-- Smart overlay suggestions based on content analysis
-- Motion-aware AR placement
-- Content categorization and tagging
+### Unified Overlay Selection System
+- **AI-Powered Recommendations** - Smart asset suggestions based on video analysis
+- **GIF Integration** - Access to millions of GIFs via Tenor/GIPHY APIs
+- **Environmental Inspiration** - Professional footage examples via Pexels API
+- **Consolidated Interface** - All overlay options in one streamlined component
 
 ### Real MediaPipe Pose Analysis
 - 85-90% accurate human pose detection

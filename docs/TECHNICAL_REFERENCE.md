@@ -47,6 +47,12 @@ The PostgreSQL database contains 6 tables with proper indexes and constraints:
 
 ## 🔌 API Documentation
 
+### Consolidated Overlay System
+The overlay system has been consolidated from 4 components into 2 unified interfaces:
+- **OverlaySelector** - Unified overlay selection (AI recommendations + GIF search)
+- **OverlayEditor** - Enhanced overlay editing with pose-aware placement
+- **EnvironmentalFootageGallery** - Professional footage inspiration for videographers
+
 ### Authentication Endpoints
 
 #### POST /api/auth/flow_challenge
@@ -69,15 +75,46 @@ Parameters:
 Returns:
 - poses: Array of detected poses with joint coordinates
 
-#### POST /api/computer_vision/suggest_overlays
-Get AI-powered overlay suggestions based on pose analysis
+#### POST /api/ai_analysis_service/get_smart_overlay_recommendations
+Get AI-powered overlay suggestions based on video analysis
 
 Parameters:
-- poses: Pose analysis results
-- content_type: Type of content (fitness, dance, etc.)
+- video_id: UUID of the video to analyze
+- limit: Number of recommendations to return
 
 Returns:
-- suggestions: Array of overlay placement recommendations
+- recommendations: Array of asset suggestions with confidence scores
+
+### External API Integration Endpoints
+
+#### POST /api/gif_service/search_overlays
+Search for GIF overlays from Tenor API
+
+Parameters:
+- query: Search term
+- limit: Number of results
+
+Returns:
+- results: Array of GIF overlays with preview/full URLs
+
+#### POST /api/gif_service/get_smart_overlays
+Get AI-curated GIF overlays based on video analysis
+
+Parameters:
+- video_id: UUID of the video
+
+Returns:
+- recommendations: Curated GIF suggestions
+
+#### POST /api/pexels_service/get_environmental_inspiration
+Get environmental footage inspiration for videographers
+
+Parameters:
+- category: Optional category filter
+- limit: Number of results
+
+Returns:
+- results: Professional environmental footage examples
 
 ### Asset Management Endpoints
 

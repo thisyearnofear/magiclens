@@ -62,7 +62,9 @@ psql -c "GRANT ALL PRIVILEGES ON DATABASE magiclens TO magiclens_user;" -U postg
 - **Video and Asset Management** with PostgreSQL backend
 - **Augmented Reality Editor** for overlay positioning
 - **Collaboration Workspace** for artists and videographers
-- **AI-Powered Recommendations** for smart overlay suggestions
+- **Unified Overlay Selection** - AI recommendations, GIF search, and asset library in one interface
+- **Tenor/GIPHY Integration** - Access millions of GIFs for magical overlays
+- **Pexels Environmental Gallery** - Professional footage inspiration for videographers
 - **🧠 Real MediaPipe Pose Analysis** - 85-90% accurate human pose detection with caching
 - **⚡ Database Caching System** - 200-2000x speedup for pose analysis operations
 - **🔄 Background Processing** - Non-blocking video analysis with priority job queue
