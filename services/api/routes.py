@@ -386,11 +386,11 @@ async def handle_validation_errors(request: Request, exc: RequestValidationError
 # Tightened CORS configuration
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
 allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
-allowed_methods_env = os.getenv("ALLOWED_METHODS", "GET,POST,OPTIONS")
+allowed_methods_env = os.getenv("ALLOWED_METHODS", "GET,POST,OPTIONS,PUT,DELETE")
 allowed_methods = [m.strip().upper() for m in allowed_methods_env.split(",") if m.strip()]
 allowed_headers_env = os.getenv("ALLOWED_HEADERS", "Authorization,Content-Type,X-Requested-With")
 allowed_headers = [h.strip() for h in allowed_headers_env.split(",") if h.strip()]
-allow_credentials = os.getenv("ALLOW_CREDENTIALS", "false").lower() == "true"
+allow_credentials = os.getenv("ALLOW_CREDENTIALS", "true").lower() == "true"
 
 app.add_middleware(
     CORSMiddleware,
@@ -647,6 +647,7 @@ async def video_service_upload_video(
 
     response = await run_sync_in_thread(
         video_service.upload_video,
+        user=current_user,
         video_file=video_file,
         title=title,
         description=description,

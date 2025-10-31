@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, ArrowLeft, Play, Eye, Users, Zap, Sparkles } from 'lucide-react';
+import { Search, ArrowLeft, Eye, Users, Zap, Sparkles } from 'lucide-react';
+import VideoPlayer from '@/components/ui/VideoPlayer';
 
 export default function VideoGallery() {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ export default function VideoGallery() {
           offset: 0
         }
       });
-      
+
       if (response.data) {
         setVideos(response.data);
       }
@@ -59,7 +60,7 @@ export default function VideoGallery() {
           limit: 24
         }
       });
-      
+
       if (response.data) {
         setVideos(response.data);
       }
@@ -98,8 +99,8 @@ export default function VideoGallery() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => navigate('/dashboard')}
                 className="text-white hover:bg-white/10"
               >
@@ -131,7 +132,7 @@ export default function VideoGallery() {
                 />
               </div>
             </div>
-            
+
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-full md:w-48 bg-white/10 border-white/20 text-white">
                 <SelectValue placeholder="Category" />
@@ -174,7 +175,7 @@ export default function VideoGallery() {
               <p className="text-gray-400 mb-4">
                 {searchQuery ? 'Try adjusting your search terms or filters.' : 'No videos available in this category.'}
               </p>
-              <Button variant="outline" onClick={() => {setSearchQuery(''); setSelectedCategory('all'); loadVideos();}}>
+              <Button variant="outline" onClick={() => { setSearchQuery(''); setSelectedCategory('all'); loadVideos(); }}>
                 View All Videos
               </Button>
             </CardContent>
@@ -184,18 +185,15 @@ export default function VideoGallery() {
             {videos.map((video) => (
               <Card key={video.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors group">
                 <CardContent className="p-0">
-                  {/* Video Thumbnail */}
+                  {/* Video Preview */}
                   <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-500 rounded-t-lg flex items-center justify-center relative overflow-hidden">
-                    {video.thumbnail_path ? (
-                      <img 
-                        src={video.thumbnail_path} 
-                        alt={video.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Play className="h-12 w-12 text-white" />
-                    )}
-                    
+                    <VideoPlayer
+                      video={video}
+                      className="w-full h-full object-cover"
+                      muted
+                      hoverToPlay
+                    />
+
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="flex space-x-2">
                         <Button
@@ -221,7 +219,7 @@ export default function VideoGallery() {
                   {/* Video Info */}
                   <div className="p-4">
                     <h3 className="text-white font-semibold mb-2 line-clamp-1">{video.title}</h3>
-                    
+
                     <div className="flex items-center space-x-2 mb-3">
                       <Badge variant="outline" className="text-xs">
                         {video.category}

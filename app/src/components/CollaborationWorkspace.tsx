@@ -1,9 +1,9 @@
-import { ArrowLeft, Play, Layers, Send, Zap, CircleCheck, Circle } from "lucide-react";
+import { ArrowLeft, Layers, Send, Zap, CircleCheck, Circle } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import OverlayEditor from './OverlayEditor';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  collaborationServiceGetCollaboration, 
+import {
+  collaborationServiceGetCollaboration,
   collaborationServiceGetCollaborationOverlays,
   collaborationServiceUpdateCollaborationStatus,
   videoServiceGetVideo,
@@ -13,6 +13,7 @@ import { Collaboration, Overlay, Video, ArtistAsset } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import VideoPlayer from '@/components/ui/VideoPlayer';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
@@ -35,17 +36,17 @@ export default function CollaborationWorkspace() {
 
   const loadCollaborationData = async () => {
     if (!id) return;
-    
+
     setLoading(true);
     try {
       // Load collaboration details
       const collabResponse = await collaborationServiceGetCollaboration({
         body: { collaboration_id: id }
       });
-      
+
       if (collabResponse.data) {
         setCollaboration(collabResponse.data);
-        
+
         // Load associated video
         const videoResponse = await videoServiceGetVideo({
           body: { video_id: collabResponse.data.video_id }
@@ -53,7 +54,7 @@ export default function CollaborationWorkspace() {
         if (videoResponse.data) {
           setVideo(videoResponse.data);
         }
-        
+
         // Load overlays
         const overlaysResponse = await collaborationServiceGetCollaborationOverlays({
           body: { collaboration_id: id }
@@ -62,7 +63,7 @@ export default function CollaborationWorkspace() {
           setOverlays(overlaysResponse.data);
         }
       }
-      
+
       // Load user's assets for potential use
       const assetsResponse = await assetServiceGetMyAssets();
       if (assetsResponse.data) {
@@ -77,7 +78,7 @@ export default function CollaborationWorkspace() {
 
   const updateStatus = async (status: string, notes?: string, feedbackText?: string) => {
     if (!collaboration) return;
-    
+
     setUpdating(true);
     try {
       const response = await collaborationServiceUpdateCollaborationStatus({
@@ -88,7 +89,7 @@ export default function CollaborationWorkspace() {
           feedback: feedbackText || null
         }
       });
-      
+
       if (response.data) {
         setCollaboration(response.data);
         if (status === 'submitted') {
@@ -160,8 +161,8 @@ export default function CollaborationWorkspace() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => navigate('/dashboard')}
                 className="text-white hover:bg-white/10"
               >
@@ -173,7 +174,7 @@ export default function CollaborationWorkspace() {
                 <h1 className="text-xl font-bold text-white">Collaboration Workspace</h1>
               </div>
             </div>
-            
+
             <Badge className={getStatusColor(collaboration.status!)}>
               {getStatusText(collaboration.status!)}
             </Badge>
@@ -198,20 +199,9 @@ export default function CollaborationWorkspace() {
               </CardHeader>
               <CardContent>
                 <div className="aspect-video bg-black rounded-lg flex items-center justify-center mb-4">
-                  {video.file_path ? (
-                    <video 
-                      src={video.file_path}
-                      controls
-                      className="w-full h-full object-contain rounded-lg"
-                    />
-                  ) : (
-                    <div className="text-white text-center">
-                      <Play className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                      <p>Video preview not available</p>
-                    </div>
-                  )}
+                  <VideoPlayer video={video} controls className="w-full h-full object-contain rounded-lg" />
                 </div>
-                
+
                 <div className="flex items-center space-x-4 text-sm text-gray-300">
                   <Badge variant="outline">{video.category}</Badge>
                   <span>{video.duration}s duration</span>
@@ -302,7 +292,7 @@ export default function CollaborationWorkspace() {
                       <p className="text-purple-300 font-medium">Waiting for Review</p>
                       <p className="text-gray-300 text-sm">The videographer will review your submission.</p>
                     </div>
-                    
+
                     {collaboration.submission_notes && (
                       <div>
                         <Label className="text-white">Your Notes:</Label>
@@ -311,7 +301,7 @@ export default function CollaborationWorkspace() {
                         </p>
                       </div>
                     )}
-                    
+
                     {/* Videographer actions would go here */}
                     <div className="space-y-2">
                       <Label htmlFor="feedback" className="text-white">Feedback (Optional)</Label>
@@ -402,9 +392,9 @@ export default function CollaborationWorkspace() {
                 ) : (
                   <div className="text-center text-gray-400 py-4">
                     <p>No assets available</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="mt-2"
                       onClick={() => navigate('/upload-asset')}
                     >

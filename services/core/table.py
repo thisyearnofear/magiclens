@@ -25,14 +25,11 @@ class Table(BaseModel):
         """Execute a SQL query and return results."""
         # Convert dict params to tuple for psycopg
         if params:
-            # Extract values in the order they appear in the query
-            param_values = []
-            for key in params:
-                param_values.append(params[key])
-            result = execute_query(query, tuple(param_values))
+            # Use named parameters directly - psycopg supports this
+            result = execute_query(query, params)
         else:
             result = execute_query(query)
-        
+
         # Convert results to list of dicts
         if result:
             # Get column names from cursor description

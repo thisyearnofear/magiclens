@@ -6,14 +6,17 @@ import { createClient, createConfig } from '@hey-api/client-fetch';
 const authMiddleware = {
   onRequest: (request: Request) => {
     const token = localStorage.getItem('magiclens_token');
-    console.log('Client middleware - token:', token);
     if (token) {
       request.headers.set('Authorization', `Bearer ${token}`);
-      console.log('Added Authorization header to request');
-    } else {
-      console.log('No token found, not adding Authorization header');
     }
     return request;
+  },
+  onError: (error: any) => {
+    if (error.status === 401) {
+      // Token may be invalid - could redirect to login
+      console.warn('Authentication failed - token may be expired');
+    }
+    return error;
   },
 };
 

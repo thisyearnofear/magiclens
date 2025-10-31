@@ -26,10 +26,10 @@ class HealthCheck:
             # Try to get a connection
             conn = pool.getconn()
             pool.putconn(conn)
-            
+
             return {
                 "status": "up",
-                "pool_size": pool.getconn.__self__._pool.qsize() if hasattr(pool, '_pool') else "unknown"
+                "pool_size": "unknown"  # Simplified for now
             }
         except Exception as e:
             logger.error(f"Database health check failed: {e}")

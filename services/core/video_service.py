@@ -46,12 +46,12 @@ def get_videos(category: Optional[str] = None, limit: int = 20, offset: int = 0)
     
     if category:
         videos_data = Video.sql(
-            "SELECT * FROM videos WHERE category = %(category)s AND status = 'available' ORDER BY created_at DESC LIMIT %(limit)s OFFSET %(offset)s",
+            "SELECT * FROM videos WHERE category = %(category)s ORDER BY created_at DESC LIMIT %(limit)s OFFSET %(offset)s",
             {"category": category, "limit": limit, "offset": offset}
         )
     else:
         videos_data = Video.sql(
-            "SELECT * FROM videos WHERE status = 'available' ORDER BY created_at DESC LIMIT %(limit)s OFFSET %(offset)s",
+            "SELECT * FROM videos ORDER BY created_at DESC LIMIT %(limit)s OFFSET %(offset)s",
             {"limit": limit, "offset": offset}
         )
     

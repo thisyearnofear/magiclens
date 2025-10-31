@@ -1,4 +1,4 @@
-import { Zap, Clock, Play, ArrowRight, Sparkles, Users, TrendingUp, CircleCheck, Loader } from "lucide-react";
+import { Zap, Clock, ArrowRight, Sparkles, Users, TrendingUp, CircleCheck, Loader } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import SmartOverlayRecommendations from './SmartOverlayRecommendations';
+import VideoPlayer from '@/components/ui/VideoPlayer';
 
-import { 
+import {
   videoServiceGetVideo,
   collaborationServiceGetCollaboration,
   renderServiceQueueRender
@@ -53,7 +54,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
       const result = await videoServiceGetVideo({
         body: { video_id: videoId }
       });
-      
+
       if (result.data) {
         setVideo(result.data as VideoData);
         setCurrentStep('select');
@@ -67,7 +68,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
 
   const handleOverlayApplied = (overlayData: any) => {
     setAppliedOverlaysCount(prev => prev + 1);
-    
+
     // Set collaboration data from the first overlay
     if (!collaboration && overlayData.collaboration) {
       setCollaboration({
@@ -83,7 +84,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
         overlay_count: prev.overlay_count + 1
       } : null);
     }
-    
+
     // Auto-advance to preview after first overlay
     if (appliedOverlaysCount === 0) {
       setTimeout(() => setCurrentStep('preview'), 1000);
@@ -92,7 +93,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
 
   const handleRenderVideo = async () => {
     if (!collaboration) return;
-    
+
     setIsRendering(true);
     try {
       const result = await renderServiceQueueRender({
@@ -105,7 +106,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
           }
         }
       });
-      
+
       if (result.data) {
         setCurrentStep('complete');
         // Navigate to collaboration workspace after a brief delay
@@ -177,8 +178,8 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
             <h1 className="text-3xl font-bold text-white mb-2">Quick Collaboration</h1>
             <p className="text-gray-300">AI-powered overlay suggestions for instant video enhancement</p>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => navigate('/dashboard')}
           >
             Back to Dashboard
@@ -191,17 +192,15 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
             <div className="flex items-center justify-between">
               {['analyze', 'select', 'preview', 'complete'].map((step, index) => (
                 <div key={step} className="flex items-center space-x-3">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                    currentStep === step ? 'bg-yellow-400 text-black' :
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-full ${currentStep === step ? 'bg-yellow-400 text-black' :
                     ['select', 'preview', 'complete'].indexOf(currentStep) > ['analyze', 'select', 'preview', 'complete'].indexOf(step) - 1 ?
-                    'bg-green-600 text-white' : 'bg-gray-600 text-gray-300'
-                  }`}>
+                      'bg-green-600 text-white' : 'bg-gray-600 text-gray-300'
+                    }`}>
                     {getStepIcon(step)}
                   </div>
                   <div className="text-center">
-                    <p className={`text-sm font-medium ${
-                      currentStep === step ? 'text-yellow-400' : 'text-gray-300'
-                    }`}>
+                    <p className={`text-sm font-medium ${currentStep === step ? 'text-yellow-400' : 'text-gray-300'
+                      }`}>
                       {getStepTitle(step)}
                     </p>
                   </div>
@@ -224,19 +223,9 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
               <CardContent className="space-y-4">
                 {/* Video Player */}
                 <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                  {video.thumbnail_path ? (
-                    <img 
-                      src={video.thumbnail_path} 
-                      alt={video.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <Play className="h-12 w-12" />
-                    </div>
-                  )}
+                  <VideoPlayer video={video} controls />
                 </div>
-                
+
                 {/* Video Info */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -254,11 +243,11 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                     </div>
                   )}
                 </div>
-                
+
                 {/* Action Buttons */}
                 {currentStep === 'preview' && collaboration && (
                   <div className="space-y-3 pt-4 border-t border-white/10">
-                    <Button 
+                    <Button
                       onClick={handleRenderVideo}
                       disabled={isRendering}
                       className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
@@ -269,9 +258,9 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                         <><Play className="h-4 w-4 mr-2" />Render Final Video</>
                       )}
                     </Button>
-                    
-                    <Button 
-                      variant="outline" 
+
+                    <Button
+                      variant="outline"
                       onClick={() => navigate(`/collaboration/${collaboration.id}`)}
                       className="w-full"
                     >
@@ -280,7 +269,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                     </Button>
                   </div>
                 )}
-                
+
                 {currentStep === 'complete' && (
                   <div className="space-y-3 pt-4 border-t border-white/10">
                     <div className="text-center py-4">
@@ -288,8 +277,8 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                       <p className="text-white font-medium">Video Enhanced!</p>
                       <p className="text-gray-400 text-sm">Your render is processing</p>
                     </div>
-                    
-                    <Button 
+
+                    <Button
                       onClick={() => navigate(`/collaboration/${collaboration?.id}`)}
                       className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
                     >
@@ -328,7 +317,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                     <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto">
                       <CircleCheck className="h-10 w-10 text-white" />
                     </div>
-                    
+
                     <div>
                       <h2 className="text-2xl font-bold text-white mb-2">
                         Video Successfully Enhanced!
@@ -338,7 +327,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                         The final render is now processing.
                       </p>
                     </div>
-                    
+
                     <div className="flex items-center justify-center space-x-4">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-yellow-400">{appliedOverlaysCount}</div>
@@ -355,7 +344,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                         <div className="text-gray-400 text-sm">Quality</div>
                       </div>
                     </div>
-                    
+
                     <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-lg p-4">
                       <div className="flex items-center space-x-3">
                         <TrendingUp className="h-5 w-5 text-yellow-400" />

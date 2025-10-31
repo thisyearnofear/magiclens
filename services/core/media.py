@@ -124,7 +124,8 @@ def generate_presigned_url(path: str, expiration: int = 3600) -> str:
     s3_client = _storage_config.get_s3_client()
     
     if not s3_client or _storage_config.use_local_fallback:
-        return f"http://localhost:8000/media/{path}"
+        # Use relative URL for better compatibility with proxies
+        return f"/media/{path}"
     
     try:
         return s3_client.generate_presigned_url(
@@ -134,7 +135,7 @@ def generate_presigned_url(path: str, expiration: int = 3600) -> str:
         )
     except ClientError as e:
         logger.error(f"Failed to generate presigned URL: {e}")
-        return f"http://localhost:8000/media/{path}"
+        return f"/media/{path}"
 
 
 def _save_to_local_fallback(file: MediaFile, path: str) -> str:
@@ -149,7 +150,7 @@ def _save_to_local_fallback(file: MediaFile, path: str) -> str:
         f.write(file.bytes)
     
     logger.info(f"Saved media file locally: {file_path}")
-    return f"http://localhost:8000/media/{path}"
+    return f"/media/{path}"
 
 
 def _get_from_local_fallback(path: str) -> MediaFile:
