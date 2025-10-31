@@ -118,13 +118,17 @@ def return_db_connection(conn):
         pool.putconn(conn)
 
 def execute_query(query: str, params: tuple = None):
-    """Execute a query and return results."""
+    """Execute a query and return results as dictionaries."""
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(query, params)
             if cur.description:
-                return cur.fetchall()
+                # Get column names
+                columns = [desc[0] for desc in cur.description]
+                # Convert rows to dictionaries
+                rows = cur.fetchall()
+                return [dict(zip(columns, row)) for row in rows]
             return None
     finally:
         return_db_connection(conn)

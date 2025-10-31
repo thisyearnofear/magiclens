@@ -23,17 +23,13 @@ class Table(BaseModel):
     @classmethod
     def sql(cls, query: str, params: Dict = None) -> List[Dict]:
         """Execute a SQL query and return results."""
-        # Convert dict params to tuple for psycopg
         if params:
-            # Use named parameters directly - psycopg supports this
             result = execute_query(query, params)
         else:
             result = execute_query(query)
 
-        # Convert results to list of dicts
+        # Results are already dictionaries from execute_query
         if result:
-            # Get column names from cursor description
-            # For now, we'll return raw results and let the calling code handle conversion
             return result
         return []
     

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useParams } from 'react-router-dom';
 import { SignedIn, SignedOut, useAuthContext } from '@/auth/AuthProvider';
 import LandingPage from './LandingPage';
 import Dashboard from './Dashboard';
@@ -12,6 +12,12 @@ import CollaborationWorkspace from './CollaborationWorkspace';
 import QuickCollaboration from './QuickCollaboration';
 import UserProfile from './UserProfile';
 import { FlowDashboard } from './FlowDashboard';
+
+// Wrapper component to properly extract videoId from route params
+function QuickCollabWrapper() {
+  const { videoId } = useParams<{ videoId: string }>();
+  return <QuickCollaboration videoId={videoId || ''} />;
+}
 
 export default function Router() {
   return (
@@ -30,7 +36,7 @@ export default function Router() {
           <Route path="/upload-video" element={<VideoUpload />} />
           <Route path="/upload-asset" element={<AssetUpload />} />
           <Route path="/collaboration/:id" element={<CollaborationWorkspace />} />
-          <Route path="/quick-collab/:videoId" element={<QuickCollaboration videoId={window.location.pathname.split('/').pop() || ''} />} />
+          <Route path="/quick-collab/:videoId" element={<QuickCollabWrapper />} />
           <Route path="/profile/:id" element={<UserProfile />} />
           <Route path="/profile" element={<UserProfile />} />
         </Routes>

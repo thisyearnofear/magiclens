@@ -2,27 +2,8 @@
 
 import { createClient, createConfig } from '@hey-api/client-fetch';
 
-// Custom middleware to add JWT token to requests
-const authMiddleware = {
-  onRequest: (request: Request) => {
-    const token = localStorage.getItem('magiclens_token');
-    if (token) {
-      request.headers.set('Authorization', `Bearer ${token}`);
-    }
-    return request;
-  },
-  onError: (error: any) => {
-    if (error.status === 401) {
-      // Token may be invalid - could redirect to login
-      console.warn('Authentication failed - token may be expired');
-    }
-    return error;
-  },
-};
-
 export const client = createClient(
   createConfig({
     baseUrl: import.meta.env.VITE_API_BASE_URL || '', // Falls back to relative paths for dev proxy
-    middleware: [authMiddleware],
   })
 );

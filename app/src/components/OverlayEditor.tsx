@@ -6,12 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Play, Pause, RotateCw, Move, Layers, Eye, EyeOff, 
-  Trash2, Copy, SkipBack, SkipForward, Volume2 
+import {
+  Play, Pause, RotateCw, Move, Layers, Eye, EyeOff,
+  Trash2, Copy, SkipBack, SkipForward, Volume2
 } from 'lucide-react';
 import { OverlayData } from '@/types/overlay-types';
-import * as collaborationApi from '@/lib/collaboration-api';
+import {
+  collaborationServiceAddOverlayToCollaboration,
+  collaborationServiceGetCollaborationOverlays,
+  collaborationServiceUpdateOverlay,
+  collaborationServiceDeleteOverlay
+} from '@/lib/sdk';
 
 interface OverlayEditorProps {
   videoUrl: string;
@@ -34,22 +39,29 @@ export default function OverlayEditor({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 450 });
   const fabricRef = useFabric(canvasRef, canvasSize.width, canvasSize.height);
-  
+
   const [overlays, setOverlays] = useState<OverlayData[]>(initialOverlays);
   const [selectedOverlay, setSelectedOverlay] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const debouncedUpdateOverlay = useCallback(
-    (id: string, position: any, timing: any, layerOrder: number) => {
-      collaborationApi.updateOverlay(id, position, timing, layerOrder);
+    async (id: string, position: any, timing: any, layerOrder: number) => {
+      await collaborationServiceUpdateOverlay({
+        body: {
+          overlay_id: id,
+          position_data: position,
+          timing_data: timing,
+          layer_order: layerOrder
+        }
+      });
     },
     []
   );
 
   const updateOverlayPosition = (id: string, position: Partial<OverlayData['position']>) => {
     setOverlays(prev => {
-      const newOverlays = prev.map(overlay => 
+      const newOverlays = prev.map(overlay =>
         overlay.id === id ? { ...overlay, position: { ...overlay.position, ...position } } : overlay
       );
       const updatedOverlay = newOverlays.find(o => o.id === id);
@@ -61,19 +73,21 @@ export default function OverlayEditor({
   };
 
   const updateOverlayTiming = (id: string, timing: Partial<OverlayData['timing']>) => {
-    setOverlays(prev => prev.map(overlay => 
+    setOverlays(prev => prev.map(overlay =>
       overlay.id === id ? { ...overlay, timing: { ...overlay.timing, ...timing } } : overlay
     ));
   };
 
   const toggleOverlayVisibility = (id: string) => {
-    setOverlays(prev => prev.map(overlay => 
+    setOverlays(prev => prev.map(overlay =>
       overlay.id === id ? { ...overlay, visible: !overlay.visible } : overlay
     ));
   };
 
   const deleteOverlay = async (id: string) => {
-    await collaborationApi.deleteOverlay(id);
+    await collaborationServiceDeleteOverlay({
+      body: { overlay_id: id }
+    });
     setOverlays(prev => prev.filter(overlay => overlay.id !== id));
   };
 
@@ -84,16 +98,18 @@ export default function OverlayEditor({
       layer_order: overlays.length + 1,
     };
 
-    const response = await collaborationApi.addOverlayToCollaboration(
-      collaborationId,
-      assetId,
-      newOverlayData.position_data,
-      newOverlayData.timing_data,
-      newOverlayData.layer_order
-    );
+    const response = await collaborationServiceAddOverlayToCollaboration({
+      body: {
+        collaboration_id: collaborationId,
+        asset_id: assetId,
+        position_data: newOverlayData.position_data,
+        timing_data: newOverlayData.timing_data,
+        layer_order: newOverlayData.layer_order
+      }
+    });
 
     const newOverlay: OverlayData = {
-      id: response.overlay_id,
+      id: response.data?.overlay_id || '',
       assetUrl,
       name,
       position: newOverlayData.position_data,
@@ -158,8 +174,12 @@ export default function OverlayEditor({
   // Fetch overlays on mount
   useEffect(() => {
     const fetchOverlays = async () => {
-      const response = await collaborationApi.getCollaborationOverlays(collaborationId);
-      setOverlays(response.overlays);
+      const response = await collaborationServiceGetCollaborationOverlays({
+        body: { collaboration_id: collaborationId }
+      });
+      if (response.data) {
+        setOverlays(response.data.overlays || []);
+      }
     };
     fetchOverlays();
   }, [collaborationId]);
@@ -176,7 +196,7 @@ export default function OverlayEditor({
       };
       video.addEventListener('loadedmetadata', handleResize);
       window.addEventListener('resize', handleResize);
-      
+
       if (video.videoWidth > 0) {
         handleResize();
       }
@@ -287,7 +307,7 @@ export default function OverlayEditor({
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
               />
-              
+
               <canvas ref={canvasRef} className="absolute top-0 left-0" />
             </div>
           </CardContent>
@@ -306,14 +326,14 @@ export default function OverlayEditor({
                 >
                   <SkipBack className="h-4 w-4" />
                 </Button>
-                
+
                 <Button
                   onClick={handlePlayPause}
                   className="bg-yellow-400 text-black hover:bg-yellow-500"
                 >
                   {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -329,7 +349,7 @@ export default function OverlayEditor({
                   <span>{currentTime.toFixed(1)}s</span>
                   <span>{videoDuration.toFixed(1)}s</span>
                 </div>
-                
+
                 <Slider
                   value={[currentTime]}
                   onValueChange={(value) => handleSeek(value[0])}
@@ -364,11 +384,10 @@ export default function OverlayEditor({
                 .map((overlay) => (
                   <div
                     key={overlay.id}
-                    className={`flex items-center justify-between p-2 rounded ${
-                      selectedOverlay === overlay.id 
-                        ? 'bg-yellow-400/20 border border-yellow-400/40' 
-                        : 'bg-white/5'
-                    }`}
+                    className={`flex items-center justify-between p-2 rounded ${selectedOverlay === overlay.id
+                      ? 'bg-yellow-400/20 border border-yellow-400/40'
+                      : 'bg-white/5'
+                      }`}
                   >
                     <div className="flex items-center space-x-2 flex-1">
                       <Button
@@ -377,17 +396,17 @@ export default function OverlayEditor({
                         onClick={() => toggleOverlayVisibility(overlay.id)}
                         className="p-1 h-6 w-6"
                       >
-                        {overlay.visible ? 
-                          <Eye className="h-3 w-3" /> : 
+                        {overlay.visible ?
+                          <Eye className="h-3 w-3" /> :
                           <EyeOff className="h-3 w-3" />
                         }
                       </Button>
-                      
+
                       <span className="text-white text-sm flex-1 truncate">
                         {overlay.name}
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center space-x-1">
                       <Button
                         variant="ghost"
@@ -397,7 +416,7 @@ export default function OverlayEditor({
                       >
                         <Copy className="h-3 w-3" />
                       </Button>
-                      
+
                       <Button
                         variant="ghost"
                         size="sm"
@@ -491,16 +510,16 @@ export default function OverlayEditor({
             </CardContent>
           </Card>
         )}
-        
+
         {/* Quick Actions */}
         <Card className="bg-white/10 border-white/20">
           <CardHeader>
             <CardTitle className="text-white text-sm">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="w-full"
               onClick={() => {
                 // Add sample overlay for demo
@@ -509,10 +528,10 @@ export default function OverlayEditor({
             >
               Add Sample Overlay
             </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
+
+            <Button
+              variant="outline"
+              size="sm"
               className="w-full"
               onClick={() => setOverlays([])}
             >

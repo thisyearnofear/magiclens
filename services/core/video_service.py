@@ -1,5 +1,8 @@
 from typing import Optional, List, Dict
 from uuid import UUID
+import uuid
+import json
+from datetime import datetime
 from core.user import User
 from core.access import authenticated, public
 from core.media import MediaFile, save_to_bucket, generate_presigned_url
@@ -25,20 +28,59 @@ def upload_video(user: User, video_file: MediaFile, title: str, description: Opt
     # Save video to bucket
     video_path = save_to_bucket(video_file, f"videos/{user.id}")
     
-    # Create video record
-    video = Video(
-        title=title,
-        description=description,
-        category=category,
-        duration=30.0,  # Placeholder - would extract from actual video
-        file_path=video_path,
-        uploader_id=user.id,
-        status='available',  # Simplified for MVP
-        metadata={"file_size": video_file.size, "mime_type": video_file.mime_type}
+    # Create video record in database
+    video_id = uuid.uuid4()
+    Video.sql(
+        """INSERT INTO videos (id, user_id, title, description, category, duration, file_path, file_size, metadata, is_public, created_at, last_updated)
+           VALUES (%(id)s, %(user_id)s, %(title)s, %(description)s, %(category)s, %(duration)s, %(file_path)s, %(file_size)s, %(metadata)s, %(is_public)s, %(created_at)s, %(last_updated)s)""",
+        {
+            "id": video_id,
+            "user_id": user.id,
+            "title": title,
+            "description": description,
+            "category": category,
+            "duration": 30,  # Placeholder - would extract from actual video (integer)
+            "file_path": video_path,
+            "file_size": video_file.size,
+            "metadata": json.dumps({"mime_type": video_file.mime_type}),
+            "is_public": True,
+            "created_at": datetime.now(),
+            "last_updated": datetime.now()
+        }
     )
-    video.sync()
     
-    return video
+    # Retrieve the created video to return properly serialized object
+    video_data = Video.sql(
+        "SELECT * FROM videos WHERE id = %(video_id)s",
+        {"video_id": video_id}
+    )
+    
+    if video_data:
+        video_dict = video_data[0].copy()
+        
+        # Create a response dict that matches the Video model
+        response_video = {
+            "id": str(video_dict["id"]),
+            "user_id": str(video_dict["user_id"]),  # Keep as user_id to match Video model
+            "title": video_dict["title"],
+            "description": video_dict["description"],
+            "category": video_dict["category"] or "urban",
+            "duration": video_dict["duration"] or 30,  # Keep as int to match model
+            "file_path": generate_presigned_url(video_dict["file_path"]),
+            "thumbnail_path": video_dict["thumbnail_path"],
+            "file_size": video_dict["file_size"],
+            "metadata": video_dict["metadata"],
+            "view_count": video_dict["view_count"] or 0,
+            "collaboration_count": video_dict["collaboration_count"] or 0,
+            "is_public": video_dict["is_public"],
+            "created_at": video_dict["created_at"].isoformat() if video_dict["created_at"] else None,
+            "last_updated": video_dict["last_updated"].isoformat() if video_dict["last_updated"] else None
+        }
+        
+        return response_video
+    
+    # Fallback if something went wrong
+    raise ValueError("Failed to create video record")
 
 @public
 def get_videos(category: Optional[str] = None, limit: int = 20, offset: int = 0) -> List[Video]:
@@ -72,7 +114,7 @@ def get_videos(category: Optional[str] = None, limit: int = 20, offset: int = 0)
 def get_video(video_id: UUID) -> Optional[Video]:
     """Get a specific video by ID."""
     videos_data = Video.sql(
-        "SELECT * FROM videos WHERE id = %(video_id)s AND status = 'available'",
+        "SELECT * FROM videos WHERE id = %(video_id)s",
         {"video_id": video_id}
     )
     
@@ -92,7 +134,7 @@ def get_video(video_id: UUID) -> Optional[Video]:
 def get_my_videos(user: User) -> List[Video]:
     """Get videos uploaded by the current user."""
     videos_data = Video.sql(
-        "SELECT * FROM videos WHERE uploader_id = %(user_id)s ORDER BY created_at DESC",
+        "SELECT * FROM videos WHERE user_id = %(user_id)s ORDER BY created_at DESC",
         {"user_id": user.id}
     )
     
@@ -113,7 +155,7 @@ def get_my_videos(user: User) -> List[Video]:
 def update_video(user: User, video_id: UUID, title: Optional[str] = None, description: Optional[str] = None, category: Optional[str] = None) -> Video:
     """Update video metadata (only by owner)."""
     videos_data = Video.sql(
-        "SELECT * FROM videos WHERE id = %(video_id)s AND uploader_id = %(user_id)s",
+        "SELECT * FROM videos WHERE id = %(video_id)s AND user_id = %(user_id)s",
         {"video_id": video_id, "user_id": user.id}
     )
     
@@ -149,16 +191,16 @@ def update_video(user: User, video_id: UUID, title: Optional[str] = None, descri
 def delete_video(user: User, video_id: UUID) -> bool:
     """Delete a video (only by owner)."""
     videos_data = Video.sql(
-        "SELECT * FROM videos WHERE id = %(video_id)s AND uploader_id = %(user_id)s",
+        "SELECT * FROM videos WHERE id = %(video_id)s AND user_id = %(user_id)s",
         {"video_id": video_id, "user_id": user.id}
     )
     
     if not videos_data:
         raise ValueError("Video not found or not owned by user")
     
-    # Update status to archived instead of deleting
+    # Actually delete the video record
     Video.sql(
-        "UPDATE videos SET status = 'archived' WHERE id = %(video_id)s",
+        "DELETE FROM videos WHERE id = %(video_id)s",
         {"video_id": video_id}
     )
     
@@ -175,12 +217,12 @@ def search_videos(query: str, category: Optional[str] = None, limit: int = 20) -
     
     if category:
         videos_data = Video.sql(
-            "SELECT * FROM videos WHERE (title ILIKE %(query)s OR description ILIKE %(query)s) AND category = %(category)s AND status = 'available' ORDER BY created_at DESC LIMIT %(limit)s",
+            "SELECT * FROM videos WHERE (title ILIKE %(query)s OR description ILIKE %(query)s) AND category = %(category)s ORDER BY created_at DESC LIMIT %(limit)s",
             {"query": f"%{query}%", "category": category, "limit": limit}
         )
     else:
         videos_data = Video.sql(
-            "SELECT * FROM videos WHERE (title ILIKE %(query)s OR description ILIKE %(query)s) AND status = 'available' ORDER BY created_at DESC LIMIT %(limit)s",
+            "SELECT * FROM videos WHERE (title ILIKE %(query)s OR description ILIKE %(query)s) ORDER BY created_at DESC LIMIT %(limit)s",
             {"query": f"%{query}%", "limit": limit}
         )
     

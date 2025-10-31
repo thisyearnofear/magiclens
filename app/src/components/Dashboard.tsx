@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/auth/AuthProvider';
-import { userServiceGetUserProfile, videoServiceGetVideos, assetServiceGetAssets } from '@/lib/sdk';
+import { userServiceGetUserProfile, videoServiceGetVideos, assetServiceGetAssets, videoServiceDeleteVideo, videoServiceUpdateVideo } from '@/lib/sdk';
+import { getAuthenticatedClient } from '@/lib/sdk/auth-client';
 import { UserProfile, Video, ArtistAsset } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Camera, Palette, Eye, TrendingUp, Users, Zap, Menu, Info, User } from 'lucide-react';
+import { Upload, Camera, Palette, Eye, TrendingUp, Users, Zap, Menu, Info, User, Play, Sparkles, Edit, Trash2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -17,6 +21,74 @@ export default function Dashboard() {
   const [recentAssets, setRecentAssets] = useState<ArtistAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<{ id: string; title: string } | null>(null);
+  const [newTitle, setNewTitle] = useState('');
+
+  // Edit video function
+  const handleEditVideo = (videoId: string, currentTitle: string) => {
+    setEditingVideo({ id: videoId, title: currentTitle });
+    setNewTitle(currentTitle);
+    setEditModalOpen(true);
+  };
+
+  // Update video function
+  const handleUpdateVideo = async () => {
+    if (!editingVideo || !newTitle.trim()) return;
+
+    try {
+      await videoServiceUpdateVideo({
+        body: {
+          video_id: editingVideo.id,
+          title: newTitle.trim()
+        }
+      });
+
+      // Update the video in local state
+      setRecentVideos(prev =>
+        prev.map(video =>
+          video.id === editingVideo.id
+            ? { ...video, title: newTitle.trim() }
+            : video
+        )
+      );
+
+      // Close modal and reset state
+      setEditModalOpen(false);
+      setEditingVideo(null);
+      setNewTitle('');
+
+    } catch (error) {
+      console.error('Failed to update video:', error);
+      alert('Failed to update video. Please try again.');
+    }
+  };
+
+  // Delete video function
+  const handleDeleteVideo = async (videoId: string, videoTitle: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${videoTitle}"?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await videoServiceDeleteVideo({
+        body: { video_id: videoId }
+      });
+
+      // Remove the video from the local state
+      setRecentVideos(prev => prev.filter(video => video.id !== videoId));
+
+      // Show success message
+      alert('Video deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete video:', error);
+      alert('Failed to delete video. Please try again.');
+    }
+  };
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -48,7 +120,7 @@ export default function Dashboard() {
         console.log('Calling userServiceGetUserProfile');
         const token = localStorage.getItem('magiclens_token');
         console.log('Token before API call:', token);
-        const profileResponse = await userServiceGetUserProfile();
+        const profileResponse = await userServiceGetUserProfile({ client: getAuthenticatedClient() });
         console.log('userServiceGetUserProfile response:', profileResponse);
         if (profileResponse.data) {
           setProfile(profileResponse.data);
@@ -71,6 +143,7 @@ export default function Dashboard() {
         try {
           console.log('Calling videoServiceGetVideos');
           const videosResponse = await videoServiceGetVideos({
+            client: getAuthenticatedClient(),
             body: { limit: 6, offset: 0 }
           });
           console.log('videoServiceGetVideos response:', videosResponse);
@@ -87,6 +160,7 @@ export default function Dashboard() {
         try {
           console.log('Calling assetServiceGetAssets');
           const assetsResponse = await assetServiceGetAssets({
+            client: getAuthenticatedClient(),
             body: { limit: 6, offset: 0 }
           });
           console.log('assetServiceGetAssets response:', assetsResponse);
@@ -137,7 +211,7 @@ export default function Dashboard() {
               <Zap className="h-8 w-8 text-yellow-400" />
               <h1 className="text-2xl font-bold text-white">MagicLens</h1>
             </div>
-            
+
             <nav className="hidden md:flex items-center space-x-6">
               <Button variant="ghost" onClick={() => navigate('/videos')} className="text-white">
                 Browse Videos
@@ -149,7 +223,7 @@ export default function Dashboard() {
                 Profile
               </Button>
               {isGuestUser ? (
-                <Button 
+                <Button
                   onClick={() => {
                     // Redirect to landing page to connect wallet
                     window.location.href = '/';
@@ -184,7 +258,7 @@ export default function Dashboard() {
                       Profile
                     </Button>
                     {isGuestUser ? (
-                      <Button 
+                      <Button
                         onClick={() => {
                           // Redirect to landing page to connect wallet
                           window.location.href = '/';
@@ -218,7 +292,7 @@ export default function Dashboard() {
                   Explore MagicLens features. Connect your Flow wallet to unlock full platform capabilities.
                 </p>
               </div>
-              <Button 
+              <Button
                 onClick={() => {
                   // Redirect to landing page to connect wallet
                   window.location.href = '/';
@@ -237,13 +311,12 @@ export default function Dashboard() {
             Welcome{!isGuestUser && `, ${profile.username}`}!
           </h2>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className={`${
-              profile.user_type === 'artist' ? 'bg-purple-500' :
+            <Badge className={`${profile.user_type === 'artist' ? 'bg-purple-500' :
               profile.user_type === 'videographer' ? 'bg-blue-500' :
-              'bg-gradient-to-r from-purple-500 to-blue-500'
-            }`}>
+                'bg-gradient-to-r from-purple-500 to-blue-500'
+              }`}>
               {profile.user_type === 'both' ? 'Artist & Videographer' :
-               profile.user_type.charAt(0).toUpperCase() + profile.user_type.slice(1)}
+                profile.user_type.charAt(0).toUpperCase() + profile.user_type.slice(1)}
             </Badge>
             {isGuestUser && (
               <Badge className="bg-yellow-500 text-black">
@@ -404,7 +477,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 md:mb-8">
           {!isGuestUser && (
             <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
-                  onClick={() => navigate('/upload-video')}>
+              onClick={() => navigate('/upload-video')}>
               <CardContent className="p-6 text-center relative">
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <kbd className="px-2 py-1 text-xs bg-black/50 text-white rounded">⌘V</kbd>
@@ -423,7 +496,7 @@ export default function Dashboard() {
 
           {!isGuestUser && (
             <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
-                  onClick={() => navigate('/upload-asset')}>
+              onClick={() => navigate('/upload-asset')}>
               <CardContent className="p-6 text-center relative">
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <kbd className="px-2 py-1 text-xs bg-black/50 text-white rounded">⌘A</kbd>
@@ -441,7 +514,7 @@ export default function Dashboard() {
           )}
 
           <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
-                onClick={() => navigate('/videos')}>
+            onClick={() => navigate('/videos')}>
             <CardContent className="p-6 text-center relative">
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <kbd className="px-2 py-1 text-xs bg-black/50 text-white rounded">⌘B</kbd>
@@ -453,7 +526,7 @@ export default function Dashboard() {
           </Card>
 
           <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
-                onClick={() => navigate('/assets')}>
+            onClick={() => navigate('/assets')}>
             <CardContent className="p-6 text-center relative">
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <kbd className="px-2 py-1 text-xs bg-black/50 text-white rounded">⌘L</kbd>
@@ -583,14 +656,38 @@ export default function Dashboard() {
             <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-4">Recent Videos</h3>
             <div className="space-y-4">
               {recentVideos.slice(0, 3).map((video) => (
-                <Card key={video.id} className="bg-white/5 border-white/10">
+                <Card key={video.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-4">
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                        <Camera className="h-8 w-8 text-white" />
+                      {/* Video Thumbnail/Preview */}
+                      <div className="relative w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg overflow-hidden">
+                        {video.file_path ? (
+                          <video
+                            className="w-full h-full object-cover cursor-pointer"
+                            onClick={() => {
+                              const videoEl = document.createElement('video');
+                              videoEl.src = video.file_path;
+                              videoEl.controls = true;
+                              videoEl.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;max-width:90vw;max-height:90vh;background:black;';
+                              const overlay = document.createElement('div');
+                              overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:9998;';
+                              overlay.onclick = () => { document.body.removeChild(overlay); document.body.removeChild(videoEl); };
+                              document.body.appendChild(overlay);
+                              document.body.appendChild(videoEl);
+                            }}
+                          >
+                            <source src={video.file_path} type="video/mp4" />
+                          </video>
+                        ) : (
+                          <Camera className="h-8 w-8 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                        )}
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <Play className="h-4 w-4 text-white" />
+                        </div>
                       </div>
+
                       <div className="flex-1">
-                        <h4 className="text-white font-semibold">{video.title}</h4>
+                        <h4 className="text-white font-semibold truncate">{video.title}</h4>
                         <p className="text-gray-400 text-sm">{video.category}</p>
                         <div className="flex items-center space-x-2 mt-1">
                           <Badge variant="outline" className="text-xs">
@@ -599,6 +696,37 @@ export default function Dashboard() {
                           <Badge variant="outline" className="text-xs">
                             {video.collaboration_count} collaborations
                           </Badge>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-col space-y-1">
+                        <Button
+                          size="sm"
+                          onClick={() => navigate(`/quick-collab/${video.id}`)}
+                          className="bg-yellow-400 text-black hover:bg-yellow-500 text-xs px-2 py-1"
+                        >
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          Enhance
+                        </Button>
+                        <div className="flex space-x-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditVideo(video.id, video.title)}
+                            className="text-xs px-2 py-1 border-white/30 text-white hover:bg-white/10 flex-1"
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteVideo(video.id, video.title)}
+                            className="text-xs px-2 py-1 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -661,6 +789,50 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Edit Video Modal */}
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Edit Video Title</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="video-title" className="text-sm font-medium text-gray-300">
+                Video Title
+              </Label>
+              <Input
+                id="video-title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Enter video title..."
+                className="bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-yellow-400"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleUpdateVideo();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter className="space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setEditModalOpen(false)}
+              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateVideo}
+              disabled={!newTitle.trim() || newTitle === editingVideo?.title}
+              className="bg-yellow-400 text-black hover:bg-yellow-500 disabled:opacity-50"
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

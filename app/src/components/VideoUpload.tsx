@@ -3,6 +3,7 @@ import { Upload, ArrowLeft, CircleCheck, Sparkles, Eye, Home, FileVideo, Clock, 
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { videoServiceUploadVideo } from '@/lib/sdk';
+import { getAuthenticatedClient } from '@/lib/sdk/auth-client';
 import { Video } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,6 +120,7 @@ export default function VideoUpload() {
       }, 200);
 
       const response = await videoServiceUploadVideo({
+        client: getAuthenticatedClient(),
         body: {
           title: formData.title.trim(),
           description: formData.description.trim() || null,
@@ -148,62 +150,52 @@ export default function VideoUpload() {
   if (uploadedVideo) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
-        <Card className="bg-white/10 border-white/20 max-w-lg text-center">
-          <CardContent className="p-8">
-            <CircleCheck className="h-16 w-16 text-green-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">Video Uploaded Successfully!</h2>
-            <p className="text-gray-300 mb-6">
-              Your video "{uploadedVideo.title}" is ready for enhancement.
-              What would you like to do next?
+        <Card className="bg-white/10 border-white/20 max-w-md text-center">
+          <CardContent className="p-6">
+            <CircleCheck className="h-12 w-12 text-green-400 mx-auto mb-3" />
+            <h2 className="text-xl font-bold text-white mb-2">Upload Complete!</h2>
+            <p className="text-gray-300 text-sm mb-6">
+              Your video is ready for enhancement
             </p>
-            
-            <div className="space-y-4">
+
+            <div className="space-y-3">
               {/* Primary CTA - AI Enhancement */}
               <Button
                 onClick={() => navigate(`/quick-collab/${uploadedVideo.id}`)}
-                className="w-full bg-yellow-400 text-black hover:bg-yellow-500 text-lg py-6"
+                className="w-full bg-yellow-400 text-black hover:bg-yellow-500 font-medium py-3"
               >
-                <Sparkles className="h-5 w-5 mr-3" />
-                Enhance with AI Overlays
-                <span className="block text-sm font-normal mt-1">Professional overlays in 60 seconds</span>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Enhance with AI
               </Button>
-              
+
               {/* Secondary Options */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   onClick={() => navigate('/videos')}
                   variant="outline"
-                  className="text-white border-white/30 hover:bg-white/10 py-4"
+                  className="text-white border-white/30 hover:bg-white/10 text-sm py-2"
                 >
-                  <Eye className="h-4 w-4 mr-2" />
-                  View in Gallery
-                  <span className="block text-xs font-normal mt-1">Browse and manage videos</span>
+                  <Eye className="h-3 w-3 mr-1" />
+                  Gallery
                 </Button>
-                
+
                 <Button
                   onClick={() => navigate('/dashboard')}
                   variant="ghost"
-                  className="text-gray-300 hover:bg-white/5 py-4"
+                  className="text-gray-300 hover:bg-white/5 text-sm py-2"
                 >
-                  <Home className="h-4 w-4 mr-2" />
+                  <Home className="h-3 w-3 mr-1" />
                   Dashboard
-                  <span className="block text-xs font-normal mt-1">Return to main page</span>
                 </Button>
               </div>
             </div>
-            
-            {/* Value Proposition */}
-            <div className="mt-6 p-4 bg-yellow-400/10 border border-yellow-400/20 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <Sparkles className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
-                <div className="text-left">
-                  <h4 className="text-yellow-400 font-medium text-sm">Why use AI Enhancement?</h4>
-                  <p className="text-gray-300 text-sm mt-1">
-                    Our AI analyzes your video content and automatically places professional overlays 
-                    that match your style and mood. No complex editing required!
-                  </p>
-                </div>
-              </div>
+
+            {/* Compact Value Prop */}
+            <div className="mt-4 p-3 bg-yellow-400/10 border border-yellow-400/20 rounded text-left">
+              <p className="text-yellow-400 text-xs font-medium mb-1">AI Enhancement</p>
+              <p className="text-gray-300 text-xs">
+                Professional overlays automatically placed in 60 seconds
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -215,8 +207,8 @@ export default function VideoUpload() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
       <div className="container mx-auto max-w-2xl py-8">
         <div className="mb-6">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => navigate('/dashboard')}
             className="text-white hover:bg-white/10"
           >
@@ -239,11 +231,10 @@ export default function VideoUpload() {
               <div className="space-y-2">
                 <Label htmlFor="video" className="text-white">Video File</Label>
                 <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    dragActive
-                      ? 'border-yellow-400 bg-yellow-400/10'
-                      : 'border-white/20 hover:border-white/40'
-                  }`}
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+                    ? 'border-yellow-400 bg-yellow-400/10'
+                    : 'border-white/20 hover:border-white/40'
+                    }`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}

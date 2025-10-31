@@ -187,6 +187,7 @@ from core import (
     recommendation_engine,
     ai_analysis_service,
 )
+from core.media import MediaFile
 from api.flow_routes import router as flow_router
 
 
@@ -643,7 +644,7 @@ async def video_service_upload_video(
         video_file = MediaFile(size=file_size, mime_type=content_type, bytes=contents)
 
         # Track video upload metrics
-        metrics_manager.track_video_upload(file_size)
+        track_video_upload(file_size)
 
     response = await run_sync_in_thread(
         video_service.upload_video,
