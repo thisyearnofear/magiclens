@@ -124,17 +124,24 @@ def generate_presigned_url(path: str, expiration: int = 3600) -> str:
     s3_client = _storage_config.get_s3_client()
     
     if not s3_client or _storage_config.use_local_fallback:
-        # Use relative URL for better compatibility with proxies
+        # If path already starts with /media/, return as-is, otherwise add prefix
+        if path.startswith('/media/'):
+            return path
         return f"/media/{path}"
     
     try:
+        # For S3, remove /media/ prefix if present since S3 keys don't include it
+        s3_key = path.lstrip('/media/')
         return s3_client.generate_presigned_url(
             'get_object',
-            Params={'Bucket': _storage_config.bucket_name, 'Key': path},
+            Params={'Bucket': _storage_config.bucket_name, 'Key': s3_key},
             ExpiresIn=expiration
         )
     except ClientError as e:
         logger.error(f"Failed to generate presigned URL: {e}")
+        # Fallback: return path as-is if it starts with /media/, otherwise add prefix
+        if path.startswith('/media/'):
+            return path
         return f"/media/{path}"
 
 

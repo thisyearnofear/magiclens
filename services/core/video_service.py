@@ -9,8 +9,11 @@ from core.media import MediaFile, save_to_bucket, generate_presigned_url
 from core.videos import Video
 from core.user_profiles import UserProfile
 
+# Duration extraction removed - not essential for core functionality
+# If needed later, can implement with lightweight alternatives or browser-based extraction
+
 @authenticated
-def upload_video(user: User, video_file: MediaFile, title: str, description: Optional[str] = None, category: str = "urban") -> Video:
+def upload_video(user: User, video_file: MediaFile, title: str, description: Optional[str] = None, category: Optional[str] = None) -> Video:
     """Upload a new video with validation."""
     
     # Validate file type
@@ -20,13 +23,28 @@ def upload_video(user: User, video_file: MediaFile, title: str, description: Opt
     # TODO: Add duration validation (30s max) - would need video processing
     # For now, we'll trust the frontend validation
     
+    # Save video to bucket first
+    video_path = save_to_bucket(video_file, f"videos/{user.id}")
+    
+    # Smart category detection - if not provided, analyze title/description
+    if not category:
+        title_lower = title.lower()
+        desc_lower = (description or "").lower()
+        text_to_analyze = f"{title_lower} {desc_lower}"
+        
+        if any(word in text_to_analyze for word in ['park', 'tree', 'forest', 'nature', 'outdoor', 'landscape']):
+            category = 'nature'
+        elif any(word in text_to_analyze for word in ['office', 'meeting', 'desk', 'work', 'indoor', 'room']):
+            category = 'indoor'
+        elif any(word in text_to_analyze for word in ['street', 'road', 'traffic', 'sidewalk', 'city']):
+            category = 'street'
+        else:
+            category = 'urban'  # Default
+    
     # Validate category
     valid_categories = ['urban', 'nature', 'indoor', 'street', 'park', 'office']
     if category not in valid_categories:
-        category = 'urban'  # Default fallback
-    
-    # Save video to bucket
-    video_path = save_to_bucket(video_file, f"videos/{user.id}")
+        category = 'urban'
     
     # Create video record in database
     video_id = uuid.uuid4()
@@ -39,7 +57,7 @@ def upload_video(user: User, video_file: MediaFile, title: str, description: Opt
             "title": title,
             "description": description,
             "category": category,
-            "duration": 30,  # Placeholder - would extract from actual video (integer)
+            "duration": None,  # Duration not extracted - not essential for core functionality
             "file_path": video_path,
             "file_size": video_file.size,
             "metadata": json.dumps({"mime_type": video_file.mime_type}),

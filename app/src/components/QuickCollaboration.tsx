@@ -1,4 +1,4 @@
-import { Zap, Clock, ArrowRight, Sparkles, Users, TrendingUp, CircleCheck, Loader } from "lucide-react";
+import { Zap, Clock, ArrowRight, Sparkles, Users, TrendingUp, CircleCheck, Loader, Play, Edit, Check, X } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,8 +11,11 @@ import VideoPlayer from '@/components/ui/VideoPlayer';
 import {
   videoServiceGetVideo,
   collaborationServiceGetCollaboration,
-  renderServiceQueueRender
+  renderServiceQueueRender,
+  videoServiceUpdateVideo
 } from '@/lib/sdk';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface QuickCollaborationProps {
   videoId: string;
@@ -44,6 +47,8 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
   const [isRendering, setIsRendering] = useState(false);
   const [appliedOverlaysCount, setAppliedOverlaysCount] = useState(0);
   const [currentStep, setCurrentStep] = useState<'analyze' | 'select' | 'preview' | 'complete'>('analyze');
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
+  const [editCategory, setEditCategory] = useState('');
 
   useEffect(() => {
     loadVideoData();
@@ -64,7 +69,9 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
       });
 
       if (result.data) {
-        setVideo(result.data as VideoData);
+        const videoData = result.data as VideoData;
+        setVideo(videoData);
+        setEditCategory(videoData.category);
         setCurrentStep('select');
       }
     } catch (error) {
@@ -96,6 +103,29 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
     // Auto-advance to preview after first overlay
     if (appliedOverlaysCount === 0) {
       setTimeout(() => setCurrentStep('preview'), 1000);
+    }
+  };
+
+  const handleCategoryUpdate = async () => {
+    if (!video || editCategory === video.category) {
+      setIsEditingCategory(false);
+      return;
+    }
+
+    try {
+      await videoServiceUpdateVideo({
+        body: {
+          video_id: videoId,
+          category: editCategory
+        }
+      });
+
+      setVideo(prev => prev ? { ...prev, category: editCategory } : null);
+      setIsEditingCategory(false);
+    } catch (error) {
+      console.error('Failed to update category:', error);
+      setEditCategory(video.category); // Reset on error
+      setIsEditingCategory(false);
     }
   };
 
@@ -183,12 +213,13 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Quick Collaboration</h1>
-            <p className="text-gray-300">AI-powered overlay suggestions for instant video enhancement</p>
+            <h1 className="text-3xl font-bold text-white mb-2">AI Enhancement Studio</h1>
+            <p className="text-gray-300">Transform your video with intelligent overlay suggestions</p>
           </div>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => navigate('/dashboard')}
+            className="bg-white/10 text-white hover:bg-white/20"
           >
             Back to Dashboard
           </Button>
@@ -237,12 +268,37 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                 {/* Video Info */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-400 text-sm">Duration</span>
-                    <span className="text-white">{video.duration.toFixed(1)}s</span>
-                  </div>
-                  <div className="flex items-center justify-between">
                     <span className="text-gray-400 text-sm">Category</span>
-                    <Badge variant="outline">{video.category}</Badge>
+                    {isEditingCategory ? (
+                      <div className="flex items-center space-x-2">
+                        <Select value={editCategory} onValueChange={setEditCategory}>
+                          <SelectTrigger className="w-24 h-8 bg-gray-800 border-gray-600 text-white text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-800 border-gray-600">
+                            <SelectItem value="urban">Urban</SelectItem>
+                            <SelectItem value="nature">Nature</SelectItem>
+                            <SelectItem value="indoor">Indoor</SelectItem>
+                            <SelectItem value="street">Street</SelectItem>
+                            <SelectItem value="park">Park</SelectItem>
+                            <SelectItem value="office">Office</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button size="sm" onClick={handleCategoryUpdate} className="h-6 w-6 p-0 bg-green-600 hover:bg-green-700">
+                          <Check className="h-3 w-3" />
+                        </Button>
+                        <Button size="sm" onClick={() => { setIsEditingCategory(false); setEditCategory(video.category); }} className="h-6 w-6 p-0 bg-gray-600 hover:bg-gray-700">
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="capitalize">{video.category}</Badge>
+                        <Button size="sm" onClick={() => setIsEditingCategory(true)} className="h-6 w-6 p-0 bg-gray-700 hover:bg-gray-600">
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   {appliedOverlaysCount > 0 && (
                     <div className="flex items-center justify-between">
@@ -304,7 +360,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
             {currentStep !== 'complete' ? (
               <SmartOverlayRecommendations
                 videoId={videoId}
-                videoDuration={video.duration}
+                videoDuration={30}
                 onOverlayApplied={handleOverlayApplied}
                 onCollaborationCreated={(collabId) => {
                   if (!collaboration) {

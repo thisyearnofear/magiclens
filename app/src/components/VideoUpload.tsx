@@ -161,7 +161,7 @@ export default function VideoUpload() {
             <div className="space-y-3">
               {/* Primary CTA - AI Enhancement */}
               <Button
-                onClick={() => navigate(`/quick-collab/${uploadedVideo.id}`)}
+                onClick={() => navigate(`/ai-enhance/${uploadedVideo.id}`)}
                 className="w-full bg-yellow-400 text-black hover:bg-yellow-500 font-medium py-3"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -252,7 +252,7 @@ export default function VideoUpload() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="mt-2 border-white/20 text-white hover:bg-white/10"
+                          className="mt-2 bg-white/10 text-white hover:bg-white/20"
                           onClick={() => fileInputRef.current?.click()}
                         >
                           Choose Different File

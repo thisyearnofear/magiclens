@@ -1,4 +1,4 @@
-# Backend API container with ffmpeg and additional dependencies
+# Backend API container
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -6,7 +6,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Install runtime packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
     curl \
     ca-certificates \
     libpq5 \

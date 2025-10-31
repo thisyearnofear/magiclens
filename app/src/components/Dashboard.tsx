@@ -234,7 +234,7 @@ export default function Dashboard() {
                   Connect Wallet
                 </Button>
               ) : (
-                <Button variant="outline" onClick={disconnectWallet} className="border-white/20 text-white">
+                <Button variant="secondary" onClick={disconnectWallet} className="bg-white/10 text-white hover:bg-white/20">
                   Sign Out
                 </Button>
               )}
@@ -269,7 +269,7 @@ export default function Dashboard() {
                         Connect Wallet
                       </Button>
                     ) : (
-                      <Button variant="outline" onClick={disconnectWallet} className="border-white/20 text-white">
+                      <Button variant="secondary" onClick={disconnectWallet} className="bg-white/10 text-white hover:bg-white/20">
                         Sign Out
                       </Button>
                     )}
@@ -340,9 +340,9 @@ export default function Dashboard() {
                 Get started with these quick steps to make the most of your experience:
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                <div className="flex items-start space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
                     1
                   </div>
                   <div className="flex-1 min-w-0">
@@ -351,14 +351,16 @@ export default function Dashboard() {
                       onClick={() => navigate('/profile')}
                       className="text-white hover:bg-white/10 p-0 h-auto justify-start w-full text-left"
                     >
-                      <span className="font-medium">Update your profile</span>
-                      <span className="text-gray-400 text-sm ml-2 block">Set your username and bio</span>
+                      <div>
+                        <div className="font-medium text-sm sm:text-base">Update your profile</div>
+                        <div className="text-gray-400 text-xs sm:text-sm">Set your username and bio</div>
+                      </div>
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                <div className="flex items-start space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
                     2
                   </div>
                   <div className="flex-1 min-w-0">
@@ -367,14 +369,16 @@ export default function Dashboard() {
                       onClick={() => navigate('/upload-video')}
                       className="text-white hover:bg-white/10 p-0 h-auto justify-start w-full text-left"
                     >
-                      <span className="font-medium">Upload your first video</span>
-                      <span className="text-gray-400 text-sm ml-2 block">Share environmental footage</span>
+                      <div>
+                        <div className="font-medium text-sm sm:text-base">Upload your first video</div>
+                        <div className="text-gray-400 text-xs sm:text-sm">Share environmental footage</div>
+                      </div>
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3">
-                  <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                <div className="flex items-start space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
                     3
                   </div>
                   <div className="flex-1 min-w-0">
@@ -383,14 +387,16 @@ export default function Dashboard() {
                       onClick={() => navigate('/assets')}
                       className="text-white hover:bg-white/10 p-0 h-auto justify-start w-full text-left"
                     >
-                      <span className="font-medium">Explore asset library</span>
-                      <span className="text-gray-400 text-sm ml-2 block">Find overlays and animations</span>
+                      <div>
+                        <div className="font-medium text-sm sm:text-base">Explore asset library</div>
+                        <div className="text-gray-400 text-xs sm:text-sm">Find overlays and animations</div>
+                      </div>
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3">
-                  <div className="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                <div className="flex items-start space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-yellow-500 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
                     4
                   </div>
                   <div className="flex-1 min-w-0">
@@ -399,8 +405,10 @@ export default function Dashboard() {
                       onClick={() => navigate('/videos')}
                       className="text-white hover:bg-white/10 p-0 h-auto justify-start w-full text-left"
                     >
-                      <span className="font-medium">Browse collaborations</span>
-                      <span className="text-gray-400 text-sm ml-2 block">Connect with other creators</span>
+                      <div>
+                        <div className="font-medium text-sm sm:text-base">Browse collaborations</div>
+                        <div className="text-gray-400 text-xs sm:text-sm">Connect with other creators</div>
+                      </div>
                     </Button>
                   </div>
                 </div>
@@ -657,73 +665,76 @@ export default function Dashboard() {
             <div className="space-y-4">
               {recentVideos.slice(0, 3).map((video) => (
                 <Card key={video.id} className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-4">
-                      {/* Video Thumbnail/Preview */}
-                      <div className="relative w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg overflow-hidden">
-                        {video.file_path ? (
-                          <video
-                            className="w-full h-full object-cover cursor-pointer"
-                            onClick={() => {
-                              const videoEl = document.createElement('video');
-                              videoEl.src = video.file_path;
-                              videoEl.controls = true;
-                              videoEl.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;max-width:90vw;max-height:90vh;background:black;';
-                              const overlay = document.createElement('div');
-                              overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:9998;';
-                              overlay.onclick = () => { document.body.removeChild(overlay); document.body.removeChild(videoEl); };
-                              document.body.appendChild(overlay);
-                              document.body.appendChild(videoEl);
-                            }}
-                          >
-                            <source src={video.file_path} type="video/mp4" />
-                          </video>
-                        ) : (
-                          <Camera className="h-8 w-8 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-                        )}
-                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                          <Play className="h-4 w-4 text-white" />
+                  <CardContent className="p-3 lg:p-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center space-y-3 lg:space-y-0 lg:space-x-3">
+                      {/* Video Info Section */}
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        {/* Video Thumbnail/Preview */}
+                        <div className="relative w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg overflow-hidden flex-shrink-0">
+                          {video.file_path ? (
+                            <video
+                              className="w-full h-full object-cover cursor-pointer"
+                              onClick={() => {
+                                const videoEl = document.createElement('video');
+                                videoEl.src = video.file_path;
+                                videoEl.controls = true;
+                                videoEl.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;max-width:90vw;max-height:90vh;background:black;';
+                                const overlay = document.createElement('div');
+                                overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);z-index:9998;';
+                                overlay.onclick = () => { document.body.removeChild(overlay); document.body.removeChild(videoEl); };
+                                document.body.appendChild(overlay);
+                                document.body.appendChild(videoEl);
+                              }}
+                            >
+                              <source src={video.file_path} type="video/mp4" />
+                            </video>
+                          ) : (
+                            <Camera className="h-6 w-6 lg:h-8 lg:w-8 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                          )}
+                          <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <Play className="h-3 w-3 lg:h-4 lg:w-4 text-white" />
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex-1">
-                        <h4 className="text-white font-semibold truncate">{video.title}</h4>
-                        <p className="text-gray-400 text-sm">{video.category}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            {video.view_count} views
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {video.collaboration_count} collaborations
-                          </Badge>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-white font-semibold truncate text-sm lg:text-base">{video.title}</h4>
+                          <p className="text-gray-400 text-xs lg:text-sm">{video.category}</p>
+                          <div className="flex items-center space-x-1 lg:space-x-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {video.view_count} views
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {video.collaboration_count} collaborations
+                            </Badge>
+                          </div>
                         </div>
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex flex-col space-y-1">
+                      <div className="flex flex-row lg:flex-col space-x-2 lg:space-x-0 lg:space-y-1 flex-shrink-0">
                         <Button
                           size="sm"
-                          onClick={() => navigate(`/quick-collab/${video.id}`)}
-                          className="bg-yellow-400 text-black hover:bg-yellow-500 text-xs px-2 py-1"
+                          onClick={() => navigate(`/ai-enhance/${video.id}`)}
+                          className="bg-yellow-400 text-black hover:bg-yellow-500 text-xs px-2 py-1 flex-1 lg:flex-none lg:w-20"
                         >
                           <Sparkles className="h-3 w-3 mr-1" />
                           Enhance
                         </Button>
-                        <div className="flex space-x-1">
+                        <div className="flex space-x-1 flex-1 lg:flex-none">
                           <Button
                             size="sm"
-                            variant="outline"
+                            variant="secondary"
                             onClick={() => handleEditVideo(video.id, video.title)}
-                            className="text-xs px-2 py-1 border-white/30 text-white hover:bg-white/10 flex-1"
+                            className="text-xs px-2 py-1 bg-white/10 text-white hover:bg-white/20 flex-1 lg:w-10"
                           >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit
+                            <Edit className="h-3 w-3 lg:mr-0" />
+                            <span className="lg:hidden ml-1">Edit</span>
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleDeleteVideo(video.id, video.title)}
-                            className="text-xs px-2 py-1 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50"
+                            className="text-xs px-2 py-1 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 lg:w-10"
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -738,7 +749,7 @@ export default function Dashboard() {
                 <Card className="bg-white/5 border-white/10">
                   <CardContent className="p-6 text-center">
                     <p className="text-gray-400">No videos available yet.</p>
-                    <Button variant="outline" className="mt-2" onClick={() => navigate('/videos')}>
+                    <Button variant="secondary" className="mt-2 bg-white/10 text-white hover:bg-white/20" onClick={() => navigate('/videos')}>
                       Browse Videos
                     </Button>
                   </CardContent>
@@ -779,7 +790,7 @@ export default function Dashboard() {
                 <Card className="bg-white/5 border-white/10">
                   <CardContent className="p-6 text-center">
                     <p className="text-gray-400">No assets available yet.</p>
-                    <Button variant="outline" className="mt-2" onClick={() => navigate('/assets')}>
+                    <Button variant="secondary" className="mt-2 bg-white/10 text-white hover:bg-white/20" onClick={() => navigate('/assets')}>
                       Browse Assets
                     </Button>
                   </CardContent>

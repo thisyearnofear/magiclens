@@ -197,7 +197,7 @@ export default function VideoGallery() {
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="flex space-x-2">
                         <Button
-                          onClick={() => navigate(`/quick-collab/${video.id}`)}
+                          onClick={() => navigate(`/ai-enhance/${video.id}`)}
                           className="bg-yellow-400 text-black hover:bg-yellow-500"
                         >
                           <Sparkles className="h-4 w-4 mr-2" />
@@ -255,7 +255,7 @@ export default function VideoGallery() {
         {/* Load More */}
         {videos.length > 0 && videos.length % 24 === 0 && (
           <div className="text-center mt-8">
-            <Button variant="outline" className="text-white border-white/20">
+            <Button variant="secondary" className="bg-white/10 text-white hover:bg-white/20">
               Load More Videos
             </Button>
           </div>

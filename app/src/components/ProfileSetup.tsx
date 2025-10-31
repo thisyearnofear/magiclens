@@ -51,7 +51,7 @@ export default function ProfileSetup() {
       formDataToSend.append('username', formData.username);
       formDataToSend.append('user_type', formData.userType);
       formDataToSend.append('bio', formData.bio || '');
-      
+
       if (formData.avatar) {
         formDataToSend.append('avatar', formData.avatar);
       }
@@ -97,7 +97,7 @@ export default function ProfileSetup() {
                 <div>
                   <h4 className="text-white font-medium">Connected with Flow Wallet</h4>
                   <p className="text-gray-300 text-sm mt-1">
-                    Your profile will be permanently linked to your Flow wallet address: 
+                    Your profile will be permanently linked to your Flow wallet address:
                     <span className="font-mono text-xs block mt-1">{user.addr}</span>
                   </p>
                 </div>
@@ -133,7 +133,7 @@ export default function ProfileSetup() {
                       <span>Upload Videos</span>
                     </Label>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2 p-4 rounded-lg border border-white/20 bg-white/5">
                     <RadioGroupItem value="artist" id="artist" />
                     <Label htmlFor="artist" className="flex items-center space-x-2 cursor-pointer text-white">
@@ -196,12 +196,12 @@ export default function ProfileSetup() {
                 >
                   {loading ? 'Creating Profile...' : 'Create Profile'}
                 </Button>
-                
+
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => navigate('/dashboard')}
-                  className="w-full border-white/20 text-white hover:bg-white/10"
+                  className="w-full bg-white/10 text-white hover:bg-white/20"
                 >
                   Skip Setup (Demo Mode)
                 </Button>

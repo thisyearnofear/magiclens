@@ -14,7 +14,7 @@ import UserProfile from './UserProfile';
 import { FlowDashboard } from './FlowDashboard';
 
 // Wrapper component to properly extract videoId from route params
-function QuickCollabWrapper() {
+function AIEnhancementWrapper() {
   const { videoId } = useParams<{ videoId: string }>();
   return <QuickCollaboration videoId={videoId || ''} />;
 }
@@ -36,7 +36,7 @@ export default function Router() {
           <Route path="/upload-video" element={<VideoUpload />} />
           <Route path="/upload-asset" element={<AssetUpload />} />
           <Route path="/collaboration/:id" element={<CollaborationWorkspace />} />
-          <Route path="/quick-collab/:videoId" element={<QuickCollabWrapper />} />
+          <Route path="/ai-enhance/:videoId" element={<AIEnhancementWrapper />} />
           <Route path="/profile/:id" element={<UserProfile />} />
           <Route path="/profile" element={<UserProfile />} />
         </Routes>

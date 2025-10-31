@@ -17,7 +17,7 @@ export default function LandingPage() {
             <h1 className="text-2xl font-bold text-white">MagicLens</h1>
           </div>
           <div className="flex gap-2">
-            <Button onClick={login} variant="outline" className="bg-white/10 text-white border-white/20">
+            <Button onClick={login} variant="secondary" className="bg-white/10 text-white hover:bg-white/20">
               Connect Wallet
             </Button>
             <Button onClick={continueAsGuest} variant="ghost" className="text-white hover:bg-white/10">
@@ -33,14 +33,14 @@ export default function LandingPage() {
           Bring <span className="text-yellow-400">Magic</span> to Reality
         </h2>
         <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-          The collaborative platform where videographers and digital artists create everyday magic. 
+          The collaborative platform where videographers and digital artists create everyday magic.
           Upload your environmental videos, add whimsical AR-style overlays, and share the wonder.
         </p>
         <div className="flex gap-4 justify-center">
           <Button onClick={login} size="lg" className="bg-yellow-400 text-black hover:bg-yellow-500">
             Connect Wallet & Create
           </Button>
-          <Button onClick={continueAsGuest} variant="outline" size="lg" className="text-white border-white/20">
+          <Button onClick={continueAsGuest} variant="secondary" size="lg" className="bg-white/10 text-white hover:bg-white/20">
             Continue as Guest
           </Button>
         </div>
@@ -49,7 +49,7 @@ export default function LandingPage() {
       {/* Value Proposition Section */}
       <section className="container mx-auto px-4 py-20">
         <h3 className="text-4xl font-bold text-white text-center mb-16">Why Connect Your Flow Wallet?</h3>
-        
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all">
             <CardHeader>
@@ -60,7 +60,7 @@ export default function LandingPage() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-gray-300">
-                Upload your videos and assets, collaborate with other creators, and build your portfolio 
+                Upload your videos and assets, collaborate with other creators, and build your portfolio
                 on the Flow blockchain.
               </CardDescription>
             </CardContent>
@@ -89,7 +89,7 @@ export default function LandingPage() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-gray-300">
-                Mint your AR assets as NFTs, maintain ownership of your intellectual property, 
+                Mint your AR assets as NFTs, maintain ownership of your intellectual property,
                 and build lasting value.
               </CardDescription>
             </CardContent>
@@ -192,7 +192,7 @@ export default function LandingPage() {
             <Button onClick={login} size="lg" className="bg-yellow-400 text-black hover:bg-yellow-500">
               Get Started Now
             </Button>
-            <Button onClick={continueAsGuest} variant="outline" size="lg" className="text-white border-white/20">
+            <Button onClick={continueAsGuest} variant="secondary" size="lg" className="bg-white/10 text-white hover:bg-white/20">
               Explore as Guest
             </Button>
           </div>

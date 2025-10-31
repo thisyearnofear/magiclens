@@ -33,7 +33,7 @@ export default function AssetLibrary() {
           offset: 0
         }
       });
-      
+
       if (response.data) {
         setAssets(response.data);
       }
@@ -59,7 +59,7 @@ export default function AssetLibrary() {
           limit: 50
         }
       });
-      
+
       if (response.data) {
         setAssets(response.data);
       }
@@ -73,8 +73,8 @@ export default function AssetLibrary() {
   const renderAssetPreview = (asset: ArtistAsset) => {
     if (asset.asset_type === 'gif' || asset.asset_type === 'png') {
       return (
-        <img 
-          src={asset.file_path} 
+        <img
+          src={asset.file_path}
           alt={asset.name}
           className="w-full h-full object-cover"
           loading="lazy"
@@ -82,7 +82,7 @@ export default function AssetLibrary() {
       );
     } else if (asset.asset_type === 'mp4') {
       return (
-        <video 
+        <video
           src={asset.file_path}
           className="w-full h-full object-cover"
           autoPlay
@@ -107,8 +107,8 @@ export default function AssetLibrary() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => navigate('/dashboard')}
                 className="text-white hover:bg-white/10"
               >
@@ -140,7 +140,7 @@ export default function AssetLibrary() {
                 />
               </div>
             </div>
-            
+
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-full md:w-48 bg-white/10 border-white/20 text-white">
                 <SelectValue placeholder="Category" />
@@ -183,7 +183,7 @@ export default function AssetLibrary() {
               <p className="text-gray-400 mb-4">
                 {searchQuery ? 'Try adjusting your search terms or filters.' : 'No assets available in this category.'}
               </p>
-              <Button variant="outline" onClick={() => {setSearchQuery(''); setSelectedCategory('all'); loadAssets();}}>
+              <Button variant="outline" onClick={() => { setSearchQuery(''); setSelectedCategory('all'); loadAssets(); }}>
                 View All Assets
               </Button>
             </CardContent>
@@ -201,7 +201,7 @@ export default function AssetLibrary() {
                   {/* Asset Info */}
                   <div className="p-2">
                     <h3 className="text-white font-medium text-sm mb-1 line-clamp-1">{asset.name}</h3>
-                    
+
                     <div className="flex items-center justify-between">
                       <Badge variant="outline" className="text-xs">
                         {asset.category}
@@ -224,7 +224,7 @@ export default function AssetLibrary() {
         {/* Load More */}
         {assets.length > 0 && assets.length % 50 === 0 && (
           <div className="text-center mt-8">
-            <Button variant="outline" className="text-white border-white/20">
+            <Button variant="secondary" className="bg-white/10 text-white hover:bg-white/20">
               Load More Assets
             </Button>
           </div>
@@ -239,7 +239,7 @@ export default function AssetLibrary() {
               <p className="text-gray-300 mb-4">
                 Upload your own assets and help other creators bring their visions to life.
               </p>
-              <Button 
+              <Button
                 onClick={() => navigate('/upload-asset')}
                 className="bg-yellow-400 text-black hover:bg-yellow-500"
               >

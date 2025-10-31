@@ -73,7 +73,7 @@ export default function UserProfile() {
           avatar: editForm.avatar
         }
       });
-      
+
       if (response.data) {
         setProfile(response.data);
         setEditing(false);
@@ -136,8 +136,8 @@ export default function UserProfile() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => navigate('/dashboard')}
                 className="text-white hover:bg-white/10"
               >
@@ -149,9 +149,9 @@ export default function UserProfile() {
                 <h1 className="text-xl font-bold text-white">Profile</h1>
               </div>
             </div>
-            
+
             {isOwnProfile && !editing && (
-              <Button 
+              <Button
                 onClick={() => setEditing(true)}
                 className="bg-yellow-400 text-black hover:bg-yellow-500"
               >
@@ -175,7 +175,7 @@ export default function UserProfile() {
                     {profile.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 {editing && (
                   <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
                     <Label htmlFor="avatar-upload" className="cursor-pointer text-white hover:text-yellow-400">
@@ -221,24 +221,23 @@ export default function UserProfile() {
                     <CardTitle className="text-3xl font-bold text-white mb-2">
                       {profile.username}
                     </CardTitle>
-                    
+
                     <div className="flex items-center space-x-2 mb-4">
-                      <Badge className={`${
-                        profile.user_type === 'artist' ? 'bg-purple-500' :
-                        profile.user_type === 'videographer' ? 'bg-blue-500' :
-                        'bg-gradient-to-r from-purple-500 to-blue-500'
-                      }`}>
-                        {profile.user_type === 'both' ? 'Artist & Videographer' : 
-                         profile.user_type.charAt(0).toUpperCase() + profile.user_type.slice(1)}
+                      <Badge className={`${profile.user_type === 'artist' ? 'bg-purple-500' :
+                          profile.user_type === 'videographer' ? 'bg-blue-500' :
+                            'bg-gradient-to-r from-purple-500 to-blue-500'
+                        }`}>
+                        {profile.user_type === 'both' ? 'Artist & Videographer' :
+                          profile.user_type.charAt(0).toUpperCase() + profile.user_type.slice(1)}
                       </Badge>
-                      
+
                       {profile.is_verified && (
                         <Badge className="bg-yellow-500 text-black">
                           Verified
                         </Badge>
                       )}
                     </div>
-                    
+
                     {profile.bio && (
                       <CardDescription className="text-gray-300 text-base">
                         {profile.bio}
@@ -251,7 +250,7 @@ export default function UserProfile() {
               {/* Action Buttons for Editing */}
               {editing && (
                 <div className="flex space-x-2">
-                  <Button 
+                  <Button
                     onClick={handleSave}
                     disabled={saving}
                     className="bg-green-500 hover:bg-green-600"
@@ -259,10 +258,10 @@ export default function UserProfile() {
                     <Save className="h-4 w-4 mr-2" />
                     {saving ? 'Saving...' : 'Save'}
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleCancel}
                     variant="outline"
-                    className="border-white/20 text-white"
+                    className="bg-white/10 text-white hover:bg-white/20"
                   >
                     <X className="h-4 w-4 mr-2" />
                     Cancel
