@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Upload, Camera, Palette, Eye, TrendingUp, Users, Zap, Menu, Info, User, Play, Sparkles, Edit, Trash2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { EnvironmentalFootageGallery } from './EnvironmentalFootageGallery';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -40,6 +41,7 @@ export default function Dashboard() {
 
     try {
       await videoServiceUpdateVideo({
+        client: getAuthenticatedClient(),
         body: {
           video_id: editingVideo.id,
           title: newTitle.trim()
@@ -66,27 +68,42 @@ export default function Dashboard() {
     }
   };
 
+  // Delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingVideo, setDeletingVideo] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Environmental gallery modal state
+  const [showEnvironmentalGallery, setShowEnvironmentalGallery] = useState(false);
+
   // Delete video function
-  const handleDeleteVideo = async (videoId: string, videoTitle: string) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${videoTitle}"?\n\nThis action cannot be undone.`
-    );
+  const handleDeleteVideo = (videoId: string, videoTitle: string) => {
+    setDeletingVideo({ id: videoId, title: videoTitle });
+    setDeleteModalOpen(true);
+  };
 
-    if (!confirmed) return;
+  // Confirm delete function
+  const confirmDeleteVideo = async () => {
+    if (!deletingVideo) return;
 
+    setIsDeleting(true);
     try {
       await videoServiceDeleteVideo({
-        body: { video_id: videoId }
+        client: getAuthenticatedClient(),
+        body: { video_id: deletingVideo.id }
       });
 
       // Remove the video from the local state
-      setRecentVideos(prev => prev.filter(video => video.id !== videoId));
+      setRecentVideos(prev => prev.filter(video => video.id !== deletingVideo.id));
 
-      // Show success message
-      alert('Video deleted successfully!');
+      // Close modal and reset state
+      setDeleteModalOpen(false);
+      setDeletingVideo(null);
     } catch (error) {
       console.error('Failed to delete video:', error);
       alert('Failed to delete video. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -502,6 +519,20 @@ export default function Dashboard() {
             </Card>
           )}
 
+          {!isGuestUser && profile.user_type === 'videographer' && (
+            <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
+              onClick={() => setShowEnvironmentalGallery(true)}>
+              <CardContent className="p-6 text-center relative">
+                <Camera className="h-12 w-12 text-green-400 mx-auto mb-4" />
+                <h3 className="text-white font-semibold">Get Inspired</h3>
+                <p className="text-gray-300 text-sm">Browse environmental footage examples</p>
+                <Badge className="mt-2 bg-green-500/20 text-green-300 text-xs">
+                  Professional Examples
+                </Badge>
+              </CardContent>
+            </Card>
+          )}
+
           {!isGuestUser && (
             <Card className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
               onClick={() => navigate('/upload-asset')}>
@@ -842,6 +873,73 @@ export default function Dashboard() {
               Save Changes
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Video Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="bg-gray-900 border-red-500/30 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-red-400 flex items-center space-x-2">
+              <Trash2 className="h-5 w-5" />
+              <span>Delete Video</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4">
+              <p className="text-gray-300 text-sm mb-2">
+                You are about to permanently delete:
+              </p>
+              <p className="text-white font-semibold">
+                "{deletingVideo?.title}"
+              </p>
+            </div>
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+              <p className="text-yellow-400 text-sm font-medium mb-1">⚠️ Warning</p>
+              <p className="text-gray-300 text-sm">
+                This action cannot be undone. The video and all associated data will be permanently removed.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={isDeleting}
+              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteVideo}
+              disabled={isDeleting}
+              className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Video
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Environmental Footage Gallery Modal */}
+      <Dialog open={showEnvironmentalGallery} onOpenChange={setShowEnvironmentalGallery}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden bg-gray-900 border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Environmental Footage Inspiration</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+            <EnvironmentalFootageGallery showAsInspiration={true} />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

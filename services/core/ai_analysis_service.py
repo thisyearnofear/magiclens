@@ -28,6 +28,7 @@ from core.pose_cache import (
     get_cached_sequence_match,
     cache_sequence_match,
 )
+import os
 
 
 class VideoAnalyzer:
@@ -42,6 +43,10 @@ class VideoAnalyzer:
         self, video_path: str, video_duration: float, video_id: UUID = None
     ) -> Dict:
         """Analyze video content using AI vision models with database caching."""
+        
+        # Handle None duration early
+        if video_duration is None:
+            video_duration = 30.0  # Default 30 seconds
 
         # Check database cache first if video_id provided
         if video_id:
@@ -59,6 +64,11 @@ class VideoAnalyzer:
             return self.analysis_cache[cache_key]
 
         try:
+            # Check if video file exists
+            if not os.path.exists(video_path):
+                print(f"Video file not found: {video_path}")
+                return self._fallback_analysis(video_duration)
+            
             # Extract key frames for analysis
             frames = self._extract_key_frames(video_path, num_frames=3)
 
@@ -89,6 +99,7 @@ class VideoAnalyzer:
             return video_analysis
 
         except Exception as e:
+            print(f"Video analysis failed: {e}")
             # Fallback to basic analysis if AI fails
             return self._fallback_analysis(video_duration)
 
@@ -666,6 +677,10 @@ class VideoAnalyzer:
 
     def _fallback_analysis(self, duration: float) -> Dict:
         """Provide basic analysis when AI processing fails."""
+        
+        # Handle None duration
+        if duration is None:
+            duration = 10.0  # Default 10 seconds
 
         return {
             "video_id": None,
@@ -700,6 +715,21 @@ class VideoAnalyzer:
         }
 
 
+def _get_local_file_path(url_path: str) -> str:
+    """Convert URL path to local file path for AI analysis."""
+    # Remove /media/ prefix if present
+    if url_path.startswith('/media/'):
+        relative_path = url_path[7:]  # Remove '/media/'
+    else:
+        relative_path = url_path
+    
+    # Get local media directory
+    local_media_dir = os.environ.get("LOCAL_MEDIA_DIR", "/tmp/magiclens-media")
+    local_file_path = os.path.join(local_media_dir, relative_path)
+    
+    return local_file_path
+
+
 # Service functions for integration with existing system
 
 
@@ -709,7 +739,7 @@ def analyze_video_for_overlays(user: User, video_id: UUID) -> Dict:
 
     # Get video details
     videos_data = Video.sql(
-        "SELECT * FROM videos WHERE id = %(video_id)s AND uploader_id = %(user_id)s",
+        "SELECT * FROM videos WHERE id = %(video_id)s AND user_id = %(user_id)s",
         {"video_id": video_id, "user_id": user.id},
     )
 
@@ -718,9 +748,15 @@ def analyze_video_for_overlays(user: User, video_id: UUID) -> Dict:
 
     video = Video(**videos_data[0])
 
+    # Convert URL path to local file path for AI analysis
+    local_file_path = _get_local_file_path(video.file_path)
+    
+    # Handle None duration with fallback
+    duration = video.duration if video.duration is not None else 30.0
+    
     # Perform AI analysis
     analyzer = VideoAnalyzer()
-    analysis = analyzer.analyze_video_content(video.file_path, video.duration, video_id)
+    analysis = analyzer.analyze_video_content(local_file_path, duration, video_id)
     analysis["video_id"] = str(video_id)
 
     return analysis

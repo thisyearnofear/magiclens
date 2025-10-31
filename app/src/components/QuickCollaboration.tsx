@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import SmartOverlayRecommendations from './SmartOverlayRecommendations';
+import { OverlaySelector } from './OverlaySelector';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 
 import {
@@ -14,6 +14,7 @@ import {
   renderServiceQueueRender,
   videoServiceUpdateVideo
 } from '@/lib/sdk';
+import { getAuthenticatedClient } from '@/lib/sdk/auth-client';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -65,6 +66,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
       }
 
       const result = await videoServiceGetVideo({
+        client: getAuthenticatedClient(),
         body: { video_id: videoId }
       });
 
@@ -114,6 +116,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
 
     try {
       await videoServiceUpdateVideo({
+        client: getAuthenticatedClient(),
         body: {
           video_id: videoId,
           category: editCategory
@@ -135,6 +138,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
     setIsRendering(true);
     try {
       const result = await renderServiceQueueRender({
+        client: getAuthenticatedClient(),
         body: {
           collaboration_id: collaboration.id,
           render_settings: {
@@ -356,24 +360,60 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
           </div>
 
           {/* Smart Recommendations */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             {currentStep !== 'complete' ? (
-              <SmartOverlayRecommendations
-                videoId={videoId}
-                videoDuration={30}
-                onOverlayApplied={handleOverlayApplied}
-                onCollaborationCreated={(collabId) => {
-                  if (!collaboration) {
-                    setCollaboration({
-                      id: collabId,
-                      status: 'active',
-                      artist_id: 'unknown',
-                      revenue_split: 0.7,
-                      overlay_count: 1
-                    });
-                  }
-                }}
-              />
+              <>
+                <OverlaySelector
+                  videoId={videoId}
+                  videoDuration={30}
+                  onSelectOverlay={(overlay) => {
+                    // Handle both GIF and asset recommendations
+                    let overlayData;
+
+                    if ('full_url' in overlay) {
+                      // It's a GIF
+                      overlayData = {
+                        asset: {
+                          id: overlay.id,
+                          name: overlay.title,
+                          file_path: overlay.full_url,
+                          thumbnail_path: overlay.preview_url,
+                          category: 'gif',
+                          asset_type: 'gif'
+                        },
+                        placement: {
+                          position: { x: 100, y: 100, scaleX: 0.8, scaleY: 0.8, angle: 0 },
+                          timing: { startTime: 2, endTime: Math.min(video?.duration || 30, 8), fadeIn: 0.5, fadeOut: 0.5 },
+                          layerOrder: appliedOverlaysCount + 1
+                        }
+                      };
+                    } else {
+                      // It's an asset recommendation
+                      overlayData = {
+                        asset: overlay.asset,
+                        placement: {
+                          position: overlay.placement,
+                          timing: { startTime: 2, endTime: Math.min(video?.duration || 30, 8), fadeIn: 0.5, fadeOut: 0.5 },
+                          layerOrder: appliedOverlaysCount + 1
+                        }
+                      };
+                    }
+
+                    handleOverlayApplied(overlayData);
+                  }}
+                  onCollaborationCreated={(collabId) => {
+                    if (!collaboration) {
+                      setCollaboration({
+                        id: collabId,
+                        status: 'active',
+                        artist_id: 'unknown',
+                        revenue_split: 0.7,
+                        overlay_count: 1
+                      });
+                    }
+                  }}
+                />
+              </>
             ) : (
               <Card className="bg-white/10 border-white/20">
                 <CardContent className="p-12 text-center">

@@ -1244,6 +1244,7 @@ async def recommendation_engine_get_video_overlay_recommendations(
     """
     response = await run_sync_in_thread(
         recommendation_engine.get_video_overlay_recommendations,
+        user=current_user,
         video_id=body.video_id,
         recommendation_type=body.recommendation_type,
         limit=body.limit,
@@ -1265,6 +1266,7 @@ async def recommendation_engine_get_similar_style_recommendations(
     """
     response = await run_sync_in_thread(
         recommendation_engine.get_similar_style_recommendations,
+        user=current_user,
         video_id=body.video_id,
         reference_asset_id=body.reference_asset_id,
         limit=body.limit,
@@ -1286,6 +1288,7 @@ async def recommendation_engine_track_recommendation_interaction(
     """
     response = await run_sync_in_thread(
         recommendation_engine.track_recommendation_interaction,
+        user=current_user,
         video_id=body.video_id,
         asset_id=body.asset_id,
         action=body.action,
@@ -1307,7 +1310,7 @@ async def ai_analysis_service_analyze_video_for_overlays(
     Analyze a video and return AI-powered overlay recommendations.
     """
     response = await run_sync_in_thread(
-        ai_analysis_service.analyze_video_for_overlays, video_id=body.video_id
+        ai_analysis_service.analyze_video_for_overlays, user=current_user, video_id=body.video_id
     )
     return response
 
@@ -1326,6 +1329,7 @@ async def ai_analysis_service_get_smart_overlay_recommendations(
     """
     response = await run_sync_in_thread(
         ai_analysis_service.get_smart_overlay_recommendations,
+        user=current_user,
         video_id=body.video_id,
         limit=body.limit,
     )
@@ -1521,6 +1525,82 @@ async def get_smart_placement(
         return {"success": False, "error": str(e), "placement_suggestions": []}
 
 
+# GIF Overlay Search Endpoints
+@app.post("/api/gif_service/search_overlays")
+async def search_gif_overlays(body: Dict = Body(...)):
+    """
+    Search for GIF overlays from Tenor/Giphy APIs.
+    
+    Body should contain:
+    - query: Search query string
+    - category: Optional category filter
+    - limit: Number of results (default 20)
+    """
+    from core.gif_service import search_overlay_gifs
+    
+    try:
+        query = body.get("query", "")
+        category = body.get("category")
+        limit = body.get("limit", 20)
+        
+        if not query:
+            raise ValueError("Search query is required")
+        
+        results = await search_overlay_gifs(query, category, limit)
+        
+        return {
+            "success": True,
+            "query": query,
+            "category": category,
+            "results": results,
+            "count": len(results)
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e), "results": []}
+
+
+@app.post("/api/gif_service/get_smart_overlays")
+async def get_smart_gif_overlays(
+    body: Dict = Body(...), current_user: User = Depends(get_current_user)
+):
+    """
+    Get AI-curated GIF overlays based on video analysis.
+    
+    Body should contain:
+    - video_id: UUID of the video to analyze
+    """
+    from core.gif_service import get_smart_gif_overlays
+    from core.ai_analysis_service import analyze_video_for_overlays
+    
+    try:
+        video_id = body.get("video_id")
+        if not video_id:
+            raise ValueError("video_id is required")
+        
+        # Get video analysis
+        analysis = analyze_video_for_overlays(current_user, video_id)
+        
+        # Get curated GIF overlays
+        results = await get_smart_gif_overlays(analysis)
+        
+        return {
+            "success": True,
+            "video_id": str(video_id),
+            "analysis_summary": {
+                "scene_type": analysis.get("scene_type"),
+                "mood": analysis.get("mood"),
+                "activity": analysis.get("primary_activity"),
+                "tags": analysis.get("tags", [])[:3]
+            },
+            "recommendations": results,
+            "count": len(results)
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e), "recommendations": []}
+
+
 # Mount static files for local media serving (development fallback)
 local_media_dir = os.environ.get("LOCAL_MEDIA_DIR", "/tmp/magiclens-media")
 if os.path.exists(local_media_dir):
@@ -1529,3 +1609,50 @@ else:
     # Create directory if it doesn't exist
     os.makedirs(local_media_dir, exist_ok=True)
     app.mount("/media", StaticFiles(directory=local_media_dir), name="media")
+
+# Environmental Footage Inspiration Endpoints (Pexels)
+@app.post("/api/pexels_service/get_environmental_inspiration")
+async def get_environmental_inspiration(body: Dict = Body(...)):
+    """
+    Get environmental footage inspiration for videographers.
+    
+    Body should contain:
+    - category: Optional category filter
+    - limit: Number of results (default 20)
+    """
+    from core.pexels_service import get_environmental_inspiration
+    
+    try:
+        category = body.get("category")
+        limit = body.get("limit", 20)
+        
+        results = await get_environmental_inspiration(category, limit)
+        
+        return {
+            "success": True,
+            "category": category,
+            "results": results,
+            "count": len(results),
+            "attribution": "Videos provided by Pexels"
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e), "results": []}
+
+
+@app.post("/api/pexels_service/get_environmental_categories")
+async def get_environmental_categories():
+    """Get available environmental footage categories."""
+    from core.pexels_service import pexels_service
+    
+    try:
+        categories = pexels_service.get_environmental_categories()
+        
+        return {
+            "success": True,
+            "categories": categories,
+            "count": len(categories)
+        }
+        
+    except Exception as e:
+        return {"success": False, "error": str(e), "categories": []}

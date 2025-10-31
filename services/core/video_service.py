@@ -23,8 +23,11 @@ def upload_video(user: User, video_file: MediaFile, title: str, description: Opt
     # TODO: Add duration validation (30s max) - would need video processing
     # For now, we'll trust the frontend validation
     
-    # Save video to bucket first
-    video_path = save_to_bucket(video_file, f"videos/{user.id}")
+    # Create unique video ID first
+    video_id = uuid.uuid4()
+    
+    # Save video to bucket with unique filename
+    video_path = save_to_bucket(video_file, f"videos/{video_id}")
     
     # Smart category detection - if not provided, analyze title/description
     if not category:
@@ -46,8 +49,7 @@ def upload_video(user: User, video_file: MediaFile, title: str, description: Opt
     if category not in valid_categories:
         category = 'urban'
     
-    # Create video record in database
-    video_id = uuid.uuid4()
+    # Create video record in database (video_id already created above)
     Video.sql(
         """INSERT INTO videos (id, user_id, title, description, category, duration, file_path, file_size, metadata, is_public, created_at, last_updated)
            VALUES (%(id)s, %(user_id)s, %(title)s, %(description)s, %(category)s, %(duration)s, %(file_path)s, %(file_size)s, %(metadata)s, %(is_public)s, %(created_at)s, %(last_updated)s)""",
@@ -117,6 +119,11 @@ def get_videos(category: Optional[str] = None, limit: int = 20, offset: int = 0)
     
     videos = []
     for video_data in videos_data:
+        # Handle None duration with fallback
+        if video_data.get("duration") is None:
+            video_data = video_data.copy()
+            video_data["duration"] = 30  # Default 30 seconds
+            
         video = Video(**video_data)
         
         # Generate presigned URLs for media files
@@ -139,7 +146,13 @@ def get_video(video_id: UUID) -> Optional[Video]:
     if not videos_data:
         return None
     
-    video = Video(**videos_data[0])
+    video_data = videos_data[0].copy()
+    
+    # Handle None duration with fallback
+    if video_data.get("duration") is None:
+        video_data["duration"] = 30  # Default 30 seconds
+    
+    video = Video(**video_data)
     
     # Generate presigned URLs for media files
     video.file_path = generate_presigned_url(video.file_path)
@@ -158,6 +171,11 @@ def get_my_videos(user: User) -> List[Video]:
     
     videos = []
     for video_data in videos_data:
+        # Handle None duration with fallback
+        if video_data.get("duration") is None:
+            video_data = video_data.copy()
+            video_data["duration"] = 30  # Default 30 seconds
+            
         video = Video(**video_data)
         
         # Generate presigned URLs for media files
