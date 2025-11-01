@@ -27,17 +27,14 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
     const [query, setQuery] = useState('');
     const [gifs, setGifs] = useState<GifOverlay[]>([]);
     const [smartGifs, setSmartGifs] = useState<GifOverlay[]>([]);
+    const [gifSource, setGifSource] = useState<'tenor' | 'giphy' | 'all'>('all');
 
     // Asset recommendations state
     const [recommendations, setRecommendations] = useState<AssetOverlay[]>([]);
     const [analysisComplete, setAnalysisComplete] = useState(false);
+    const [assets, setAssets] = useState<AssetOverlay[]>([]);
 
-    // Load smart recommendations on mount
-    useEffect(() => {
-        if (videoId && activeTab === 'smart') {
-            loadSmartRecommendations();
-        }
-    }, [videoId, activeTab]);
+    // Don't auto-load smart recommendations - user must initiate manually
 
     // Load smart GIFs when switching to GIF tab
     useEffect(() => {
@@ -125,7 +122,7 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({ query: searchTerm, limit: 20 })
+                body: JSON.stringify({ query: searchTerm, limit: 20, source: gifSource })
             });
 
             const data = await response.json();
@@ -147,7 +144,37 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
             }
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [query, activeTab]);
+    }, [query, activeTab, gifSource]);
+
+    // Load assets when switching to assets tab
+    useEffect(() => {
+        if (activeTab === 'assets') {
+            loadAssets();
+        }
+    }, [activeTab]);
+
+    const loadAssets = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/asset_service/get_assets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ limit: 50 })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setAssets(data.assets || []);
+            }
+        } catch (err) {
+            setError('Failed to load assets');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const renderTabContent = () => {
         if (loading) {
@@ -163,38 +190,72 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
             case 'smart':
                 return (
                     <div className="space-y-4">
-                        {!analysisComplete && (
-                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                                <div className="flex items-center gap-2 text-blue-400">
-                                    <Brain size={16} />
-                                    <span className="text-sm">AI analyzing your video for optimal overlay placement...</span>
+                        {!analysisComplete ? (
+                            <div className="text-center py-8">
+                                <Brain className="mx-auto mb-4 text-gray-400" size={48} />
+                                <h3 className="text-white font-medium mb-2">AI-Powered Overlay Recommendations</h3>
+                                <p className="text-gray-400 text-sm mb-4">
+                                    Get personalized overlay suggestions based on your video content analysis.
+                                </p>
+                                <Button
+                                    onClick={loadSmartRecommendations}
+                                    disabled={loading}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="animate-spin mr-2" size={16} />
+                                            Analyzing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Zap size={16} className="mr-2" />
+                                            Analyze Video
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-white font-medium">AI Recommendations</h4>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            setAnalysisComplete(false);
+                                            setRecommendations([]);
+                                        }}
+                                    >
+                                        Re-analyze
+                                    </Button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {recommendations.map((rec, index) => (
+                                        <Card key={index} className="bg-gray-800 border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors"
+                                            onClick={() => onSelectOverlay(rec)}>
+                                            <CardContent className="p-4">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <img
+                                                        src={rec.asset.thumbnail_path || rec.asset.file_path}
+                                                        alt={rec.asset.name}
+                                                        className="w-12 h-12 rounded object-cover"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <h4 className="text-white font-medium text-sm">{rec.asset.name}</h4>
+                                                        <Badge variant="secondary" className="text-xs">
+                                                            {Math.round(rec.confidence * 100)}% match
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+                                                <p className="text-gray-400 text-xs">{rec.reasoning}</p>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
                                 </div>
                             </div>
                         )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {recommendations.map((rec, index) => (
-                                <Card key={index} className="bg-gray-800 border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors"
-                                    onClick={() => onSelectOverlay(rec)}>
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <img
-                                                src={rec.asset.thumbnail_path || rec.asset.file_path}
-                                                alt={rec.asset.name}
-                                                className="w-12 h-12 rounded object-cover"
-                                            />
-                                            <div className="flex-1">
-                                                <h4 className="text-white font-medium text-sm">{rec.asset.name}</h4>
-                                                <Badge variant="secondary" className="text-xs">
-                                                    {Math.round(rec.confidence * 100)}% match
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                        <p className="text-gray-400 text-xs">{rec.reasoning}</p>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
                     </div>
                 );
 
@@ -202,6 +263,18 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
                 const gifsToShow = query ? gifs : smartGifs;
                 return (
                     <div className="space-y-4">
+                        <div className="flex gap-2 mb-4">
+                            <select
+                                value={gifSource}
+                                onChange={(e) => setGifSource(e.target.value as 'tenor' | 'giphy' | 'all')}
+                                className="px-3 py-1 bg-gray-800 border border-gray-600 rounded text-white text-sm focus:border-blue-500 outline-none"
+                            >
+                                <option value="all">All Sources</option>
+                                <option value="tenor">Tenor</option>
+                                <option value="giphy">Giphy</option>
+                            </select>
+                        </div>
+
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                             <input
@@ -218,12 +291,59 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
                                 <div key={gif.id}
                                     className="relative aspect-square rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform"
                                     onClick={() => onSelectOverlay(gif)}>
-                                    <img src={gif.preview_url} alt={gif.title} className="w-full h-full object-cover" />
+                                    <img
+                                        src={gif.full_url || gif.preview_url}
+                                        alt={gif.title}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            // Fallback to preview URL if full URL fails
+                                            const target = e.target as HTMLImageElement;
+                                            if (target.src !== gif.preview_url) {
+                                                target.src = gif.preview_url;
+                                            }
+                                        }}
+                                    />
                                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
                                         <p className="text-white text-xs truncate">{gif.title}</p>
                                         <p className="text-gray-300 text-xs">{gif.source}</p>
                                     </div>
                                 </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+
+            case 'assets':
+                return (
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {assets.map((asset) => (
+                                <Card key={asset.asset.id} className="bg-gray-800 border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors"
+                                    onClick={() => onSelectOverlay(asset)}>
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <img
+                                                src={asset.asset.thumbnail_path || asset.asset.file_path}
+                                                alt={asset.asset.name}
+                                                className="w-12 h-12 rounded object-cover"
+                                                onError={(e) => {
+                                                    // Fallback for broken images
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.style.display = 'none';
+                                                }}
+                                            />
+                                            <div className="flex-1">
+                                                <h4 className="text-white font-medium text-sm">{asset.asset.name}</h4>
+                                                <Badge variant="secondary" className="text-xs">
+                                                    {asset.asset.category}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                        {asset.reasoning && (
+                                            <p className="text-gray-400 text-xs">{asset.reasoning}</p>
+                                        )}
+                                    </CardContent>
+                                </Card>
                             ))}
                         </div>
                     </div>
@@ -241,6 +361,9 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
                     <Layers size={20} />
                     Select Overlay
                 </CardTitle>
+                <p className="text-gray-400 text-sm">
+                    Choose overlays to enhance your video. Click any overlay to apply it instantly.
+                </p>
             </CardHeader>
             <CardContent>
                 {/* Tab Navigation */}
@@ -263,6 +386,15 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
                         <Search size={16} />
                         GIF Search
                     </Button>
+                    <Button
+                        variant={activeTab === 'assets' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setActiveTab('assets')}
+                        className="flex items-center gap-2"
+                    >
+                        <Palette size={16} />
+                        Artist Assets
+                    </Button>
                 </div>
 
                 {/* Error Display */}
@@ -274,6 +406,18 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
 
                 {/* Tab Content */}
                 {renderTabContent()}
+
+                {/* Help Text */}
+                <div className="mt-4 pt-4 border-t border-gray-700">
+                    <div className="text-center">
+                        <p className="text-gray-400 text-sm mb-2">
+                            💡 <strong>Pro Tip:</strong> Add multiple overlays for richer content
+                        </p>
+                        <p className="text-gray-500 text-xs">
+                            Each overlay is automatically positioned and timed for optimal viewing
+                        </p>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );

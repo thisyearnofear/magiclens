@@ -12,7 +12,9 @@ import {
   videoServiceGetVideo,
   collaborationServiceGetCollaboration,
   renderServiceQueueRender,
-  videoServiceUpdateVideo
+  videoServiceUpdateVideo,
+  collaborationServiceStartCollaboration,
+  collaborationServiceAddOverlayToCollaboration
 } from '@/lib/sdk';
 import { getAuthenticatedClient } from '@/lib/sdk/auth-client';
 import { Input } from '@/components/ui/input';
@@ -83,28 +85,59 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
     }
   };
 
-  const handleOverlayApplied = (overlayData: any) => {
-    setAppliedOverlaysCount(prev => prev + 1);
+  const handleOverlayApplied = async (overlayData: any) => {
+    try {
+      // If no collaboration exists yet, create one
+      let currentCollaboration = collaboration;
+      if (!currentCollaboration) {
+        const collabResult = await collaborationServiceStartCollaboration({
+          client: getAuthenticatedClient(),
+          body: {
+            video_id: videoId,
+            revenue_split: 0.7 // Default split favoring videographer
+          }
+        });
 
-    // Set collaboration data from the first overlay
-    if (!collaboration && overlayData.collaboration) {
-      setCollaboration({
-        id: overlayData.collaboration.id,
-        status: overlayData.collaboration.status,
-        artist_id: overlayData.collaboration.artist_id,
-        revenue_split: overlayData.collaboration.revenue_split,
-        overlay_count: 1
-      });
-    } else if (collaboration) {
-      setCollaboration(prev => prev ? {
-        ...prev,
-        overlay_count: prev.overlay_count + 1
-      } : null);
-    }
+        if (collabResult.data) {
+          currentCollaboration = {
+            id: collabResult.data.id,
+            status: collabResult.data.status,
+            artist_id: collabResult.data.artist_id,
+            revenue_split: collabResult.data.revenue_split,
+            overlay_count: 0
+          };
+          setCollaboration(currentCollaboration);
+        }
+      }
 
-    // Auto-advance to preview after first overlay
-    if (appliedOverlaysCount === 0) {
-      setTimeout(() => setCurrentStep('preview'), 1000);
+      // Add the overlay to the collaboration
+      if (currentCollaboration) {
+        await collaborationServiceAddOverlayToCollaboration({
+          client: getAuthenticatedClient(),
+          body: {
+            collaboration_id: currentCollaboration.id,
+            asset_id: overlayData.asset.id,
+            position_data: overlayData.placement.position,
+            timing_data: overlayData.placement.timing,
+            layer_order: overlayData.placement.layerOrder
+          }
+        });
+
+        // Update counts
+        setAppliedOverlaysCount(prev => prev + 1);
+        setCollaboration(prev => prev ? {
+          ...prev,
+          overlay_count: prev.overlay_count + 1
+        } : null);
+
+        // Auto-advance to preview after first overlay
+        if (appliedOverlaysCount === 0) {
+          setTimeout(() => setCurrentStep('preview'), 1000);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to apply overlay:', error);
+      // Could show an error toast here
     }
   };
 
@@ -315,6 +348,13 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                 {/* Action Buttons */}
                 {currentStep === 'preview' && collaboration && (
                   <div className="space-y-3 pt-4 border-t border-white/10">
+                    <div className="text-center mb-4">
+                      <h3 className="text-white font-medium mb-2">Ready to Render!</h3>
+                      <p className="text-gray-400 text-sm">
+                        Your video with {appliedOverlaysCount} overlay{appliedOverlaysCount !== 1 ? 's' : ''} is ready for final rendering.
+                      </p>
+                    </div>
+
                     <Button
                       onClick={handleRenderVideo}
                       disabled={isRendering}
@@ -327,6 +367,10 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                       )}
                     </Button>
 
+                    <div className="text-center">
+                      <p className="text-gray-400 text-xs mb-2">or</p>
+                    </div>
+
                     <Button
                       variant="outline"
                       onClick={() => navigate(`/collaboration/${collaboration.id}`)}
@@ -335,6 +379,27 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                       <Users className="h-4 w-4 mr-2" />
                       Open Full Editor
                     </Button>
+
+                    <p className="text-gray-400 text-xs text-center">
+                      Use the full editor for advanced positioning and timing controls
+                    </p>
+                  </div>
+                )}
+
+                {/* Progress indicator when overlays are being applied */}
+                {currentStep === 'select' && appliedOverlaysCount > 0 && (
+                  <div className="pt-4 border-t border-white/10">
+                    <div className="text-center">
+                      <div className="inline-flex items-center space-x-2 bg-green-600/20 border border-green-600/30 rounded-lg px-4 py-2">
+                        <CircleCheck className="h-4 w-4 text-green-400" />
+                        <span className="text-green-400 text-sm font-medium">
+                          {appliedOverlaysCount} overlay{appliedOverlaysCount !== 1 ? 's' : ''} applied
+                        </span>
+                      </div>
+                      <p className="text-gray-400 text-xs mt-2">
+                        Add more overlays or click "Render Final Video" when ready
+                      </p>
+                    </div>
                   </div>
                 )}
 

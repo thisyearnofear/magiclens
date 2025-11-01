@@ -139,8 +139,8 @@ def get_videos(category: Optional[str] = None, limit: int = 20, offset: int = 0)
 def get_video(video_id: UUID) -> Optional[Video]:
     """Get a specific video by ID."""
     videos_data = Video.sql(
-        "SELECT * FROM videos WHERE id = %(video_id)s",
-        {"video_id": video_id}
+        "SELECT * FROM videos WHERE id = %s",
+        [video_id]
     )
     
     if not videos_data:
