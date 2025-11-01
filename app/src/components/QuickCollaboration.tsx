@@ -297,9 +297,32 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                 <CardTitle className="text-white">{video.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Video Player */}
-                <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                  <VideoPlayer video={video} controls />
+                {/* Video Player with Applied Overlays Preview */}
+                <div className="space-y-3">
+                  <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
+                    <VideoPlayer video={video} controls />
+                    {/* Applied Overlays Indicator */}
+                    {appliedOverlaysCount > 0 && (
+                      <div className="absolute top-2 right-2 bg-black/70 rounded-full px-2 py-1 flex items-center space-x-1">
+                        <CircleCheck className="h-3 w-3 text-green-400" />
+                        <span className="text-white text-xs font-medium">{appliedOverlaysCount}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Applied Overlays List */}
+                  {appliedOverlaysCount > 0 && (
+                    <div className="bg-green-600/10 border border-green-600/20 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-green-400 text-sm font-medium">Applied Overlays</span>
+                        <Badge className="bg-green-600 text-xs">{appliedOverlaysCount}</Badge>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-gray-300 text-xs">Ready for rendering</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Video Info */}
@@ -337,21 +360,18 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                       </div>
                     )}
                   </div>
-                  {appliedOverlaysCount > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Overlays Applied</span>
-                      <Badge className="bg-green-600">{appliedOverlaysCount}</Badge>
-                    </div>
-                  )}
                 </div>
 
                 {/* Action Buttons */}
                 {currentStep === 'preview' && collaboration && (
                   <div className="space-y-3 pt-4 border-t border-white/10">
-                    <div className="text-center mb-4">
-                      <h3 className="text-white font-medium mb-2">Ready to Render!</h3>
-                      <p className="text-gray-400 text-sm">
-                        Your video with {appliedOverlaysCount} overlay{appliedOverlaysCount !== 1 ? 's' : ''} is ready for final rendering.
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <Play className="h-5 w-5 text-yellow-400" />
+                        <span className="text-white font-medium">Ready to Render</span>
+                      </div>
+                      <p className="text-gray-400 text-xs mb-3">
+                        {appliedOverlaysCount} overlay{appliedOverlaysCount !== 1 ? 's' : ''} • ~2 min render time
                       </p>
                     </div>
 
@@ -367,39 +387,14 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                       )}
                     </Button>
 
-                    <div className="text-center">
-                      <p className="text-gray-400 text-xs mb-2">or</p>
-                    </div>
-
                     <Button
                       variant="outline"
                       onClick={() => navigate(`/collaboration/${collaboration.id}`)}
                       className="w-full"
                     >
                       <Users className="h-4 w-4 mr-2" />
-                      Open Full Editor
+                      Full Editor
                     </Button>
-
-                    <p className="text-gray-400 text-xs text-center">
-                      Use the full editor for advanced positioning and timing controls
-                    </p>
-                  </div>
-                )}
-
-                {/* Progress indicator when overlays are being applied */}
-                {currentStep === 'select' && appliedOverlaysCount > 0 && (
-                  <div className="pt-4 border-t border-white/10">
-                    <div className="text-center">
-                      <div className="inline-flex items-center space-x-2 bg-green-600/20 border border-green-600/30 rounded-lg px-4 py-2">
-                        <CircleCheck className="h-4 w-4 text-green-400" />
-                        <span className="text-green-400 text-sm font-medium">
-                          {appliedOverlaysCount} overlay{appliedOverlaysCount !== 1 ? 's' : ''} applied
-                        </span>
-                      </div>
-                      <p className="text-gray-400 text-xs mt-2">
-                        Add more overlays or click "Render Final Video" when ready
-                      </p>
-                    </div>
                   </div>
                 )}
 

@@ -972,6 +972,7 @@ async def collaboration_service_start_collaboration(
     """
     response = await run_sync_in_thread(
         collaboration_service.start_collaboration,
+        user=current_user,
         video_id=body.video_id,
         revenue_split=body.revenue_split,
     )
