@@ -4,6 +4,7 @@ import { useAuthContext } from '@/auth/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Upload, Users, X, Zap, Play, Palette, TrendingUp, Trophy } from 'lucide-react';
+import { StatsBar } from '@/components/StatsBar';
 
 export default function LandingPage() {
   const { login, continueAsGuest } = useAuthContext();
@@ -85,6 +86,8 @@ export default function LandingPage() {
           </Button>
         </div>
       </section>
+
+      <StatsBar />
 
       {/* Value Proposition Section */}
       <section className="container mx-auto px-4 py-20">

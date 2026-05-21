@@ -13,6 +13,7 @@ import QuickCollaboration from './QuickCollaboration';
 import UserProfile from './UserProfile';
 import RemixFlow from './RemixFlow';
 import Leaderboard from './Leaderboard';
+import PublicRemix from './PublicRemix';
 import { FlowDashboard } from './FlowDashboard';
 import { WrongNetworkBanner } from './WrongNetworkBanner';
 
@@ -25,6 +26,9 @@ function AIEnhancementWrapper() {
 export default function Router() {
   return (
     <>
+      <Routes>
+        <Route path="/remix/:txHash" element={<PublicRemix />} />
+      </Routes>
       <SignedOut>
         <LandingPage />
       </SignedOut>

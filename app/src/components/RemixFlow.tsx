@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { StepProgress } from '@/components/remix/StepProgress';
 import { ClipPicker } from '@/components/remix/ClipPicker';
 import ARWorkspace from '@/components/remix/ARWorkspace';
+import { QuickRemix } from '@/components/remix/QuickRemix';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { RemixPreview } from '@/components/remix/RemixPreview';
 import { MintConfirmation } from '@/components/remix/MintConfirmation';
 import { Zap } from 'lucide-react';
@@ -106,6 +108,15 @@ export default function RemixFlow() {
           )}
 
           {step === 1 && clip && (
+            useIsMobile() ? (
+              <QuickRemix
+                onNext={(packIds) => {
+                  setSelectedOverlays(packIds.map(id => ({ id, name: id, type: 'overlay', description: '', previewColor: '', thumbnail: '', icon: '' } as SelectedOverlay)));
+                  goForward();
+                }}
+                onBack={goBack}
+              />
+            ) : (
             <ARWorkspace
               clipTitle={clip.title}
               onNext={(overlays) => {
@@ -114,6 +125,7 @@ export default function RemixFlow() {
               }}
               onBack={goBack}
             />
+            )
           )}
 
           {step === 2 && clip && (

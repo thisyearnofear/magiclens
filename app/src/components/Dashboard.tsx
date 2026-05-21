@@ -17,7 +17,9 @@ import { EditVideoDialog } from '@/components/dashboard/EditVideoDialog';
 import { DeleteVideoDialog } from '@/components/dashboard/DeleteVideoDialog';
 import { EnvironmentalGalleryDialog } from '@/components/dashboard/EnvironmentalGalleryDialog';
 import { EventCard } from '@/components/dashboard/EventCard';
+import { StatsBar } from '@/components/StatsBar';
 import { Button } from '@/components/ui/button';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Info } from 'lucide-react';
 
 export default function Dashboard() {
@@ -34,6 +36,7 @@ export default function Dashboard() {
   const [deletingVideo, setDeletingVideo] = useState<{id:string;title:string}|null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const { permission, subscribed, requestPermission } = useNotifications();
 
   const handleEdit=(id:string,title:string)=>{setEditingVideo({id,title});setEditOpen(true);};
   const handleDelete=(id:string,title:string)=>{setDeletingVideo({id,title});setDeleteOpen(true);};
@@ -71,6 +74,21 @@ export default function Dashboard() {
       <DashboardHeader isGuest={isGuest} profile={profile} onDisconnect={disconnectWallet} onNavigate={navigate} />
       <div className="container mx-auto px-4 py-8">
         <EventCard />
+        {typeof Notification !== 'undefined' && (
+          <div className="mb-6">
+            <button
+              onClick={requestPermission}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                subscribed
+                  ? 'bg-green-600/20 text-green-400 border border-green-500/30 hover:bg-green-600/30'
+                  : 'bg-gray-800/50 text-gray-300 border border-gray-700 hover:bg-gray-700/50 hover:text-white'
+              }`}
+            >
+              🔔 {subscribed ? 'Notifications on ✓' : 'Get notified when leaderboard resets'}
+            </button>
+          </div>
+        )}
+        <StatsBar />
         {isGuest&&<GuestBanner onConnect={goHome} />}
         <WelcomeSection isGuest={isGuest} profile={profile} />
         {isNewUser&&<GettingStartedChecklist onNavigate={navigate} />}

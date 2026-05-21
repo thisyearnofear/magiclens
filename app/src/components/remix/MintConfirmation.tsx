@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ExternalLink, Trophy, Medal, ArrowRight, Sparkles } from 'lucide-react';
+import { CheckCircle, ExternalLink, Trophy, Medal, ArrowRight, Sparkles, Share2, Copy, Twitter } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface MintConfirmationProps {
   txHash: string | null;
@@ -125,6 +126,54 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
             <div className="flex items-center gap-2 text-xs text-gray-400">
               <Medal className="h-4 w-4 text-yellow-400" />
               <span>Cross-chain by design — <strong className="text-white">X Layer</strong> for volume, <strong className="text-white">Flow</strong> for premium</span>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Share sheet */}
+      <motion.div
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6 }}
+      >
+        <Card className="bg-white/5 border-white/10 mb-6">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Share2 className="h-5 w-5 text-yellow-400" />
+              <h3 className="text-white font-semibold">Share Your Remix</h3>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={() => {
+                  if (txHash) {
+                    window.open(
+                      `https://twitter.com/intent/tweet?text=I+just+remixed+a+World+Cup+2026+moment+on+MagicLens!+Check+it+out+→&url=https://magiclens.app/remix/${txHash}&via=MagicLensAR`,
+                      '_blank',
+                      'noopener,noreferrer'
+                    );
+                  }
+                }}
+                className="bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white font-semibold w-full"
+                disabled={!txHash}
+              >
+                <Twitter className="h-4 w-4 mr-2" />
+                Share to X / Twitter
+              </Button>
+              <Button
+                onClick={() => {
+                  if (txHash) {
+                    navigator.clipboard.writeText(`https://magiclens.app/remix/${txHash}`);
+                    toast.success('Link copied to clipboard!');
+                  }
+                }}
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10 w-full"
+                disabled={!txHash}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Link
+              </Button>
             </div>
           </CardContent>
         </Card>
