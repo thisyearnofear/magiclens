@@ -58,13 +58,21 @@ Note: X Layer is a Polygon CDK zkEVM chain, not an OP Stack fork. The RPC endpoi
 
 ## Deployed Addresses (X Layer Testnet)
 
-To be filled after deployment:
+| Contract | Address | Explorer |
+|---|---|---|
+| WorldCupPack | `0x1db0C06578Ad9f7efEc65fb4363495d6E82980A7` | [OKLink](https://www.oklink.com/xlayer-testnet/address/0x1db0C06578Ad9f7efEc65fb4363495d6E82980A7) |
+| RemixNFT | `0x7e33f6b572A37792dAEacd902060528070b378D3` | [OKLink](https://www.oklink.com/xlayer-testnet/address/0x7e33f6b572A37792dAEacd902060528070b378D3) |
+| FanCastRewards | `0xeDCDc2d8aEE4cF9Df025495cf8c39c93E7CBEb8c` | [OKLink](https://www.oklink.com/xlayer-testnet/address/0xeDCDc2d8aEE4cF9Df025495cf8c39c93E7CBEb8c) |
+| MockUSDT | `0x117cA0AFaE17F5bE8142EEeACFDB89B148154a2D` | [OKLink](https://www.oklink.com/xlayer-testnet/address/0x117cA0AFaE17F5bE8142EEeACFDB89B148154a2D) |
+
+Rewards pool: **1,000 MockUSDT** deposited (Day 1, ready for distribution).
+
+Set these in `app/.env` as:
 
 ```env
-VITE_WORLDCUP_PACK_ADDRESS=0x...
-VITE_REMIX_NFT_ADDRESS=0x...
-VITE_FAN_CAST_REWARDS_ADDRESS=0x...
-VITE_MOCK_USDT_ADDRESS=0x...
+VITE_WORLDCUP_PACK_ADDRESS=0x1db0C06578Ad9f7efEc65fb4363495d6E82980A7
+VITE_REMIX_NFT_ADDRESS=0x7e33f6b572A37792dAEacd902060528070b378D3
+VITE_FAN_CAST_REWARDS_ADDRESS=0xeDCDc2d8aEE4cF9Df025495cf8c39c93E7CBEb8c
 ```
 
 ## Testing

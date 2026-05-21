@@ -6,7 +6,7 @@
 
 **Goal:** Ship the X Layer slice of MagicLens — turn the existing AR + pose pipeline into a sports-remix protocol with the World Cup as the launch Event.
 
-### ✅ Already Built (carries into hackathon submission)
+### ✅ Completed (carries into hackathon submission)
 - Flow blockchain authentication with cryptographic signature verification
 - Video upload, storage, and asset management (PostgreSQL)
 - AR Editor for overlay positioning and timing
@@ -14,8 +14,20 @@
 - Tenor / GIPHY / Pexels overlay integration
 - Real-time collaboration server (Socket.IO)
 - Cadence contracts: `ARAssetNFT.cdc`, `CollaborationHub.cdc`, `ForteAutomation.cdc`
+- [x] Solidity contracts deployed on X Layer testnet (chain 1952):
+  - WorldCupPack: `0x1db0C065...0A7`
+  - RemixNFT: `0x7e33f6b572...D3`
+  - FanCastRewards: `0xeDCDc2d8aEE...b8c`
+  - MockUSDT: `0x117cA0AFaE...a2D`
+- [x] Rewards pool funded — 1,000 MockUSDT deposited into FanCastRewards for leaderboard payouts
+- [x] OKX Wallet via wagmi + FCL RainbowKit adapter — one connect button, two chains under the hood (wagmi v2.19.5, rainbowkit v2.2.11, useUnifiedAuth hook)
+- [x] Remix flow wizard — 4-step guided UX (clip → AR overlays → preview → mint on X Layer → leaderboard)
+- [x] Dashboard overhaul — 946-line Dashboard split into 12 focused sub-components; 10 alert() calls replaced with sonner.toast()
+- [x] EventCard + Leaderboard — World Cup as featured event on dashboard; top-10 leaderboard at /leaderboard
+- [x] World Cup overlay pack — 12 production-grade SVG assets, 32 flag variants, pack manifest onchain-linked
+- [x] Demo storyboard — 8-scene breakdown mapping UI routes to 2-min video (docs/DEMO_STORYBOARD.md)
 
-### 🚧 Hackathon Build (7-day sprint)
+### 🚧 Remaining for Hackathon Sprint
 - [x] **Brand reframe** — "AR Remix Layer for Live Sports" across README + landing page
 - [x] **Solidity contracts on X Layer testnet** (Hardhat/Foundry):
   - `WorldCupPack` (ERC-1155) — curated AR overlay packs (4 passing tests)
