@@ -7,6 +7,7 @@ import {
   Flag, Sparkles, Image, MessageCircle, AlertTriangle,
   Check, Eye, Trophy, ChevronRight
 } from 'lucide-react';
+import { LiveDemoView } from './LiveDemoView';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 
 interface ARWorkspaceProps {
@@ -34,6 +35,7 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
   const [selected, setSelected] = useState<SelectedOverlay[]>([]);
   const [hoveredPack, setHoveredPack] = useState<string | null>(null);
   const [showFlagSelector, setShowFlagSelector] = useState(false);
+  const [mode, setMode] = useState<'preview' | 'live'>('preview');
 
   const toggleOverlay = (overlay: OverlayDefinition) => {
     setSelected(prev => {
@@ -108,8 +110,34 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
       </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* ═══ VIDEO PREVIEW — shows selected overlays positioned correctly ═══ */}
-        <div className="lg:col-span-2">
+        {/* ═══ VIDEO PREVIEW with mode switcher ═══ */}
+        <div className="lg:col-span-2 space-y-3">
+          {/* Mode tabs */}
+          <div className="flex gap-1 bg-white/5 rounded-lg p-1 w-fit">
+            <button
+              onClick={() => setMode('preview')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                mode === 'preview'
+                  ? 'bg-yellow-400 text-black'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              🎬 Simulated Preview
+            </button>
+            <button
+              onClick={() => setMode('live')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
+                mode === 'live'
+                  ? 'bg-green-500 text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${mode === 'live' ? 'bg-white animate-pulse' : 'bg-gray-500'}`} />
+              Live Demo (Webcam)
+            </button>
+          </div>
+
+          {mode === 'preview' ? (
           <motion.div
             layout
             className="aspect-video bg-gray-900 rounded-xl border border-white/10 overflow-hidden relative"
@@ -342,6 +370,9 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
               </motion.div>
             )}
           </motion.div>
+          ) : (
+            <LiveDemoView selectedPackId={selected.length > 0 ? selected[0].id : null} />
+          )}
         </div>
 
         {/* ═══ PACK SELECTOR ═══ */}
