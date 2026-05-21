@@ -1,78 +1,69 @@
-import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
-import { useFlowAuth } from '../hooks/use-flow-auth';
+import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react'
+import { useFlowAuth } from '../hooks/use-flow-auth'
+import { useUnifiedAuth, UnifiedWalletState } from './useUnifiedAuth'
 
-interface AuthContextType {
-  user: {
-    addr: string | null;
-    loggedIn: boolean;
-    cid: string | null;
-    expiresAt: number | null;
-    services: any[];
-  };
-  isLoggedIn: boolean;
-  isGuest: boolean;
-  walletAddress: string | null;
-  isLoading: boolean;
-  connectWallet: () => Promise<void>;
-  disconnectWallet: () => Promise<void>;
-  login: () => Promise<void>;
-  continueAsGuest: () => void;
-  // Add function to check if token is valid
-  isTokenValid: () => boolean;
+interface AuthContextType extends UnifiedWalletState {
+  /** Legacy: login alias for connectFlow */
+  login: () => Promise<void>
+  /** Check if JWT token is valid */
+  isTokenValid: () => boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const flowAuth = useFlowAuth();
-  const [tokenValid, setTokenValid] = useState(true);
+  const unified = useUnifiedAuth()
+  const [tokenValid, setTokenValid] = useState(true)
 
-  // Log the flowAuth values for debugging
+  // Periodically check token validity
   useEffect(() => {
-    console.log('AuthProvider - flowAuth values:', flowAuth);
-  }, [flowAuth]);
-
-  // Add login alias for connectWallet
-  const authValue = {
-    ...flowAuth,
-    login: flowAuth.connectWallet,
-    isTokenValid: () => {
-      const token = localStorage.getItem('magiclens_token');
-      if (!token) return false;
-      
+    const check = () => {
+      const token = localStorage.getItem('magiclens_token')
+      if (!token) {
+        setTokenValid(false)
+        return
+      }
       try {
-        // Decode JWT token to check expiration
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const currentTime = Math.floor(Date.now() / 1000);
-        return payload.exp > currentTime;
-      } catch (error) {
-        return false;
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        const currentTime = Math.floor(Date.now() / 1000)
+        setTokenValid(payload.exp > currentTime)
+      } catch {
+        setTokenValid(false)
       }
     }
-  };
+    check()
+    const interval = setInterval(check, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const authValue: AuthContextType = {
+    ...unified,
+    login: unified.connectFlow,
+    isTokenValid: () => tokenValid,
+  }
 
   return (
     <AuthContext.Provider value={authValue}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
 export function useAuthContext() {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuthContext must be used within an AuthProvider');
+    throw new Error('useAuthContext must be used within an AuthProvider')
   }
-  return context;
+  return context
 }
 
 // Components for conditional rendering
 export function SignedIn({ children }: { children: ReactNode }) {
-  const { isLoggedIn } = useAuthContext();
-  return isLoggedIn ? <>{children}</> : null;
+  const { isConnected } = useAuthContext()
+  return isConnected ? <>{children}</> : null
 }
 
 export function SignedOut({ children }: { children: ReactNode }) {
-  const { isLoggedIn } = useAuthContext();
-  return !isLoggedIn ? <>{children}</> : null;
+  const { isConnected } = useAuthContext()
+  return !isConnected ? <>{children}</> : null
 }

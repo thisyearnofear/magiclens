@@ -1,9 +1,21 @@
-# MagicLens - Augmented Reality Video Platform
+# MagicLens — The AR Remix Layer for Live Sports
 
-MagicLens is a web-based platform that allows users to add augmented reality overlays to their videos. It features a React-based frontend with Flow blockchain authentication and a distributed backend with three specialized services:
+> **Launching with the 2026 FIFA World Cup.** Built for the [OKX X Cup](https://web3.okx.com/xlayer/build-x-hackathon/xcup) hackathon on X Layer, with a dual-chain (X Layer + Flow) onchain economy.
 
+MagicLens turns every iconic sports moment into a mintable, remixable, ownable piece of fan culture. Fans drop pose-aware AR overlays on match clips, mint the remix as an NFT on **X Layer**, climb the daily leaderboard, and earn USDT/OKB. Top remixes are auto-minted as premium **Flow Cadence** "Iconic Moment" NFTs (NBA Top Shot / NFL All Day lineage).
+
+- **One-liner:** Prediction markets monetize *opinions* about sports. MagicLens monetizes the *content*.
+- **Launch event:** FIFA World Cup 2026. **Next:** Wimbledon, NBA Finals, Champions League, F1, Olympics LA 2028.
+
+📖 Strategy: [docs/HACKATHON_STRATEGY.md](./docs/HACKATHON_STRATEGY.md) · Roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md) · Overview: [docs/PLATFORM_OVERVIEW.md](./docs/PLATFORM_OVERVIEW.md)
+
+## 🧱 Architecture
+
+**Frontend:** React + Vite + MediaPipe pose detection + AR editor
+**Onchain:** X Layer (EVM, hackathon venue) **+** Flow (Cadence + EVM, consumer UX home), unified via FCL + wagmi RainbowKit adapter (one connect button, no chain pickers)
+**Backend:**
 - **Main API Service** (Python/FastAPI) - Core business logic and REST API
-- **Logging Server** (Python/FastAPI) - Log aggregation and error reporting  
+- **Logging Server** (Python/FastAPI) - Log aggregation and error reporting
 - **Collaboration Server** (Node.js/Socket.IO) - Real-time WebSocket collaboration
 
 ## 🚀 Quick Start
@@ -42,13 +54,18 @@ cd app && pnpm install && cp .env.example .env && pnpm dev
 
 All documentation is available in the [`docs/`](./docs) directory:
 
+- [Hackathon Strategy](./docs/HACKATHON_STRATEGY.md) - OKX X Cup positioning, dual-chain plan, scope
+- [Roadmap](./docs/ROADMAP.md) - Hackathon → multi-event → Olympics 2028
+- [Platform Overview](./docs/PLATFORM_OVERVIEW.md) - Features, benefits, Event primitive
 - [Getting Started Guide](./docs/GETTING_STARTED.md) - Quick setup and basic usage
 - [Deployment Guide](./docs/DEPLOYMENT.md) - Development and production deployment instructions
 - [Technical Reference](./docs/TECHNICAL_REFERENCE.md) - API documentation and architecture details
-- [Platform Overview](./docs/PLATFORM_OVERVIEW.md) - Features, benefits, and roadmap
 
 ## 🎯 Key Features
 
+- **🏆 Event-Based Onchain Economy** - Each sports event ships an AR Pack (ERC-1155), Remix Feed (ERC-721), Leaderboard, and USDT/OKB Treasury
+- **🔗 Dual-Chain (X Layer + Flow)** - Volume remixes on X Layer; premium "Iconic Moment" NFTs on Flow Cadence
+- **👛 One Connect Button** - FCL + wagmi RainbowKit adapter unifies OKX Wallet and Flow auth
 - **Flow Blockchain Authentication** with cryptographic signature verification
 - **Video and Asset Management** with PostgreSQL backend
 - **Augmented Reality Editor** for overlay positioning

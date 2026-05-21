@@ -12,6 +12,7 @@ import CollaborationWorkspace from './CollaborationWorkspace';
 import QuickCollaboration from './QuickCollaboration';
 import UserProfile from './UserProfile';
 import { FlowDashboard } from './FlowDashboard';
+import { WrongNetworkBanner } from './WrongNetworkBanner';
 
 // Wrapper component to properly extract videoId from route params
 function AIEnhancementWrapper() {
@@ -26,6 +27,7 @@ export default function Router() {
         <LandingPage />
       </SignedOut>
       <SignedIn>
+        <WrongNetworkBanner />
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />

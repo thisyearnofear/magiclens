@@ -33,3 +33,10 @@ logging-server/.env
 # OS
 .DS_Store
 Thumbs.db
+
+# Blockchain
+blockchain/artifacts/
+blockchain/cache/
+blockchain/node_modules/
+blockchain/typechain-types/
+blockchain/.env

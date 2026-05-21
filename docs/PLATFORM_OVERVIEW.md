@@ -2,11 +2,35 @@
 
 This document provides an overview of MagicLens features, benefits, and strategic direction.
 
+> See also: [HACKATHON_STRATEGY.md](./HACKATHON_STRATEGY.md) for the OKX X Cup positioning and [ROADMAP.md](./ROADMAP.md) for the build plan.
+
 ## 🎯 Platform Vision
 
-MagicLens is a web-based platform that allows users to add augmented reality overlays to their videos. The platform combines AI-powered computer vision with blockchain technology to create a unique collaborative environment for content creators and digital artists.
+**MagicLens is the AR remix layer for live sports.** Every iconic moment becomes a mintable, remixable, ownable piece of fan culture. We launch with the **2026 FIFA World Cup** and roll out across Wimbledon, NBA Finals, Champions League, F1, and Olympics LA 2028.
+
+The platform combines pose-aware AR overlays, AI-powered overlay recommendations, and a **dual-chain (Flow + X Layer)** onchain economy so fans can capture, remix, mint, and earn from the sports moments they already share.
+
+**One-liner:** Prediction markets monetize *opinions* about sports. MagicLens monetizes the *content* — every fan edit becomes an onchain asset.
+
+## 🧱 Core Product Primitive: the Event
+
+Each sports Event ships:
+- **AR Pack** (ERC-1155 on X Layer) — curated overlays, GIFs, sounds
+- **Remix Feed** (ERC-721 on X Layer) — user-minted fan edits
+- **Leaderboard + Treasury** — USDT/OKB rewards to top remixers
+- **Iconic Moments** (Cadence NFTs on Flow) — premium, curator-tier drops
+- **Sponsor slot** — broadcaster / federation / brand integration
+
+Launch Event: **FIFA World Cup 2026**.
 
 ## 💡 Key Features
+
+### Dual-Chain Onchain Layer (Flow + X Layer)
+- **X Layer (EVM):** high-volume remix NFTs, USDT/OKB rewards, OKX wallet integration
+- **Flow (Cadence):** premium "Iconic Moment" NFTs, gasless tx, protocol-level account abstraction, native VRF for moment-of-the-day picks
+- **One connect button** via FCL + wagmi RainbowKit adapter — users never see chain pickers
+- **Single signature cross-VM mints** via Flow batched EVM transactions
+- Aggregated balance view across both chains
 
 ### Flow Blockchain Authentication
 - Cryptographic signature verification
@@ -55,6 +79,19 @@ MagicLens is a web-based platform that allows users to add augmented reality ove
 - Real-time adjustment capabilities
 
 ## 💰 User Benefits
+
+### For Sports Fans (the primary audience)
+
+**Problem:** Fans produce billions of clips per major event, but they're trapped in TikTok/X/Instagram silos with no ownership, no rewards, and no shared canon of "the moments that mattered."
+**Solution:** One-click AR remix + onchain mint. Your edit is yours, ownable, tradeable, and eligible for event rewards.
+
+**Real Examples:**
+- **World Cup 2026:** Drop a country-flag halo + "GOAL!" lower-third on a 10-second goal clip → mint on X Layer → climb the daily leaderboard → earn USDT
+- **Wimbledon:** Add a "Match Point" overlay + crowd-roar sticker on an ace → top edits get auto-minted as Flow Iconic Moments
+- **NBA Finals:** Team-color halos + dunk FX → fastest viral remix wins the daily treasury
+
+**Before MagicLens:** Endless clips, zero ownership, zero upside.
+**With MagicLens:** Every clip is ownable, every viral remix earns. 🏆
 
 ### For Content Creators & Videographers
 
@@ -120,7 +157,7 @@ MagicLens is a web-based platform that allows users to add augmented reality ove
 - Pose-compatible NFT assets command premium prices
 - Efficient workflows mean more projects completed
 
-## 🚀 Hackathon Status
+## 🚀 Hackathon Status (OKX X Cup, May 2026)
 
 ### Production Ready Features
 - **Full Flow Integration**: 516 lines of production code (no more TODO stubs)
@@ -136,27 +173,40 @@ MagicLens is a web-based platform that allows users to add augmented reality ove
 - **Logging Server** (Python/FastAPI) - Log aggregation and error reporting  
 - **Collaboration Server** (Node.js/Socket.IO) - Real-time WebSocket collaboration
 
-## 🗺️ Forte Integration Roadmap
+### Hackathon Deliverables (7-day sprint)
+- **X Layer Solidity contracts**: `WorldCupPack` (ERC-1155), `RemixNFT` (ERC-721), `FanCastRewards` (USDT/OKB)
+- **Cross-VM mint flow**: top-3 daily X Layer remixes auto-mint as Flow "Iconic Moment" NFTs
+- **OKX Wallet integration** via wagmi + FCL RainbowKit adapter — one connect button
+- **World Cup overlay pack** — 10–20 curated AR assets (32 country flag halos, "GOAL!" lower-thirds, trophy confetti, ref cards)
+- **2-min demo video** + daily @MagicLensAR social posts tagging @XLayerOfficial + @flow_blockchain
 
-### Phase 1: Foundation (Completed)
+See [HACKATHON_STRATEGY.md](./HACKATHON_STRATEGY.md) for the full plan.
+
+## 🗺️ Onchain Roadmap (Flow + X Layer)
+
+### Phase 1: Foundation (Completed — Flow)
 - ✅ Flow wallet authentication
+- ✅ Cadence contracts: `ARAssetNFT.cdc`, `CollaborationHub.cdc`, `ForteAutomation.cdc`
 - ✅ NFT minting for AR assets
-- ✅ Smart contract deployment
 
-### Phase 2: Collaboration (Completed)
-- ✅ Multi-party project management
-- ✅ Revenue sharing agreements
-- ✅ Contributor tracking
+### Phase 2: X Layer Onchain Economy (Hackathon)
+- 🚧 `WorldCupPack` ERC-1155 — curated AR overlay packs on X Layer
+- 🚧 `RemixNFT` ERC-721 — user-minted fan remixes on X Layer
+- 🚧 `FanCastRewards` — USDT/OKB rewards treasury on X Layer
+- 🚧 OKX Wallet via wagmi alongside FCL
 
-### Phase 3: Automation (In Progress)
-- 🔄 Automated publishing workflows
-- 🔄 Royalty distribution
-- 🔄 Collaboration triggers
+### Phase 3: Cross-VM Seamlessness (Phase 1 post-hackathon)
+- 🔄 Single connect button (FCL + RainbowKit adapter)
+- 🔄 Batched cross-VM signatures (Flow scripted tx)
+- 🔄 Aggregated wallet view across Flow + X Layer
+- 🔄 Gas sponsorship / paymaster pattern on both chains
+- 🔄 LayerZero / Celer bridge integration for reward settlement
 
-### Phase 4: Marketplace (Future)
-- 🚀 Smart asset marketplace
-- 🚀 Automated royalty payments
-- 🚀 Community-driven curation
+### Phase 4: Event Engine & Marketplace (Phase 1–2)
+- 🚀 First-class `Event` primitive (pack + remix feed + leaderboard + treasury + sponsor slot)
+- 🚀 Self-serve Event creation for federations / broadcasters / brands
+- 🚀 Secondary market for AR Packs on X Layer with royalty splits
+- 🚀 Curator program for Flow "Iconic Moment" NFTs (Top Shot / NFL All Day lineage)
 
 ## 📚 Core Principles
 
@@ -171,16 +221,30 @@ MagicLens is a web-based platform that allows users to add augmented reality ove
 
 ## 🎯 Strategic Goals
 
-1. **User Growth**: Expand to 10,000 active users within 6 months
-2. **Content Library**: Build a marketplace with 1000+ AR assets
-3. **Performance**: Achieve 99.9% uptime and sub-200ms response times
-4. **Community**: Foster a thriving creator community with regular events
-5. **Revenue**: Generate $100K in platform revenue through NFT sales and subscriptions
+1. **Win the OKX X Cup** with a sports-positioned, dual-chain submission by May 28
+2. **Launch 3+ sports Events** (World Cup, Wimbledon, NBA Finals) within 3 months post-hackathon
+3. **Sign at least one federation / broadcaster / brand partnership** in Phase 1
+4. **Unlock three grant pipelines**: OKX/X Layer ecosystem, Flow Foundation (Forte/Builder), sports sponsors
+5. **Olympics LA 2028** as the long-term flywheel target — multi-sport Event series at planetary scale
 
 ## 📈 Success Metrics
 
-- **User Engagement**: 70% weekly active users
-- **Content Creation**: 500 new AR assets per month
-- **Collaboration**: 200 multi-party projects per month
+### Hackathon
+- Submitted on X Layer by May 28, 23:59 UTC
+- One demonstrable cross-VM mint flow (X Layer remix → Flow Iconic Moment)
+- 7+ days of @MagicLensAR posts tagging @XLayerOfficial
+
+### Phase 1 (3 months)
+- 5,000+ remix NFTs minted on X Layer
+- 3 sports Events live beyond the World Cup
+- $25K+ in onchain rewards distributed
+- 1 federation / broadcaster / brand partnership signed
+
+### Phase 2 (6 months)
+- 25,000+ active monthly remixers
+- 100+ third-party AR packs in the marketplace
+- Mobile PWA with >40% mobile sessions
+
+### Always
 - **Performance**: <100ms API response times
 - **Reliability**: 99.9% uptime
