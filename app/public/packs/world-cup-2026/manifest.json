@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Official AR overlay pack for the 2026 FIFA World Cup",
   "author": "MagicLens",
-  "contractAddress": "",
+  "contractAddress": "0x1db0C06578Ad9f7efEc65fb4363495d6E82980A7",
   "packTokenId": 0,
   "overlays": [
     {
