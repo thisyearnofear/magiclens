@@ -113,29 +113,44 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
         {/* ═══ VIDEO PREVIEW with mode switcher ═══ */}
         <div className="lg:col-span-2 space-y-3">
           {/* Mode tabs */}
-          <div className="flex gap-1 bg-white/5 rounded-lg p-1 w-fit">
+          <div className="flex gap-1 bg-white/5 rounded-lg p-0.5 w-fit border border-white/5">
             <button
               onClick={() => setMode('preview')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+              className={`px-4 py-2 text-xs font-medium rounded-md transition-all flex items-center gap-2 ${
                 mode === 'preview'
-                  ? 'bg-yellow-400 text-black'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-yellow-400/20 text-yellow-300 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              🎬 Simulated Preview
+              <span>🎬</span> Simulated Preview
             </button>
             <button
               onClick={() => setMode('live')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2 text-xs font-medium rounded-md transition-all flex items-center gap-2 relative ${
                 mode === 'live'
-                  ? 'bg-green-500 text-white'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-green-500/20 text-green-300 shadow-sm ring-1 ring-green-500/30'
+                  : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${mode === 'live' ? 'bg-white animate-pulse' : 'bg-gray-500'}`} />
-              Live Demo (Webcam)
+              {/* Green pulsing dot */}
+              <span className={`w-2 h-2 rounded-full ${mode === 'live' ? 'bg-green-400 animate-pulse' : 'bg-gray-600'}`} />
+              Live Demo
+              {/* NEW badge */}
+              {mode !== 'live' && (
+                <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 bg-yellow-400 text-[8px] text-black font-bold rounded-full">
+                  NEW
+                </span>
+              )}
             </button>
           </div>
+
+          {/* Description */}
+          <p className="text-[11px] text-gray-500">
+            {mode === 'preview'
+              ? 'See how overlays look on a match clip with simulated pose tracking'
+              : 'Real-time webcam demo — overlays follow your body using AI pose detection'
+            }
+          </p>
 
           {mode === 'preview' ? (
           <motion.div

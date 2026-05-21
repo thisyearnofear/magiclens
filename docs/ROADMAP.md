@@ -26,6 +26,9 @@
 - [x] EventCard + Leaderboard — World Cup as featured event on dashboard; top-10 leaderboard at /leaderboard
 - [x] World Cup overlay pack — 12 production-grade SVG assets, 32 flag variants, pack manifest onchain-linked
 - [x] Demo storyboard — 8-scene breakdown mapping UI routes to 2-min video (docs/DEMO_STORYBOARD.md)
+- [x] Client-side pose tracking — real-time webcam AR via MediaPipe Tasks Vision (33 landmarks, WebGL GPU, 20-30fps)
+- [x] Live Demo view — pose-tracked overlays follow body (flag halo → nose, commentary → shoulder, wrist particles)
+- [x] ARWorkspace mode switcher — toggle between simulated preview and live webcam demo
 
 ### 🚧 Remaining for Hackathon Sprint
 - [x] **Brand reframe** — "AR Remix Layer for Live Sports" across README + landing page
