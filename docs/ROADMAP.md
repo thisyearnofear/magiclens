@@ -16,14 +16,19 @@
 - Cadence contracts: `ARAssetNFT.cdc`, `CollaborationHub.cdc`, `ForteAutomation.cdc`
 
 ### 🚧 Hackathon Build (7-day sprint)
-- [ ] **Brand reframe** — "AR Remix Layer for Live Sports" across README + landing page
-- [ ] **Solidity contracts on X Layer testnet** (Hardhat/Foundry):
-  - `WorldCupPack` (ERC-1155) — curated AR overlay packs
-  - `RemixNFT` (ERC-721) — user-minted remixes
-  - `FanCastRewards` — USDT/OKB rewards to top remixers
-- [ ] **OKX Wallet via wagmi + FCL RainbowKit adapter** — one connect button, two chains under the hood
-- [ ] **Cross-VM mint flow** — daily top-3 remixes from X Layer auto-minted as Flow "Iconic Moment" NFTs
+- [x] **Brand reframe** — "AR Remix Layer for Live Sports" across README + landing page
+- [x] **Solidity contracts on X Layer testnet** (Hardhat/Foundry):
+  - `WorldCupPack` (ERC-1155) — curated AR overlay packs (4 passing tests)
+  - `RemixNFT` (ERC-721 + ERC-2981) — user-minted remixes, pack-ownership gated
+  - `FanCastRewards` — USDT/OKB rewards to top remixers, cross-VM events
+  - `MockUSDT` — 6-decimal ERC-20 for demo
+- [x] **OKX Wallet via wagmi + FCL RainbowKit adapter** — one connect button, two chains under the hood (wagmi v2.19.5, rainbowkit v2.2.11, useUnifiedAuth hook)
+- [x] **Remix flow wizard** — 4-step guided UX (clip → AR overlays → preview → mint on X Layer → leaderboard)
+- [x] **Dashboard overhaul** — 946-line Dashboard split into 12 focused sub-components; 10 alert() calls replaced with sonner.toast()
+- [x] **EventCard + Leaderboard** — World Cup as featured event on dashboard; top-10 leaderboard at /leaderboard
+- [x] **Demo storyboard** — 8-scene breakdown mapping UI routes to 2-min video (docs/DEMO_STORYBOARD.md)
 - [ ] **World Cup overlay pack** — 10–20 curated AR assets (32 country flag halos, "GOAL!" lower-thirds, trophy confetti, ref-card overlays)
+- [ ] **Cross-VM mint flow** — daily top-3 remixes from X Layer auto-minted as Flow "Iconic Moment" NFTs
 - [ ] **@MagicLensAR on X** — daily progress posts, tagging @XLayerOfficial + @flow_blockchain
 - [ ] **2-min demo video** ending on the multi-sport roadmap teaser
 - [ ] **Submission** via Google Form before May 28, 23:59 UTC

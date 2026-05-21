@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Upload, User, Camera, Palette, Zap, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ export default function ProfileSetup() {
       navigate('/dashboard');
     } catch (error) {
       console.error('Profile creation error:', error);
-      alert('Failed to create profile. Please try again.');
+      toast.error('Profile creation failed', { description: 'Please try again in a moment.' });
     } finally {
       setLoading(false);
     }

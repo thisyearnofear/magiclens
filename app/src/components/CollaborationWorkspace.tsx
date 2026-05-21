@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 
 export default function CollaborationWorkspace() {
@@ -101,7 +102,7 @@ export default function CollaborationWorkspace() {
       }
     } catch (error) {
       console.error('Error updating collaboration status:', error);
-      alert('Failed to update collaboration status. Please try again.');
+      toast.error('Failed to update status', { description: 'Please try again in a moment.' });
     } finally {
       setUpdating(false);
     }

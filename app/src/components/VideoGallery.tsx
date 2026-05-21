@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Search, ArrowLeft, Eye, Users, Zap, Sparkles } from 'lucide-react';
 import VideoPlayer from '@/components/ui/VideoPlayer';
+import { toast } from 'sonner';
 
 export default function VideoGallery() {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ export default function VideoGallery() {
       }
     } catch (error) {
       console.error('Error starting collaboration:', error);
-      alert('Failed to start collaboration. You may already have an active collaboration on this video.');
+      toast.error('Collaboration failed', { description: 'You may already have an active collaboration on this video.' });
     } finally {
       setCollaborating(null);
     }

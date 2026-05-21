@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Upload, ArrowLeft, CircleCheck } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AssetUpload() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export default function AssetUpload() {
       if (validTypes.includes(file.type)) {
         setFormData(prev => ({ ...prev, assetFile: file }));
       } else {
-        alert('Please select a GIF, PNG, or MP4 file');
+        toast.error('Invalid file type', { description: 'Please select a GIF, PNG, or MP4 file' });
       }
     }
   };
@@ -38,7 +39,7 @@ export default function AssetUpload() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.assetFile) {
-      alert('Please select an asset file');
+      toast.error('Missing file', { description: 'Please select an asset file' });
       return;
     }
 
@@ -60,7 +61,7 @@ export default function AssetUpload() {
       }, 2000);
     } catch (error) {
       console.error('Asset upload error:', error);
-      alert('Failed to upload asset. Please try again.');
+      toast.error('Upload failed', { description: 'Failed to upload asset. Please try again.' });
     } finally {
       setLoading(false);
     }

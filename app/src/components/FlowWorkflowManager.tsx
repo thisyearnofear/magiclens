@@ -9,6 +9,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Loader2, Plus, Calendar, Zap, CheckCircle2, Clock } from 'lucide-react';
 import { Alert, AlertDescription } from './ui/alert';
+import { toast } from 'sonner';
 
 const WORKFLOW_TYPE_NAMES = {
   [WorkflowType.SCHEDULED_PUBLISHING]: 'Scheduled Publishing',
@@ -35,7 +36,7 @@ export function FlowWorkflowManager() {
 
   const handleCreateWorkflow = async () => {
     if (!contentId || !publishDate || !publishTime) {
-      alert('Please fill in all fields');
+      toast.error('Missing fields', { description: 'Please fill in all required fields before creating a workflow.' });
       return;
     }
 

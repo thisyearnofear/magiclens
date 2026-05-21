@@ -11,6 +11,8 @@ import AssetUpload from './AssetUpload';
 import CollaborationWorkspace from './CollaborationWorkspace';
 import QuickCollaboration from './QuickCollaboration';
 import UserProfile from './UserProfile';
+import RemixFlow from './RemixFlow';
+import Leaderboard from './Leaderboard';
 import { FlowDashboard } from './FlowDashboard';
 import { WrongNetworkBanner } from './WrongNetworkBanner';
 
@@ -41,6 +43,8 @@ export default function Router() {
           <Route path="/ai-enhance/:videoId" element={<AIEnhancementWrapper />} />
           <Route path="/profile/:id" element={<UserProfile />} />
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/remix" element={<RemixFlow />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
       </SignedIn>
     </>
