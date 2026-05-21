@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" width="400" height="180">
+  <defs>
+    <linearGradient id="bbg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="bubble-shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(0,0,0,0.4)"/>
+    </filter>
+  </defs>
+  <!-- Speech bubble body -->
+  <rect x="10" y="10" width="380" height="130" rx="20" fill="url(#bbg)" stroke="#FFD700" stroke-width="2.5" filter="url(#bubble-shadow)"/>
+  <!-- Inner glow border -->
+  <rect x="14" y="14" width="372" height="122" rx="18" fill="none" stroke="rgba(255,215,0,0.15)" stroke-width="1"/>
+  <!-- Live badge -->
+  <rect x="30" y="30" width="60" height="24" rx="4" fill="#DC143C"/>
+  <text x="60" y="47" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF" letter-spacing="1">LIVE</text>
+  <!-- Microphone icon circle -->
+  <circle cx="110" cy="80" r="24" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="110" y="88" text-anchor="middle" font-size="20">🎙</text>
+  <!-- Commentator name -->
+  <text x="150" y="60" font-size="13" font-weight="700" fill="#94a3b8" letter-spacing="0.5">MATCH COMMENTARY</text>
+  <!-- Commentary text -->
+  <text x="150" y="82" font-size="16" font-weight="600" fill="#FFFFFF">What a strike from</text>
+  <text x="150" y="102" font-size="16" font-weight="600" fill="#FFFFFF">outside the box! 🔥</text>
+  <!-- Time tag -->
+  <text x="150" y="122" font-size="11" fill="#64748b">89:23 • Second Half</text>
+  <!-- Tail triangle -->
+  <polygon points="60,140 30,170 90,140" fill="#0f172a"/>
+  <polygon points="60,140 30,170 90,140" fill="none" stroke="#FFD700" stroke-width="1.5"/>
+  <!-- Pulse dots -->
+  <circle cx="360" cy="42" r="4" fill="#22c55e">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="370" cy="42" r="3" fill="#22c55e">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+</svg>

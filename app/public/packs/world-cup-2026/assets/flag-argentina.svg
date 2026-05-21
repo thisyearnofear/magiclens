@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#4ade80" stroke-width="3" opacity="0.3"/>
+  <clipPath id="flag-clip"><circle cx="100" cy="100" r="55"/></clipPath>
+  <!-- Argentina flag -->
+  <circle cx="100" cy="100" r="55" fill="#75AADB"/>
+  <rect x="45" y="90" width="110" height="20" fill="#FFFFFF" clip-path="url(#flag-clip)"/>
+  <circle cx="100" cy="100" r="12" fill="#F4B41A" clip-path="url(#flag-clip)"/>
+  <text x="100" y="106" text-anchor="middle" font-size="18" font-weight="bold" fill="#FFFFFF" clip-path="url(#flag-clip)">🇦🇷</text>
+  <circle cx="100" cy="100" r="55" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+</svg>

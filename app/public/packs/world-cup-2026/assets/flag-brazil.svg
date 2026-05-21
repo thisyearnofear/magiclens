@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#4ade80" stroke-width="3" opacity="0.3"/>
+  <circle cx="100" cy="100" r="80" fill="none" stroke="#22c55e" stroke-width="2.5" opacity="0.4"/>
+  <clipPath id="flag-clip"><circle cx="100" cy="100" r="55"/></clipPath>
+  <!-- Brazil flag colors -->
+  <circle cx="100" cy="100" r="55" fill="#009739"/>
+  <polygon points="100,55 140,100 100,145 60,100" fill="#FEDD00" clip-path="url(#flag-clip)"/>
+  <circle cx="100" cy="100" r="20" fill="#002776" clip-path="url(#flag-clip)"/>
+  <text x="100" y="106" text-anchor="middle" font-size="18" font-weight="bold" fill="#FFFFFF" clip-path="url(#flag-clip)">BR</text>
+  <circle cx="100" cy="100" r="55" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+</svg>

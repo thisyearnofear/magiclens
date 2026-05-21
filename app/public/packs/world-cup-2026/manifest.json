@@ -14,13 +14,15 @@
       "description": "32 nation flags as circular halos above players",
       "previewColor": "from-green-500/30 to-yellow-500/30",
       "thumbnail": "/packs/world-cup-2026/thumb-flag-halos.svg",
+      "asset": "/packs/world-cup-2026/assets/flag-halo.svg",
       "icon": "flag",
+      "position": "center",
       "variants": [
-        { "code": "BRA", "name": "Brazil", "flagUrl": "https://flagcdn.com/w80/br.png" },
-        { "code": "ARG", "name": "Argentina", "flagUrl": "https://flagcdn.com/w80/ar.png" },
-        { "code": "FRA", "name": "France", "flagUrl": "https://flagcdn.com/w80/fr.png" },
-        { "code": "GER", "name": "Germany", "flagUrl": "https://flagcdn.com/w80/de.png" },
-        { "code": "ENG", "name": "England", "flagUrl": "https://flagcdn.com/w80/gb-eng.png" },
+        { "code": "BRA", "name": "Brazil", "flagUrl": "https://flagcdn.com/w80/br.png", "asset": "/packs/world-cup-2026/assets/flag-brazil.svg" },
+        { "code": "ARG", "name": "Argentina", "flagUrl": "https://flagcdn.com/w80/ar.png", "asset": "/packs/world-cup-2026/assets/flag-argentina.svg" },
+        { "code": "FRA", "name": "France", "flagUrl": "https://flagcdn.com/w80/fr.png", "asset": "/packs/world-cup-2026/assets/flag-france.svg" },
+        { "code": "GER", "name": "Germany", "flagUrl": "https://flagcdn.com/w80/de.png", "asset": "/packs/world-cup-2026/assets/flag-germany.svg" },
+        { "code": "ENG", "name": "England", "flagUrl": "https://flagcdn.com/w80/gb-eng.png", "asset": "/packs/world-cup-2026/assets/flag-england.svg" },
         { "code": "ESP", "name": "Spain", "flagUrl": "https://flagcdn.com/w80/es.png" },
         { "code": "ITA", "name": "Italy", "flagUrl": "https://flagcdn.com/w80/it.png" },
         { "code": "NED", "name": "Netherlands", "flagUrl": "https://flagcdn.com/w80/nl.png" },
@@ -57,6 +59,7 @@
       "description": "Animated GOAL! banner at bottom of screen with team colors",
       "previewColor": "from-yellow-500/30 to-red-500/30",
       "thumbnail": "/packs/world-cup-2026/thumb-goal-banner.svg",
+      "asset": "/packs/world-cup-2026/assets/goal-banner.svg",
       "icon": "sparkles",
       "position": "lower-third",
       "variants": [
@@ -72,6 +75,7 @@
       "description": "Full-screen confetti burst on trophy lift or goal celebration",
       "previewColor": "from-purple-500/30 to-pink-500/30",
       "thumbnail": "/packs/world-cup-2026/thumb-confetti.svg",
+      "asset": "/packs/world-cup-2026/assets/confetti-burst.svg",
       "icon": "image",
       "position": "fullscreen",
       "variants": [
@@ -86,6 +90,7 @@
       "description": "Commentator-style text bubble with flag and microphone icon",
       "previewColor": "from-blue-500/30 to-cyan-500/30",
       "thumbnail": "/packs/world-cup-2026/thumb-commentary.svg",
+      "asset": "/packs/world-cup-2026/assets/commentary-bubble.svg",
       "icon": "message-circle",
       "position": "top-left",
       "variants": [
@@ -100,6 +105,7 @@
       "description": "Gentle sparkle particles across the frame for stadium atmosphere",
       "previewColor": "from-yellow-500/20 to-white/20",
       "thumbnail": "/packs/world-cup-2026/thumb-sparkles.svg",
+      "asset": "/packs/world-cup-2026/assets/sparkle-particle.svg",
       "icon": "sparkles",
       "position": "fullscreen"
     },
@@ -110,6 +116,7 @@
       "description": "Yellow/red card style overlay with player info",
       "previewColor": "from-red-500/30 to-yellow-500/30",
       "thumbnail": "/packs/world-cup-2026/thumb-ref-card.svg",
+      "asset": "/packs/world-cup-2026/assets/ref-card.svg",
       "icon": "alert-triangle",
       "position": "top-right"
     }
