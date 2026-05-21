@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bubbleBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="#1a1a2e" rx="12"/>
+  <rect x="15" y="50" width="170" height="80" rx="16" fill="url(#bubbleBg)" stroke="#FFD700" stroke-width="2"/>
+  <circle cx="45" cy="90" r="16" fill="#3b82f6">
+    <animate attributeName="r" values="16;18;16" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="45" y="95" text-anchor="middle" font-size="12" fill="white">🎙</text>
+  <text x="75" y="85" font-size="14" font-weight="bold" fill="#FFD700">LIVE</text>
+  <text x="75" y="105" font-size="12" fill="white" opacity="0.8">What a moment!</text>
+  <polygon points="170,50 190,50 180,70" fill="#0f172a"/>
+  <polygon points="170,50 190,50 180,72" fill="none" stroke="#FFD700" stroke-width="1.5"/>
+</svg>

@@ -1,0 +1,117 @@
+{
+  "id": "world-cup-2026",
+  "name": "FIFA World Cup 2026",
+  "version": "1.0.0",
+  "description": "Official AR overlay pack for the 2026 FIFA World Cup",
+  "author": "MagicLens",
+  "contractAddress": "",
+  "packTokenId": 0,
+  "overlays": [
+    {
+      "id": "flag-halos",
+      "name": "Country Flag Halos",
+      "type": "halo",
+      "description": "32 nation flags as circular halos above players",
+      "previewColor": "from-green-500/30 to-yellow-500/30",
+      "thumbnail": "/packs/world-cup-2026/thumb-flag-halos.svg",
+      "icon": "flag",
+      "variants": [
+        { "code": "BRA", "name": "Brazil", "flagUrl": "https://flagcdn.com/w80/br.png" },
+        { "code": "ARG", "name": "Argentina", "flagUrl": "https://flagcdn.com/w80/ar.png" },
+        { "code": "FRA", "name": "France", "flagUrl": "https://flagcdn.com/w80/fr.png" },
+        { "code": "GER", "name": "Germany", "flagUrl": "https://flagcdn.com/w80/de.png" },
+        { "code": "ENG", "name": "England", "flagUrl": "https://flagcdn.com/w80/gb-eng.png" },
+        { "code": "ESP", "name": "Spain", "flagUrl": "https://flagcdn.com/w80/es.png" },
+        { "code": "ITA", "name": "Italy", "flagUrl": "https://flagcdn.com/w80/it.png" },
+        { "code": "NED", "name": "Netherlands", "flagUrl": "https://flagcdn.com/w80/nl.png" },
+        { "code": "POR", "name": "Portugal", "flagUrl": "https://flagcdn.com/w80/pt.png" },
+        { "code": "BEL", "name": "Belgium", "flagUrl": "https://flagcdn.com/w80/be.png" },
+        { "code": "CRO", "name": "Croatia", "flagUrl": "https://flagcdn.com/w80/hr.png" },
+        { "code": "DEN", "name": "Denmark", "flagUrl": "https://flagcdn.com/w80/dk.png" },
+        { "code": "SUI", "name": "Switzerland", "flagUrl": "https://flagcdn.com/w80/ch.png" },
+        { "code": "URU", "name": "Uruguay", "flagUrl": "https://flagcdn.com/w80/uy.png" },
+        { "code": "MEX", "name": "Mexico", "flagUrl": "https://flagcdn.com/w80/mx.png" },
+        { "code": "USA", "name": "United States", "flagUrl": "https://flagcdn.com/w80/us.png" },
+        { "code": "CAN", "name": "Canada", "flagUrl": "https://flagcdn.com/w80/ca.png" },
+        { "code": "JPN", "name": "Japan", "flagUrl": "https://flagcdn.com/w80/jp.png" },
+        { "code": "KOR", "name": "South Korea", "flagUrl": "https://flagcdn.com/w80/kr.png" },
+        { "code": "AUS", "name": "Australia", "flagUrl": "https://flagcdn.com/w80/au.png" },
+        { "code": "SEN", "name": "Senegal", "flagUrl": "https://flagcdn.com/w80/sn.png" },
+        { "code": "MAR", "name": "Morocco", "flagUrl": "https://flagcdn.com/w80/ma.png" },
+        { "code": "NGA", "name": "Nigeria", "flagUrl": "https://flagcdn.com/w80/ng.png" },
+        { "code": "CMR", "name": "Cameroon", "flagUrl": "https://flagcdn.com/w80/cm.png" },
+        { "code": "GHA", "name": "Ghana", "flagUrl": "https://flagcdn.com/w80/gh.png" },
+        { "code": "EGY", "name": "Egypt", "flagUrl": "https://flagcdn.com/w80/eg.png" },
+        { "code": "TUN", "name": "Tunisia", "flagUrl": "https://flagcdn.com/w80/tn.png" },
+        { "code": "SAU", "name": "Saudi Arabia", "flagUrl": "https://flagcdn.com/w80/sa.png" },
+        { "code": "IRN", "name": "Iran", "flagUrl": "https://flagcdn.com/w80/ir.png" },
+        { "code": "JAM", "name": "Jamaica", "flagUrl": "https://flagcdn.com/w80/jm.png" },
+        { "code": "CRC", "name": "Costa Rica", "flagUrl": "https://flagcdn.com/w80/cr.png" },
+        { "code": "POL", "name": "Poland", "flagUrl": "https://flagcdn.com/w80/pl.png" }
+      ]
+    },
+    {
+      "id": "goal-lower-third",
+      "name": "GOAL! Lower-Third Banner",
+      "type": "banner",
+      "description": "Animated GOAL! banner at bottom of screen with team colors",
+      "previewColor": "from-yellow-500/30 to-red-500/30",
+      "thumbnail": "/packs/world-cup-2026/thumb-goal-banner.svg",
+      "icon": "sparkles",
+      "position": "lower-third",
+      "variants": [
+        { "style": "classic", "label": "Classic Gold", "colors": ["#FFD700", "#FF4500"] },
+        { "style": "neon", "label": "Neon Pulse", "colors": ["#00FF88", "#00BFFF"] },
+        { "style": "retro", "label": "Retro Wave", "colors": ["#FF00FF", "#FF4500"] }
+      ]
+    },
+    {
+      "id": "trophy-confetti",
+      "name": "Trophy Confetti Burst",
+      "type": "particle",
+      "description": "Full-screen confetti burst on trophy lift or goal celebration",
+      "previewColor": "from-purple-500/30 to-pink-500/30",
+      "thumbnail": "/packs/world-cup-2026/thumb-confetti.svg",
+      "icon": "image",
+      "position": "fullscreen",
+      "variants": [
+        { "style": "champions", "label": "Champions Gold", "colors": ["#FFD700", "#FF0000", "#00FF00"] },
+        { "style": "fireworks", "label": "Fireworks", "colors": ["#FF00FF", "#00FFFF", "#FFFF00"] }
+      ]
+    },
+    {
+      "id": "commentary-bubble",
+      "name": "Commentary Bubble",
+      "type": "overlay",
+      "description": "Commentator-style text bubble with flag and microphone icon",
+      "previewColor": "from-blue-500/30 to-cyan-500/30",
+      "thumbnail": "/packs/world-cup-2026/thumb-commentary.svg",
+      "icon": "message-circle",
+      "position": "top-left",
+      "variants": [
+        { "style": "classic", "label": "Classic", "accent": "#FFD700" },
+        { "style": "modern", "label": "Modern", "accent": "#00BFFF" }
+      ]
+    },
+    {
+      "id": "stadium-sparkles",
+      "name": "Stadium Atmosphere Sparkles",
+      "type": "particle",
+      "description": "Gentle sparkle particles across the frame for stadium atmosphere",
+      "previewColor": "from-yellow-500/20 to-white/20",
+      "thumbnail": "/packs/world-cup-2026/thumb-sparkles.svg",
+      "icon": "sparkles",
+      "position": "fullscreen"
+    },
+    {
+      "id": "ref-card",
+      "name": "Ref-Card Overlay",
+      "type": "overlay",
+      "description": "Yellow/red card style overlay with player info",
+      "previewColor": "from-red-500/30 to-yellow-500/30",
+      "thumbnail": "/packs/world-cup-2026/thumb-ref-card.svg",
+      "icon": "alert-triangle",
+      "position": "top-right"
+    }
+  ]
+}
