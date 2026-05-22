@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, Play, SoccerBall, Trophy } from 'lucide-react';
+import { Upload, Play, Trophy, Flag } from 'lucide-react';
 import type { Video } from '@/lib/sdk';
 
 interface ClipPickerProps {
@@ -15,7 +15,7 @@ const DEMO_CLIPS: { id: string; title: string; description: string; icon: React.
     id: 'demo-goal',
     title: 'Match-winning Goal',
     description: 'Last-minute goal celebration — great for confetti + flag halos',
-    icon: <SoccerBall className="h-10 w-10 text-green-400" />,
+    icon: <Flag className="h-10 w-10 text-green-400" />,
   },
   {
     id: 'demo-trophy',

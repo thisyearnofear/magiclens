@@ -4,6 +4,6 @@ import { createClient, createConfig } from '@hey-api/client-fetch';
 
 export const client = createClient(
   createConfig({
-    baseUrl: import.meta.env.VITE_API_BASE_URL || '', // Falls back to relative paths for dev proxy
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || '', // Falls back to relative paths for dev proxy
   })
 );

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { EnhancedOverlayData } from '@/types/enhanced-overlay-types';
 
 // Types for real-time collaboration
-interface UserPresence {
+export interface UserPresence {
   userId: string;
   username: string;
   color: string;
@@ -196,7 +196,8 @@ export const useRealtimeCollaboration = (
     operationsRef.current = [...operationsRef.current, operation];
     
     // Apply to current state
-    onOverlaysUpdate(prev => applyOperation([...prev], operation));
+    const current = applyOperation([], operation);
+    onOverlaysUpdate(current);
   }, [applyOperation, onOverlaysUpdate]);
   
   // Send operation to other users

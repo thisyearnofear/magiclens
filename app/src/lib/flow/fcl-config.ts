@@ -9,7 +9,7 @@ fcl.config({
   'app.detail.icon': `${window.location.origin}/magiclens.png`,
   'app.detail.description': 'Decentralized AR Video Platform on Flow',
   'app.detail.url': window.location.origin,
-  'walletconnect.projectId': import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'dev-project-id', // Required for WalletConnect v2
+  'walletconnect.projectId': process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'dev-project-id', // Required for WalletConnect v2
   'accessNode.api': flowConfig.accessNode,
   'discovery.wallet': flowConfig.discoveryWallet,
   'discovery.authn.endpoint': flowConfig.discoveryAuthnEndpoint,

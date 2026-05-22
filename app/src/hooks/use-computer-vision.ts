@@ -56,9 +56,10 @@ export const useComputerVision = () => {
     setError(null);
 
     try {
-      const response = await client.POST('/api/computer_vision/analyze_video_poses', {
+      const response = await client.post({
+        url: '/api/computer_vision/analyze_video_poses',
         body: { video_id: videoId }
-      });
+      }) as any;
 
       if (!response.data?.success) {
         throw new Error(response.data?.error || 'Failed to analyze video poses');
@@ -97,14 +98,15 @@ export const useComputerVision = () => {
     frameTimestamp?: number
   ) => {
     try {
-      const response = await client.POST('/api/computer_vision/get_smart_placement', {
+      const response = await client.post({
+        url: '/api/computer_vision/get_smart_placement',
         body: {
           video_id: videoId,
           overlay_width: overlayWidth,
           overlay_height: overlayHeight,
-          frame_timestamp: frameTimestamp || 0
-        }
-      });
+          frame_timestamp: frameTimestamp || 0,
+        },
+      }) as any;
 
       if (!response.data?.success) {
         throw new Error(response.data?.error || 'Failed to get smart placement');

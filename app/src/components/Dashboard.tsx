@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { userServiceGetUserProfile, videoServiceGetVideos, assetServiceGetAssets, videoServiceDeleteVideo, videoServiceUpdateVideo, UserProfile, Video, ArtistAsset } from '@/lib/sdk';
-import { getAuthenticatedClient } from '@/lib/sdk/auth-client';
 import { toast } from 'sonner';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { GuestBanner } from '@/components/dashboard/GuestBanner';
@@ -23,8 +22,8 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { Info } from 'lucide-react';
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const { user, disconnectWallet, isGuest } = useAuthContext();
+  const router = useRouter();
+  const { flowAddress: user, disconnect: disconnectWallet, isGuest } = useAuthContext();
   const [profile, setProfile] = useState<UserProfile|null>(null);
   const [recentVideos, setRecentVideos] = useState<Video[]>([]);
   const [recentAssets, setRecentAssets] = useState<ArtistAsset[]>([]);
@@ -41,12 +40,12 @@ export default function Dashboard() {
   const handleEdit=(id:string,title:string)=>{setEditingVideo({id,title});setEditOpen(true);};
   const handleDelete=(id:string,title:string)=>{setDeletingVideo({id,title});setDeleteOpen(true);};
   const handleUpdate=async(id:string,title:string)=>{
-    try{await videoServiceUpdateVideo({client:getAuthenticatedClient(),body:{video_id:id,title}});setRecentVideos(p=>p.map(v=>v.id===id?{...v,title}:v));setEditOpen(false);setEditingVideo(null);}
+    try{await videoServiceUpdateVideo({body:{video_id:id,title}});setRecentVideos(p=>p.map(v=>v.id===id?{...v,title}:v));setEditOpen(false);setEditingVideo(null);}
     catch(e){console.error('Failed to update video:',e);toast.error('Failed to update video',{description:'Please try again in a moment.'});}
   };
   const confirmDelete=async()=>{
     if(!deletingVideo)return;setIsDeleting(true);
-    try{await videoServiceDeleteVideo({client:getAuthenticatedClient(),body:{video_id:deletingVideo.id}});setRecentVideos(p=>p.filter(v=>v.id!==deletingVideo.id));setDeleteOpen(false);setDeletingVideo(null);}
+    try{await videoServiceDeleteVideo({body:{video_id:deletingVideo.id}});setRecentVideos(p=>p.filter(v=>v.id!==deletingVideo.id));setDeleteOpen(false);setDeletingVideo(null);}
     catch(e){console.error('Failed to delete video:',e);toast.error('Failed to delete video',{description:'Please try again in a moment.'});}
     finally{setIsDeleting(false);}
   };
@@ -54,14 +53,14 @@ export default function Dashboard() {
   useEffect(()=>{(async()=>{
     if(isGuest){setProfile({id:'guest',user_id:'guest',username:'Guest User',user_type:'both',bio:'Exploring MagicLens as a guest',created_at:new Date().toISOString()}as UserProfile);setRecentVideos([]);setRecentAssets([]);setLoading(false);return;}
     try{
-      const pr=await userServiceGetUserProfile({client:getAuthenticatedClient()});
+      const pr=await userServiceGetUserProfile({});
       if(pr.data)setProfile(pr.data);
-      else setProfile({id:user?.addr||'unknown',user_id:user?.addr||'unknown',username:`User ${user?.addr?.slice(-4)||'Unknown'}`,user_type:'both',bio:'Welcome to MagicLens! Update your profile to get started.',created_at:new Date().toISOString()}as UserProfile);
-      try{const v=await videoServiceGetVideos({client:getAuthenticatedClient(),body:{limit:6,offset:0}});if(v.data)setRecentVideos(v.data);}catch{setRecentVideos([]);}
-      try{const a=await assetServiceGetAssets({client:getAuthenticatedClient(),body:{limit:6,offset:0}});if(a.data)setRecentAssets(a.data);}catch{setRecentAssets([]);}
+      else setProfile({id:user||'unknown',user_id:user||'unknown',username:`User ${user?.slice(-4)||'Unknown'}`,user_type:'both',bio:'Welcome to MagicLens! Update your profile to get started.',created_at:new Date().toISOString()}as UserProfile);
+      try{const v=await videoServiceGetVideos({body:{limit:6,offset:0}});if(v.data)setRecentVideos(v.data);}catch{setRecentVideos([]);}
+      try{const a=await assetServiceGetAssets({body:{limit:6,offset:0}});if(a.data)setRecentAssets(a.data);}catch{setRecentAssets([]);}
     }catch(e){console.error('Dashboard loading error:',e);setError('Unable to load dashboard data. Some features may be limited.');}
     finally{setLoading(false);}
-  })();},[navigate,isGuest]);
+  })();},[router,isGuest]);
 
   if(loading)return<div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center"><div className="text-white text-xl">Loading your dashboard...</div></div>;
   if(!profile)return null;
@@ -71,7 +70,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <DashboardHeader isGuest={isGuest} profile={profile} onDisconnect={disconnectWallet} onNavigate={navigate} />
+      <DashboardHeader isGuest={isGuest} profile={profile} onDisconnect={disconnectWallet} onNavigate={(path:string)=>router.push(path)} />
       <div className="container mx-auto px-4 py-8">
         <EventCard />
         {typeof Notification !== 'undefined' && (
@@ -91,15 +90,15 @@ export default function Dashboard() {
         <StatsBar />
         {isGuest&&<GuestBanner onConnect={goHome} />}
         <WelcomeSection isGuest={isGuest} profile={profile} />
-        {isNewUser&&<GettingStartedChecklist onNavigate={navigate} />}
-        {isGuest&&<GuestFeatureCards />}
-        <QuickActions isGuest={isGuest} userType={profile.user_type} onNavigate={navigate} onShowGallery={()=>setShowGallery(true)} />
+      {isNewUser&&<GettingStartedChecklist onNavigate={(p:string)=>router.push(p)} />}
+      {isGuest&&<GuestFeatureCards />}
+      <QuickActions isGuest={isGuest} userType={profile.user_type} onNavigate={(p:string)=>router.push(p)} onShowGallery={()=>setShowGallery(true)} />
         {error&&<div className="mb-8 p-4 rounded-lg bg-red-500/20 border border-red-500/30"><div className="flex items-start space-x-3"><div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5"><span className="text-white text-xs">!</span></div><div><h4 className="text-white font-medium">Connection Issue</h4><p className="text-gray-400 text-sm mt-1">{error}</p><Button variant="outline" size="sm" className="mt-2 border-red-500/30 text-red-400 hover:bg-red-500/10" onClick={()=>window.location.reload()}>Retry</Button></div></div></div>}
         {isGuest&&<div className="mb-8 p-4 rounded-lg bg-gray-800/50 border border-gray-700"><div className="flex items-start space-x-3"><Info className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" /><div><h4 className="text-white font-medium">Guest Mode Limitations</h4><p className="text-gray-400 text-sm mt-1">In guest mode, you can browse content and explore features, but uploads, collaborations, and earnings are disabled. Connect your Flow wallet to unlock the full MagicLens experience.</p></div></div></div>}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 xl:gap-8">
           <ActivityFeed />
-          <VideoGrid videos={recentVideos} onEdit={handleEdit} onDelete={handleDelete} onNavigate={navigate} />
-          <AssetGrid assets={recentAssets} onNavigate={navigate} />
+          <VideoGrid videos={recentVideos} onEdit={handleEdit} onDelete={handleDelete} onNavigate={(p:string)=>router.push(p)} />
+          <AssetGrid assets={recentAssets} onNavigate={(p:string)=>router.push(p)} />
         </div>
       </div>
       <EditVideoDialog open={editOpen} video={editingVideo} onClose={()=>setEditOpen(false)} onSave={handleUpdate} />

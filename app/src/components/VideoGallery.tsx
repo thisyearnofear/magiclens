@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { videoServiceGetVideos, videoServiceSearchVideos, videoServiceGetVideoCategories, collaborationServiceStartCollaboration } from '@/lib/sdk';
 import { Video } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
@@ -7,12 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, ArrowLeft, Eye, Users, Zap, Sparkles } from 'lucide-react';
+import { Search, ArrowLeft, Eye, Users, Zap, Sparkles, Play } from 'lucide-react';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import { toast } from 'sonner';
 
 export default function VideoGallery() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,7 +83,7 @@ export default function VideoGallery() {
       });
 
       if (response.data) {
-        navigate(`/collaboration/${response.data.id}`);
+        router.push(`/collaboration/${response.data.id}`);
       }
     } catch (error) {
       console.error('Error starting collaboration:', error);
@@ -102,7 +102,7 @@ export default function VideoGallery() {
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => router.push('/dashboard')}
                 className="text-white hover:bg-white/10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -198,7 +198,7 @@ export default function VideoGallery() {
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="flex space-x-2">
                         <Button
-                          onClick={() => navigate(`/ai-enhance/${video.id}`)}
+                          onClick={() => router.push(`/ai-enhance/${video.id}`)}
                           className="bg-yellow-400 text-black hover:bg-yellow-500"
                         >
                           <Sparkles className="h-4 w-4 mr-2" />

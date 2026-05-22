@@ -1,7 +1,7 @@
-import { ArrowLeft, Layers, Send, Zap, CircleCheck, Circle } from "lucide-react";
+import { ArrowLeft, Layers, Send, Zap, CircleCheck, Circle, Play } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import OverlayEditor from './OverlayEditor';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useRouter } from 'next/navigation';
 import {
   collaborationServiceGetCollaboration,
   collaborationServiceGetCollaborationOverlays,
@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 
 export default function CollaborationWorkspace() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [collaboration, setCollaboration] = useState<Collaboration | null>(null);
   const [video, setVideo] = useState<Video | null>(null);
   const [overlays, setOverlays] = useState<Overlay[]>([]);
@@ -42,7 +42,7 @@ export default function CollaborationWorkspace() {
     try {
       // Load collaboration details
       const collabResponse = await collaborationServiceGetCollaboration({
-        body: { collaboration_id: id }
+        body: { collaboration_id: id as string }
       });
 
       if (collabResponse.data) {
@@ -58,7 +58,7 @@ export default function CollaborationWorkspace() {
 
         // Load overlays
         const overlaysResponse = await collaborationServiceGetCollaborationOverlays({
-          body: { collaboration_id: id }
+          body: { collaboration_id: id as string }
         });
         if (overlaysResponse.data) {
           setOverlays(overlaysResponse.data);
@@ -124,7 +124,7 @@ export default function CollaborationWorkspace() {
             <Circle className="h-16 w-16 text-red-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Collaboration Not Found</h2>
             <p className="text-gray-300 mb-4">This collaboration doesn't exist or you don't have access to it.</p>
-            <Button onClick={() => navigate('/dashboard')} variant="outline">
+            <Button onClick={() => router.push('/dashboard')} variant="outline">
               Back to Dashboard
             </Button>
           </CardContent>
@@ -164,7 +164,7 @@ export default function CollaborationWorkspace() {
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => router.push('/dashboard')}
                 className="text-white hover:bg-white/10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -216,22 +216,23 @@ export default function CollaborationWorkspace() {
               <OverlayEditor
                 videoUrl={video.file_path}
                 videoDuration={video.duration}
+                collaborationId={id as string}
                 initialOverlays={overlays.map(overlay => ({
                   id: overlay.id!,
-                  assetUrl: '/placeholder-overlay.png', // Would map from asset_id
+                  assetUrl: '/placeholder-overlay.png',
                   name: `Overlay ${overlay.layer_order}`,
                   position: {
-                    x: overlay.position_data.x || 0,
-                    y: overlay.position_data.y || 0,
-                    scaleX: overlay.position_data.scaleX || 1,
-                    scaleY: overlay.position_data.scaleY || 1,
-                    angle: overlay.position_data.angle || 0
+                    x: Number(overlay.position_data?.x) || 0,
+                    y: Number(overlay.position_data?.y) || 0,
+                    scaleX: Number(overlay.position_data?.scaleX) || 1,
+                    scaleY: Number(overlay.position_data?.scaleY) || 1,
+                    angle: Number(overlay.position_data?.angle) || 0
                   },
                   timing: {
-                    startTime: overlay.timing_data.startTime || 0,
-                    endTime: overlay.timing_data.endTime || video.duration,
-                    fadeIn: overlay.timing_data.fadeIn || 0,
-                    fadeOut: overlay.timing_data.fadeOut || 0
+                    startTime: Number(overlay.timing_data?.startTime) || 0,
+                    endTime: Number(overlay.timing_data?.endTime) || video.duration,
+                    fadeIn: Number(overlay.timing_data?.fadeIn) || 0,
+                    fadeOut: Number(overlay.timing_data?.fadeOut) || 0
                   },
                   layerOrder: overlay.layer_order || 1,
                   visible: true
@@ -397,7 +398,7 @@ export default function CollaborationWorkspace() {
                       variant="outline"
                       size="sm"
                       className="mt-2"
-                      onClick={() => navigate('/upload-asset')}
+                      onClick={() => router.push('/upload-asset')}
                     >
                       Upload Assets
                     </Button>

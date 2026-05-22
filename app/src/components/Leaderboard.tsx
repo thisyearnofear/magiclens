@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Medal, Zap, DollarSign } from 'lucide-react';
@@ -24,7 +24,7 @@ const RANK_BADGES: Record<number, { icon: React.ReactNode; className: string }> 
 };
 
 export default function Leaderboard() {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -34,7 +34,7 @@ export default function Leaderboard() {
             <Trophy className="h-8 w-8 text-yellow-400" />
             <h1 className="text-2xl font-bold text-white">Today's Leaderboard</h1>
           </div>
-          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white text-sm">Back</button>
+          <button onClick={() => router.push('/')} className="text-gray-400 hover:text-white text-sm">Back</button>
         </div>
       </header>
 
@@ -118,7 +118,7 @@ export default function Leaderboard() {
         {/* CTA */}
         <div className="text-center mt-8">
           <button
-            onClick={() => navigate('/remix')}
+            onClick={() => router.push('/remix')}
             className="px-8 py-3 bg-yellow-400 text-black rounded-lg font-semibold hover:bg-yellow-500 transition-colors inline-flex items-center gap-2"
           >
             <Zap className="h-5 w-5" /> Create Your Remix

@@ -17,7 +17,7 @@ export const getAuthenticatedClient = () => {
 
     return createClient(
         createConfig({
-            baseUrl: import.meta.env.VITE_API_BASE_URL || '',
+            baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || '',
             headers: headers
         })
     );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { assetServiceUploadAsset, assetServiceGetAssetCategories } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Upload, ArrowLeft, CircleCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AssetUpload() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const [formData, setFormData] = useState({
@@ -57,7 +57,7 @@ export default function AssetUpload() {
 
       setUploaded(true);
       setTimeout(() => {
-        navigate('/dashboard');
+        router.push('/dashboard');
       }, 2000);
     } catch (error) {
       console.error('Asset upload error:', error);
@@ -87,7 +87,7 @@ export default function AssetUpload() {
         <div className="mb-6">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => router.push('/dashboard')}
             className="text-white hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />

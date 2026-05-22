@@ -1,17 +1,17 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trophy, Zap, Users, Package } from 'lucide-react';
 
 interface EventCardProps {
-  name: string;
-  dateRange: string;
-  packCount: number;
-  remixCount: number;
-  rewardPool: string;
-  isActive: boolean;
+  name?: string;
+  dateRange?: string;
+  packCount?: number;
+  remixCount?: number;
+  rewardPool?: string;
+  isActive?: boolean;
 }
 
 export function EventCard({
@@ -22,7 +22,7 @@ export function EventCard({
   rewardPool = '$100 USDT',
   isActive = true,
 }: EventCardProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <Card className={`bg-gradient-to-r ${
@@ -67,13 +67,13 @@ export function EventCard({
           {/* Actions */}
           <div className="flex gap-2 flex-shrink-0">
             <Button
-              onClick={() => navigate('/remix')}
+              onClick={() => router.push('/remix')}
               className="bg-yellow-400 text-black hover:bg-yellow-500"
             >
               <Zap className="h-4 w-4 mr-2" /> Create Remix
             </Button>
             <Button
-              onClick={() => navigate('/leaderboard')}
+              onClick={() => router.push('/leaderboard')}
               variant="outline"
               className="border-white/20 text-white hover:bg-white/10"
             >

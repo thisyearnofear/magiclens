@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { userServiceCreateUserProfile } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,8 @@ import { Upload, User, Camera, Palette, Zap, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProfileSetup() {
-  const navigate = useNavigate();
-  const { user, isGuest } = useAuthContext();
+  const router = useRouter();
+  const { flowAddress: user, isGuest } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -25,9 +25,9 @@ export default function ProfileSetup() {
   // Redirect guest users to dashboard since they can't create profiles
   useEffect(() => {
     if (isGuest) {
-      navigate('/dashboard');
+      router.push('/dashboard');
     }
-  }, [isGuest, navigate]);
+  }, [isGuest, router]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -43,7 +43,7 @@ export default function ProfileSetup() {
     try {
       // For guest users, just redirect to dashboard
       if (isGuest) {
-        navigate('/dashboard');
+        router.push('/dashboard');
         return;
       }
 
@@ -58,7 +58,7 @@ export default function ProfileSetup() {
       }
 
       const response = await userServiceCreateUserProfile({
-        body: formDataToSend
+        body: formDataToSend as any
       });
 
       if (response.error) {
@@ -66,7 +66,7 @@ export default function ProfileSetup() {
       }
 
       console.log('Profile created successfully:', response.data);
-      navigate('/dashboard');
+      router.push('/dashboard');
     } catch (error) {
       console.error('Profile creation error:', error);
       toast.error('Profile creation failed', { description: 'Please try again in a moment.' });
@@ -99,7 +99,7 @@ export default function ProfileSetup() {
                   <h4 className="text-white font-medium">Connected with Flow Wallet</h4>
                   <p className="text-gray-300 text-sm mt-1">
                     Your profile will be permanently linked to your Flow wallet address:
-                    <span className="font-mono text-xs block mt-1">{user.addr}</span>
+                    <span className="font-mono text-xs block mt-1">{user}</span>
                   </p>
                 </div>
               </div>
@@ -201,7 +201,7 @@ export default function ProfileSetup() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => router.push('/dashboard')}
                   className="w-full bg-white/10 text-white hover:bg-white/20"
                 >
                   Skip Setup (Demo Mode)

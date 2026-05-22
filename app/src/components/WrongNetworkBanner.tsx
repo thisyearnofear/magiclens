@@ -19,7 +19,7 @@ export function WrongNetworkBanner() {
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
           <span>
             Wrong network detected. Please switch to{' '}
-            <strong>X Layer{import.meta.env.VITE_XLAYER_NETWORK === 'mainnet' ? ' Mainnet' : ' Testnet'}</strong>
+            <strong>X Layer{process.env.NEXT_PUBLIC_XLAYER_NETWORK === 'mainnet' ? ' Mainnet' : ' Testnet'}</strong>
             {' '}to mint remixes and claim rewards.
           </span>
         </div>

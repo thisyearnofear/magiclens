@@ -54,7 +54,7 @@ export const CONTRACT_ADDRESSES = {
 
 // Get current network from environment
 export const getCurrentNetwork = (): FlowNetwork => {
-  const network = import.meta.env.VITE_FLOW_NETWORK || 'emulator';
+  const network = process.env.NEXT_PUBLIC_FLOW_NETWORK || 'emulator';
   if (network in FLOW_NETWORKS) {
     return network as FlowNetwork;
   }

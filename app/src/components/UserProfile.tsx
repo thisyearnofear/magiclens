@@ -1,6 +1,6 @@
 import { ArrowLeft, Save, X, User, Camera, Palette, Zap, Pencil } from "lucide-react";
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { userServiceGetUserProfile, userServiceGetPublicProfile, userServiceUpdateUserProfile } from '@/lib/sdk';
 import { UserProfile as UserProfileType } from '@/lib/sdk';
@@ -16,8 +16,8 @@ import { toast } from 'sonner';
 
 export default function UserProfile() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const router = useRouter();
+  const { flowAddress: user } = useAuthContext();
   const [profile, setProfile] = useState<UserProfileType | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -28,7 +28,7 @@ export default function UserProfile() {
     avatar: null as File | null
   });
 
-  const isOwnProfile = !id || id === user?.addr;
+  const isOwnProfile = !id || id === user;
 
   useEffect(() => {
     loadProfile();
@@ -51,7 +51,7 @@ export default function UserProfile() {
       } else {
         // Load public profile
         const response = await userServiceGetPublicProfile({
-          body: { user_id: id! }
+          body: { user_id: id as string }
         });
         if (response.data) {
           setProfile(response.data);
@@ -121,7 +121,7 @@ export default function UserProfile() {
             <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Profile Not Found</h2>
             <p className="text-gray-300 mb-4">This user profile doesn't exist or isn't public.</p>
-            <Button onClick={() => navigate('/dashboard')} variant="outline">
+            <Button onClick={() => router.push('/dashboard')} variant="outline">
               Back to Dashboard
             </Button>
           </CardContent>
@@ -139,7 +139,7 @@ export default function UserProfile() {
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => router.push('/dashboard')}
                 className="text-white hover:bg-white/10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />

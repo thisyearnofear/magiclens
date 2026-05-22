@@ -1,11 +1,4 @@
 {
   "installCommand": "cd app && npm install --legacy-peer-deps",
-  "buildCommand": "cd app && npm run build:prod",
-  "outputDirectory": "app/dist",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "buildCommand": "cd app && npx next build"
 }

@@ -1,6 +1,6 @@
 import { Zap, Clock, ArrowRight, Sparkles, Users, TrendingUp, CircleCheck, Loader, Play, Edit, Check, X } from "lucide-react";
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,6 @@ import {
   collaborationServiceStartCollaboration,
   collaborationServiceAddOverlayToCollaboration
 } from '@/lib/sdk';
-import { getAuthenticatedClient } from '@/lib/sdk/auth-client';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -43,7 +42,7 @@ interface CollaborationData {
 }
 
 export default function QuickCollaboration({ videoId }: QuickCollaborationProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [video, setVideo] = useState<VideoData | null>(null);
   const [collaboration, setCollaboration] = useState<CollaborationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,7 +67,6 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
       }
 
       const result = await videoServiceGetVideo({
-        client: getAuthenticatedClient(),
         body: { video_id: videoId }
       });
 
@@ -91,7 +89,6 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
       let currentCollaboration = collaboration;
       if (!currentCollaboration) {
         const collabResult = await collaborationServiceStartCollaboration({
-          client: getAuthenticatedClient(),
           body: {
             video_id: videoId,
             revenue_split: 0.7 // Default split favoring videographer
@@ -113,7 +110,6 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
       // Add the overlay to the collaboration
       if (currentCollaboration) {
         await collaborationServiceAddOverlayToCollaboration({
-          client: getAuthenticatedClient(),
           body: {
             collaboration_id: currentCollaboration.id,
             asset_id: overlayData.asset.id,
@@ -149,7 +145,6 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
 
     try {
       await videoServiceUpdateVideo({
-        client: getAuthenticatedClient(),
         body: {
           video_id: videoId,
           category: editCategory
@@ -171,7 +166,6 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
     setIsRendering(true);
     try {
       const result = await renderServiceQueueRender({
-        client: getAuthenticatedClient(),
         body: {
           collaboration_id: collaboration.id,
           render_settings: {
@@ -186,7 +180,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
         setCurrentStep('complete');
         // Navigate to collaboration workspace after a brief delay
         setTimeout(() => {
-          navigate(`/collaboration/${collaboration.id}`);
+          router.push(`/collaboration/${collaboration.id}`);
         }, 2000);
       }
     } catch (error) {
@@ -235,7 +229,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
         <div className="max-w-6xl mx-auto">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-white mb-4">Video Not Found</h1>
-            <Button onClick={() => navigate('/dashboard')} className="bg-yellow-400 text-black">
+            <Button onClick={() => router.push('/dashboard')} className="bg-yellow-400 text-black">
               Return to Dashboard
             </Button>
           </div>
@@ -255,7 +249,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
           </div>
           <Button
             variant="secondary"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => router.push('/dashboard')}
             className="bg-white/10 text-white hover:bg-white/20"
           >
             Back to Dashboard
@@ -389,7 +383,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
 
                     <Button
                       variant="outline"
-                      onClick={() => navigate(`/collaboration/${collaboration.id}`)}
+                      onClick={() => router.push(`/collaboration/${collaboration.id}`)}
                       className="w-full"
                     >
                       <Users className="h-4 w-4 mr-2" />
@@ -407,7 +401,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
                     </div>
 
                     <Button
-                      onClick={() => navigate(`/collaboration/${collaboration?.id}`)}
+                      onClick={() => router.push(`/collaboration/${collaboration?.id}`)}
                       className="w-full bg-yellow-400 text-black hover:bg-yellow-500"
                     >
                       <ArrowRight className="h-4 w-4 mr-2" />

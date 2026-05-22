@@ -1,9 +1,8 @@
 import { Upload, ArrowLeft, CircleCheck, Sparkles, Eye, Home, FileVideo, Clock, CheckCircle, AlertCircle } from "lucide-react";
 
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { videoServiceUploadVideo } from '@/lib/sdk';
-import { getAuthenticatedClient } from '@/lib/sdk/auth-client';
+import { useRouter } from 'next/navigation';
+import { videoServiceUploadVideo, videoServiceGetVideoCategories } from '@/lib/sdk';
 import { Video } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +15,7 @@ import { Progress } from '@/components/ui/progress';
 
 
 export default function VideoUpload() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedVideo, setUploadedVideo] = useState<Video | null>(null);
@@ -121,7 +120,6 @@ export default function VideoUpload() {
       }, 200);
 
       const response = await videoServiceUploadVideo({
-        client: getAuthenticatedClient(),
         body: {
           title: formData.title.trim(),
           description: formData.description.trim() || null,
@@ -138,7 +136,7 @@ export default function VideoUpload() {
       } else {
         setValidationErrors(['Video uploaded successfully, but we could not get the details.']);
         setLoading(false);
-        setTimeout(() => navigate('/dashboard'), 2000);
+        setTimeout(() => router.push('/dashboard'), 2000);
       }
     } catch (error) {
       console.error('Video upload error:', error);
@@ -162,7 +160,7 @@ export default function VideoUpload() {
             <div className="space-y-3">
               {/* Primary CTA - AI Enhancement */}
               <Button
-                onClick={() => navigate(`/ai-enhance/${uploadedVideo.id}`)}
+                onClick={() => router.push(`/ai-enhance/${uploadedVideo.id}`)}
                 className="w-full bg-yellow-400 text-black hover:bg-yellow-500 font-medium py-3"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -172,7 +170,7 @@ export default function VideoUpload() {
               {/* Secondary Options */}
               <div className="grid grid-cols-2 gap-2">
                 <Button
-                  onClick={() => navigate('/videos')}
+                  onClick={() => router.push('/videos')}
                   variant="outline"
                   className="text-white border-white/30 hover:bg-white/10 text-sm py-2"
                 >
@@ -181,7 +179,7 @@ export default function VideoUpload() {
                 </Button>
 
                 <Button
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => router.push('/dashboard')}
                   variant="ghost"
                   className="text-gray-300 hover:bg-white/5 text-sm py-2"
                 >
@@ -210,7 +208,7 @@ export default function VideoUpload() {
         <div className="mb-6">
           <Button
             variant="ghost"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => router.push('/dashboard')}
             className="text-white hover:bg-white/10"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />

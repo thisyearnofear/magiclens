@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { StepProgress } from '@/components/remix/StepProgress';
 import { ClipPicker } from '@/components/remix/ClipPicker';
 import ARWorkspace from '@/components/remix/ARWorkspace';
@@ -31,7 +31,7 @@ const OVERLAY_NAMES: Record<string, string> = {
 };
 
 export default function RemixFlow() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [clip, setClip] = useState<{ title: string; id: string } | null>(null);
@@ -68,7 +68,7 @@ export default function RemixFlow() {
               <h1 className="text-2xl font-bold text-white">MagicLens</h1>
             </motion.div>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => router.push('/')}
               className="text-gray-400 hover:text-white text-sm transition-colors"
             >
               Exit
@@ -103,7 +103,7 @@ export default function RemixFlow() {
                 setClip({ title: v.title || 'Match Moment', id: v.id });
                 goForward();
               }}
-              onUploadNew={() => navigate('/upload-video')}
+              onUploadNew={() => router.push('/upload-video')}
             />
           )}
 
@@ -141,7 +141,7 @@ export default function RemixFlow() {
             <MintConfirmation
               txHash={mintTx}
               leaderboardRank={leaderboardRank}
-              onViewLeaderboard={() => navigate('/leaderboard')}
+              onViewLeaderboard={() => router.push('/leaderboard')}
               onCreateAnother={() => {
                 setDirection(1);
                 setStep(0);

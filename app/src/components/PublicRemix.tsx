@@ -1,12 +1,12 @@
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useRouter } from 'next/navigation';
 import { Zap, Trophy, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function PublicRemix() {
   const { txHash } = useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
@@ -39,7 +39,7 @@ export default function PublicRemix() {
         </Card>
 
         <Button
-          onClick={() => navigate('/')}
+          onClick={() => router.push('/')}
           className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold"
         >
           Create Your Own Remix

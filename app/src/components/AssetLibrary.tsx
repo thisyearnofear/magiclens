@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { assetServiceGetAssets, assetServiceSearchAssets, assetServiceGetAssetCategories } from '@/lib/sdk';
 import { ArtistAsset } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, ArrowLeft, Palette, Zap } from 'lucide-react';
 
 export default function AssetLibrary() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [assets, setAssets] = useState<ArtistAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -109,7 +109,7 @@ export default function AssetLibrary() {
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
-                onClick={() => navigate('/dashboard')}
+                onClick={() => router.push('/dashboard')}
                 className="text-white hover:bg-white/10"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -240,7 +240,7 @@ export default function AssetLibrary() {
                 Upload your own assets and help other creators bring their visions to life.
               </p>
               <Button
-                onClick={() => navigate('/upload-asset')}
+                onClick={() => router.push('/upload-asset')}
                 className="bg-yellow-400 text-black hover:bg-yellow-500"
               >
                 Upload Asset

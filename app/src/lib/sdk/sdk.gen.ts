@@ -9,7 +9,7 @@ import { client as _heyApiClient } from './client.gen';
  * Create a new user profile with username and user type.
  */
 export const userServiceCreateUserProfile = <ThrowOnError extends boolean = false>(options: Options<UserServiceCreateUserProfileData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<UserServiceCreateUserProfileResponse, UserServiceCreateUserProfileError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<UserServiceCreateUserProfileResponse, UserServiceCreateUserProfileError, ThrowOnError>({
         ...formDataBodySerializer,
         security: [
             {
@@ -31,7 +31,7 @@ export const userServiceCreateUserProfile = <ThrowOnError extends boolean = fals
  * Get the current user&#39;s profile.
  */
 export const userServiceGetUserProfile = <ThrowOnError extends boolean = false>(options?: Options<UserServiceGetUserProfileData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<UserServiceGetUserProfileResponse, unknown, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<UserServiceGetUserProfileResponse, unknown, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -48,7 +48,7 @@ export const userServiceGetUserProfile = <ThrowOnError extends boolean = false>(
  * Get a public user profile by user ID.
  */
 export const userServiceGetPublicProfile = <ThrowOnError extends boolean = false>(options: Options<UserServiceGetPublicProfileData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<UserServiceGetPublicProfileResponse, UserServiceGetPublicProfileError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<UserServiceGetPublicProfileResponse, UserServiceGetPublicProfileError, ThrowOnError>({
         url: '/api/user_service/get_public_profile',
         ...options,
         headers: {
@@ -63,7 +63,7 @@ export const userServiceGetPublicProfile = <ThrowOnError extends boolean = false
  * Update the current user&#39;s profile.
  */
 export const userServiceUpdateUserProfile = <ThrowOnError extends boolean = false>(options?: Options<UserServiceUpdateUserProfileData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<UserServiceUpdateUserProfileResponse, UserServiceUpdateUserProfileError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<UserServiceUpdateUserProfileResponse, UserServiceUpdateUserProfileError, ThrowOnError>({
         ...formDataBodySerializer,
         security: [
             {
@@ -85,7 +85,7 @@ export const userServiceUpdateUserProfile = <ThrowOnError extends boolean = fals
  * Get all artist profiles for discovery.
  */
 export const userServiceGetArtists = <ThrowOnError extends boolean = false>(options?: Options<UserServiceGetArtistsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<UserServiceGetArtistsResponse, unknown, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<UserServiceGetArtistsResponse, unknown, ThrowOnError>({
         url: '/api/user_service/get_artists',
         ...options
     });
@@ -96,7 +96,7 @@ export const userServiceGetArtists = <ThrowOnError extends boolean = false>(opti
  * Get all videographer profiles for discovery.
  */
 export const userServiceGetVideographers = <ThrowOnError extends boolean = false>(options?: Options<UserServiceGetVideographersData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<UserServiceGetVideographersResponse, unknown, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<UserServiceGetVideographersResponse, unknown, ThrowOnError>({
         url: '/api/user_service/get_videographers',
         ...options
     });
@@ -107,7 +107,7 @@ export const userServiceGetVideographers = <ThrowOnError extends boolean = false
  * Upload a new video with validation.
  */
 export const videoServiceUploadVideo = <ThrowOnError extends boolean = false>(options: Options<VideoServiceUploadVideoData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<VideoServiceUploadVideoResponse, VideoServiceUploadVideoError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<VideoServiceUploadVideoResponse, VideoServiceUploadVideoError, ThrowOnError>({
         ...formDataBodySerializer,
         security: [
             {
@@ -129,7 +129,7 @@ export const videoServiceUploadVideo = <ThrowOnError extends boolean = false>(op
  * Get videos with optional category filtering.
  */
 export const videoServiceGetVideos = <ThrowOnError extends boolean = false>(options: Options<VideoServiceGetVideosData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<VideoServiceGetVideosResponse, VideoServiceGetVideosError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<VideoServiceGetVideosResponse, VideoServiceGetVideosError, ThrowOnError>({
         url: '/api/video_service/get_videos',
         ...options,
         headers: {
@@ -144,7 +144,7 @@ export const videoServiceGetVideos = <ThrowOnError extends boolean = false>(opti
  * Get a specific video by ID.
  */
 export const videoServiceGetVideo = <ThrowOnError extends boolean = false>(options: Options<VideoServiceGetVideoData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<VideoServiceGetVideoResponse, VideoServiceGetVideoError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<VideoServiceGetVideoResponse, VideoServiceGetVideoError, ThrowOnError>({
         url: '/api/video_service/get_video',
         ...options,
         headers: {
@@ -159,7 +159,7 @@ export const videoServiceGetVideo = <ThrowOnError extends boolean = false>(optio
  * Get videos uploaded by the current user.
  */
 export const videoServiceGetMyVideos = <ThrowOnError extends boolean = false>(options?: Options<VideoServiceGetMyVideosData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<VideoServiceGetMyVideosResponse, unknown, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<VideoServiceGetMyVideosResponse, unknown, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -176,7 +176,7 @@ export const videoServiceGetMyVideos = <ThrowOnError extends boolean = false>(op
  * Update video metadata (only by owner).
  */
 export const videoServiceUpdateVideo = <ThrowOnError extends boolean = false>(options: Options<VideoServiceUpdateVideoData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<VideoServiceUpdateVideoResponse, VideoServiceUpdateVideoError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<VideoServiceUpdateVideoResponse, VideoServiceUpdateVideoError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -197,7 +197,7 @@ export const videoServiceUpdateVideo = <ThrowOnError extends boolean = false>(op
  * Delete a video (only by owner).
  */
 export const videoServiceDeleteVideo = <ThrowOnError extends boolean = false>(options: Options<VideoServiceDeleteVideoData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<VideoServiceDeleteVideoResponse, VideoServiceDeleteVideoError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<VideoServiceDeleteVideoResponse, VideoServiceDeleteVideoError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -218,7 +218,7 @@ export const videoServiceDeleteVideo = <ThrowOnError extends boolean = false>(op
  * Get list of available video categories.
  */
 export const videoServiceGetVideoCategories = <ThrowOnError extends boolean = false>(options?: Options<VideoServiceGetVideoCategoriesData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<VideoServiceGetVideoCategoriesResponse, unknown, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<VideoServiceGetVideoCategoriesResponse, unknown, ThrowOnError>({
         url: '/api/video_service/get_video_categories',
         ...options
     });
@@ -229,7 +229,7 @@ export const videoServiceGetVideoCategories = <ThrowOnError extends boolean = fa
  * Search videos by title or description.
  */
 export const videoServiceSearchVideos = <ThrowOnError extends boolean = false>(options: Options<VideoServiceSearchVideosData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<VideoServiceSearchVideosResponse, VideoServiceSearchVideosError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<VideoServiceSearchVideosResponse, VideoServiceSearchVideosError, ThrowOnError>({
         url: '/api/video_service/search_videos',
         ...options,
         headers: {
@@ -244,7 +244,7 @@ export const videoServiceSearchVideos = <ThrowOnError extends boolean = false>(o
  * Upload a new artist asset.
  */
 export const assetServiceUploadAsset = <ThrowOnError extends boolean = false>(options: Options<AssetServiceUploadAssetData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AssetServiceUploadAssetResponse, AssetServiceUploadAssetError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AssetServiceUploadAssetResponse, AssetServiceUploadAssetError, ThrowOnError>({
         ...formDataBodySerializer,
         security: [
             {
@@ -266,7 +266,7 @@ export const assetServiceUploadAsset = <ThrowOnError extends boolean = false>(op
  * Get assets with optional filtering.
  */
 export const assetServiceGetAssets = <ThrowOnError extends boolean = false>(options: Options<AssetServiceGetAssetsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AssetServiceGetAssetsResponse, AssetServiceGetAssetsError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AssetServiceGetAssetsResponse, AssetServiceGetAssetsError, ThrowOnError>({
         url: '/api/asset_service/get_assets',
         ...options,
         headers: {
@@ -281,7 +281,7 @@ export const assetServiceGetAssets = <ThrowOnError extends boolean = false>(opti
  * Get assets uploaded by the current user.
  */
 export const assetServiceGetMyAssets = <ThrowOnError extends boolean = false>(options?: Options<AssetServiceGetMyAssetsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AssetServiceGetMyAssetsResponse, unknown, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AssetServiceGetMyAssetsResponse, unknown, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -298,7 +298,7 @@ export const assetServiceGetMyAssets = <ThrowOnError extends boolean = false>(op
  * Get a specific asset by ID.
  */
 export const assetServiceGetAsset = <ThrowOnError extends boolean = false>(options: Options<AssetServiceGetAssetData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AssetServiceGetAssetResponse, AssetServiceGetAssetError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AssetServiceGetAssetResponse, AssetServiceGetAssetError, ThrowOnError>({
         url: '/api/asset_service/get_asset',
         ...options,
         headers: {
@@ -313,7 +313,7 @@ export const assetServiceGetAsset = <ThrowOnError extends boolean = false>(optio
  * Update asset metadata (only by owner).
  */
 export const assetServiceUpdateAsset = <ThrowOnError extends boolean = false>(options: Options<AssetServiceUpdateAssetData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AssetServiceUpdateAssetResponse, AssetServiceUpdateAssetError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AssetServiceUpdateAssetResponse, AssetServiceUpdateAssetError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -334,7 +334,7 @@ export const assetServiceUpdateAsset = <ThrowOnError extends boolean = false>(op
  * Delete an asset (only by owner).
  */
 export const assetServiceDeleteAsset = <ThrowOnError extends boolean = false>(options: Options<AssetServiceDeleteAssetData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AssetServiceDeleteAssetResponse, AssetServiceDeleteAssetError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AssetServiceDeleteAssetResponse, AssetServiceDeleteAssetError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -355,7 +355,7 @@ export const assetServiceDeleteAsset = <ThrowOnError extends boolean = false>(op
  * Get list of available asset categories.
  */
 export const assetServiceGetAssetCategories = <ThrowOnError extends boolean = false>(options?: Options<AssetServiceGetAssetCategoriesData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AssetServiceGetAssetCategoriesResponse, unknown, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AssetServiceGetAssetCategoriesResponse, unknown, ThrowOnError>({
         url: '/api/asset_service/get_asset_categories',
         ...options
     });
@@ -366,7 +366,7 @@ export const assetServiceGetAssetCategories = <ThrowOnError extends boolean = fa
  * Search assets by name.
  */
 export const assetServiceSearchAssets = <ThrowOnError extends boolean = false>(options: Options<AssetServiceSearchAssetsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AssetServiceSearchAssetsResponse, AssetServiceSearchAssetsError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AssetServiceSearchAssetsResponse, AssetServiceSearchAssetsError, ThrowOnError>({
         url: '/api/asset_service/search_assets',
         ...options,
         headers: {
@@ -381,7 +381,7 @@ export const assetServiceSearchAssets = <ThrowOnError extends boolean = false>(o
  * Increment usage count when asset is used in collaboration.
  */
 export const assetServiceIncrementAssetUsage = <ThrowOnError extends boolean = false>(options: Options<AssetServiceIncrementAssetUsageData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AssetServiceIncrementAssetUsageResponse, AssetServiceIncrementAssetUsageError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AssetServiceIncrementAssetUsageResponse, AssetServiceIncrementAssetUsageError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -402,7 +402,7 @@ export const assetServiceIncrementAssetUsage = <ThrowOnError extends boolean = f
  * Start a new collaboration on a video.
  */
 export const collaborationServiceStartCollaboration = <ThrowOnError extends boolean = false>(options: Options<CollaborationServiceStartCollaborationData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CollaborationServiceStartCollaborationResponse, CollaborationServiceStartCollaborationError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<CollaborationServiceStartCollaborationResponse, CollaborationServiceStartCollaborationError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -423,7 +423,7 @@ export const collaborationServiceStartCollaboration = <ThrowOnError extends bool
  * Get collaborations for the current user.
  */
 export const collaborationServiceGetMyCollaborations = <ThrowOnError extends boolean = false>(options: Options<CollaborationServiceGetMyCollaborationsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CollaborationServiceGetMyCollaborationsResponse, CollaborationServiceGetMyCollaborationsError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<CollaborationServiceGetMyCollaborationsResponse, CollaborationServiceGetMyCollaborationsError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -444,7 +444,7 @@ export const collaborationServiceGetMyCollaborations = <ThrowOnError extends boo
  * Get collaborations on videos uploaded by the current user.
  */
 export const collaborationServiceGetCollaborationsForMyVideos = <ThrowOnError extends boolean = false>(options: Options<CollaborationServiceGetCollaborationsForMyVideosData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CollaborationServiceGetCollaborationsForMyVideosResponse, CollaborationServiceGetCollaborationsForMyVideosError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<CollaborationServiceGetCollaborationsForMyVideosResponse, CollaborationServiceGetCollaborationsForMyVideosError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -465,7 +465,7 @@ export const collaborationServiceGetCollaborationsForMyVideos = <ThrowOnError ex
  * Get a specific collaboration by ID.
  */
 export const collaborationServiceGetCollaboration = <ThrowOnError extends boolean = false>(options: Options<CollaborationServiceGetCollaborationData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CollaborationServiceGetCollaborationResponse, CollaborationServiceGetCollaborationError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<CollaborationServiceGetCollaborationResponse, CollaborationServiceGetCollaborationError, ThrowOnError>({
         url: '/api/collaboration_service/get_collaboration',
         ...options,
         headers: {
@@ -480,7 +480,7 @@ export const collaborationServiceGetCollaboration = <ThrowOnError extends boolea
  * Update collaboration status.
  */
 export const collaborationServiceUpdateCollaborationStatus = <ThrowOnError extends boolean = false>(options: Options<CollaborationServiceUpdateCollaborationStatusData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CollaborationServiceUpdateCollaborationStatusResponse, CollaborationServiceUpdateCollaborationStatusError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<CollaborationServiceUpdateCollaborationStatusResponse, CollaborationServiceUpdateCollaborationStatusError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -501,7 +501,7 @@ export const collaborationServiceUpdateCollaborationStatus = <ThrowOnError exten
  * Add an overlay to a collaboration.
  */
 export const collaborationServiceAddOverlayToCollaboration = <ThrowOnError extends boolean = false>(options: Options<CollaborationServiceAddOverlayToCollaborationData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CollaborationServiceAddOverlayToCollaborationResponse, CollaborationServiceAddOverlayToCollaborationError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<CollaborationServiceAddOverlayToCollaborationResponse, CollaborationServiceAddOverlayToCollaborationError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -522,7 +522,7 @@ export const collaborationServiceAddOverlayToCollaboration = <ThrowOnError exten
  * Get all overlays for a collaboration.
  */
 export const collaborationServiceGetCollaborationOverlays = <ThrowOnError extends boolean = false>(options: Options<CollaborationServiceGetCollaborationOverlaysData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CollaborationServiceGetCollaborationOverlaysResponse, CollaborationServiceGetCollaborationOverlaysError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<CollaborationServiceGetCollaborationOverlaysResponse, CollaborationServiceGetCollaborationOverlaysError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -543,7 +543,7 @@ export const collaborationServiceGetCollaborationOverlays = <ThrowOnError extend
  * Update an overlay (only by the artist who created it).
  */
 export const collaborationServiceUpdateOverlay = <ThrowOnError extends boolean = false>(options: Options<CollaborationServiceUpdateOverlayData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CollaborationServiceUpdateOverlayResponse, CollaborationServiceUpdateOverlayError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<CollaborationServiceUpdateOverlayResponse, CollaborationServiceUpdateOverlayError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -564,7 +564,7 @@ export const collaborationServiceUpdateOverlay = <ThrowOnError extends boolean =
  * Delete an overlay (only by the artist who created it).
  */
 export const collaborationServiceDeleteOverlay = <ThrowOnError extends boolean = false>(options: Options<CollaborationServiceDeleteOverlayData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<CollaborationServiceDeleteOverlayResponse, CollaborationServiceDeleteOverlayError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<CollaborationServiceDeleteOverlayResponse, CollaborationServiceDeleteOverlayError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -585,7 +585,7 @@ export const collaborationServiceDeleteOverlay = <ThrowOnError extends boolean =
  * Queue a new render job for a collaboration.
  */
 export const renderServiceQueueRender = <ThrowOnError extends boolean = false>(options: Options<RenderServiceQueueRenderData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<RenderServiceQueueRenderResponse, RenderServiceQueueRenderError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<RenderServiceQueueRenderResponse, RenderServiceQueueRenderError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -606,7 +606,7 @@ export const renderServiceQueueRender = <ThrowOnError extends boolean = false>(o
  * Get the status of a render job.
  */
 export const renderServiceGetRenderStatus = <ThrowOnError extends boolean = false>(options: Options<RenderServiceGetRenderStatusData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<RenderServiceGetRenderStatusResponse, RenderServiceGetRenderStatusError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<RenderServiceGetRenderStatusResponse, RenderServiceGetRenderStatusError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -627,7 +627,7 @@ export const renderServiceGetRenderStatus = <ThrowOnError extends boolean = fals
  * Get all renders for a collaboration.
  */
 export const renderServiceGetCollaborationRenders = <ThrowOnError extends boolean = false>(options: Options<RenderServiceGetCollaborationRendersData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<RenderServiceGetCollaborationRendersResponse, RenderServiceGetCollaborationRendersError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<RenderServiceGetCollaborationRendersResponse, RenderServiceGetCollaborationRendersError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -648,7 +648,7 @@ export const renderServiceGetCollaborationRenders = <ThrowOnError extends boolea
  * Cancel a queued or processing render.
  */
 export const renderServiceCancelRender = <ThrowOnError extends boolean = false>(options: Options<RenderServiceCancelRenderData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<RenderServiceCancelRenderResponse, RenderServiceCancelRenderError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<RenderServiceCancelRenderResponse, RenderServiceCancelRenderError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -669,7 +669,7 @@ export const renderServiceCancelRender = <ThrowOnError extends boolean = false>(
  * Retry a failed render.
  */
 export const renderServiceRetryRender = <ThrowOnError extends boolean = false>(options: Options<RenderServiceRetryRenderData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<RenderServiceRetryRenderResponse, RenderServiceRetryRenderError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<RenderServiceRetryRenderResponse, RenderServiceRetryRenderError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -690,7 +690,7 @@ export const renderServiceRetryRender = <ThrowOnError extends boolean = false>(o
  * Get general render queue statistics.
  */
 export const renderServiceGetRenderQueueStatus = <ThrowOnError extends boolean = false>(options?: Options<RenderServiceGetRenderQueueStatusData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<RenderServiceGetRenderQueueStatusResponse, unknown, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<RenderServiceGetRenderQueueStatusResponse, unknown, ThrowOnError>({
         url: '/api/render_service/get_render_queue_status',
         ...options
     });
@@ -701,7 +701,7 @@ export const renderServiceGetRenderQueueStatus = <ThrowOnError extends boolean =
  * Get overlay recommendations for a video with multiple recommendation strategies.
  */
 export const recommendationEngineGetVideoOverlayRecommendations = <ThrowOnError extends boolean = false>(options: Options<RecommendationEngineGetVideoOverlayRecommendationsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<RecommendationEngineGetVideoOverlayRecommendationsResponse, RecommendationEngineGetVideoOverlayRecommendationsError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<RecommendationEngineGetVideoOverlayRecommendationsResponse, RecommendationEngineGetVideoOverlayRecommendationsError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -722,7 +722,7 @@ export const recommendationEngineGetVideoOverlayRecommendations = <ThrowOnError 
  * Get recommendations similar to a specific asset.
  */
 export const recommendationEngineGetSimilarStyleRecommendations = <ThrowOnError extends boolean = false>(options: Options<RecommendationEngineGetSimilarStyleRecommendationsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<RecommendationEngineGetSimilarStyleRecommendationsResponse, RecommendationEngineGetSimilarStyleRecommendationsError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<RecommendationEngineGetSimilarStyleRecommendationsResponse, RecommendationEngineGetSimilarStyleRecommendationsError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -743,7 +743,7 @@ export const recommendationEngineGetSimilarStyleRecommendations = <ThrowOnError 
  * Track user interaction with recommendations for learning.
  */
 export const recommendationEngineTrackRecommendationInteraction = <ThrowOnError extends boolean = false>(options: Options<RecommendationEngineTrackRecommendationInteractionData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<RecommendationEngineTrackRecommendationInteractionResponse, RecommendationEngineTrackRecommendationInteractionError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<RecommendationEngineTrackRecommendationInteractionResponse, RecommendationEngineTrackRecommendationInteractionError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -764,7 +764,7 @@ export const recommendationEngineTrackRecommendationInteraction = <ThrowOnError 
  * Analyze a video and return AI-powered overlay recommendations.
  */
 export const aiAnalysisServiceAnalyzeVideoForOverlays = <ThrowOnError extends boolean = false>(options: Options<AiAnalysisServiceAnalyzeVideoForOverlaysData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AiAnalysisServiceAnalyzeVideoForOverlaysResponse, AiAnalysisServiceAnalyzeVideoForOverlaysError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AiAnalysisServiceAnalyzeVideoForOverlaysResponse, AiAnalysisServiceAnalyzeVideoForOverlaysError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
@@ -785,7 +785,7 @@ export const aiAnalysisServiceAnalyzeVideoForOverlays = <ThrowOnError extends bo
  * Get AI-recommended overlays for a specific video.
  */
 export const aiAnalysisServiceGetSmartOverlayRecommendations = <ThrowOnError extends boolean = false>(options: Options<AiAnalysisServiceGetSmartOverlayRecommendationsData, ThrowOnError>) => {
-    return (options?.client ?? _heyApiClient).post<AiAnalysisServiceGetSmartOverlayRecommendationsResponse, AiAnalysisServiceGetSmartOverlayRecommendationsError, ThrowOnError>({
+    return (options as any)?.client ?? _heyApiClient.post<AiAnalysisServiceGetSmartOverlayRecommendationsResponse, AiAnalysisServiceGetSmartOverlayRecommendationsError, ThrowOnError>({
         security: [
             {
                 scheme: 'bearer',
