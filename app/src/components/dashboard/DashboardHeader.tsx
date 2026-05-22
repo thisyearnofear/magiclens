@@ -1,7 +1,8 @@
 import React from 'react';
+import { ConnectWallet } from '@/components/ConnectWallet';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, User, Zap } from 'lucide-react';
+import { Menu, Zap } from 'lucide-react';
 import { UserProfile } from '@/lib/sdk';
 
 interface DashboardHeaderProps {
@@ -12,10 +13,6 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ isGuest, profile, onDisconnect, onNavigate }: DashboardHeaderProps) {
-  const handleConnectWallet = () => {
-    window.location.href = '/';
-  };
-
   const navLinks = [
     { label: 'Browse Videos', path: '/videos' },
     { label: 'Asset Library', path: '/assets' },
@@ -39,13 +36,7 @@ export function DashboardHeader({ isGuest, profile, onDisconnect, onNavigate }: 
               </Button>
             ))}
             {isGuest ? (
-              <Button
-                onClick={handleConnectWallet}
-                className="bg-yellow-400 text-black hover:bg-yellow-500 flex items-center gap-2"
-              >
-                <User className="h-4 w-4" />
-                Connect Wallet
-              </Button>
+              <ConnectWallet />
             ) : (
               <Button variant="secondary" onClick={onDisconnect} className="bg-white/10 text-white hover:bg-white/20">
                 Sign Out
@@ -69,13 +60,7 @@ export function DashboardHeader({ isGuest, profile, onDisconnect, onNavigate }: 
                     </Button>
                   ))}
                   {isGuest ? (
-                    <Button
-                      onClick={handleConnectWallet}
-                      className="bg-yellow-400 text-black hover:bg-yellow-500 flex items-center gap-2"
-                    >
-                      <User className="h-4 w-4" />
-                      Connect Wallet
-                    </Button>
+                    <ConnectWallet />
                   ) : (
                     <Button variant="secondary" onClick={onDisconnect} className="bg-white/10 text-white hover:bg-white/20">
                       Sign Out

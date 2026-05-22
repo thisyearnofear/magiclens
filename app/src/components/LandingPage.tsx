@@ -1,13 +1,13 @@
 import React from 'react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAuthContext } from '@/auth/AuthProvider';
+import { ConnectWallet } from '@/components/ConnectWallet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Upload, Users, X, Zap, Play, Palette, TrendingUp, Trophy } from 'lucide-react';
 import { StatsBar } from '@/components/StatsBar';
 
 export default function LandingPage() {
-  const { login, continueAsGuest } = useAuthContext();
+  const { continueAsGuest } = useAuthContext();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -22,28 +22,8 @@ export default function LandingPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="hidden md:block">
-              <ConnectButton.Custom>
-                {({ openConnectModal, account }) => (
-                  account?.address ? (
-                    <span className="text-white/70 text-sm">EVM: {account.displayName}</span>
-                  ) : (
-                    <Button
-                      onClick={openConnectModal}
-                      variant="secondary"
-                      size="sm"
-                      className="bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                    >
-                      OKX Wallet / EVM
-                    </Button>
-                  )
-                )}
-              </ConnectButton.Custom>
-            </div>
-            <Button onClick={login} variant="secondary" className="bg-white/10 text-white hover:bg-white/20">
-              Connect Flow Wallet
-            </Button>
-            <Button onClick={continueAsGuest} variant="ghost" className="text-white hover:bg-white/10">
+            <ConnectWallet />
+            <Button onClick={continueAsGuest} variant="ghost" className="text-white hover:bg-white/10 hidden sm:inline-flex">
               Guest
             </Button>
           </div>
@@ -65,22 +45,7 @@ export default function LandingPage() {
           and earn USDT. Top remixes become premium <strong className="text-white">Flow</strong> "Iconic Moment" NFTs.
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
-          <ConnectButton.Custom>
-            {({ openConnectModal, account }) => (
-              <Button
-                onClick={openConnectModal}
-                size="lg"
-                className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold"
-              >
-                {account?.address
-                  ? `${account.displayName} — Connected`
-                  : 'Connect Wallet & Mint'}
-              </Button>
-            )}
-          </ConnectButton.Custom>
-          <Button onClick={login} variant="secondary" size="lg" className="bg-white/10 text-white hover:bg-white/20">
-            Connect Flow Wallet
-          </Button>
+          <ConnectWallet />
           <Button onClick={continueAsGuest} variant="ghost" size="lg" className="text-white hover:bg-white/10">
             Explore as Guest
           </Button>
@@ -216,20 +181,7 @@ export default function LandingPage() {
             Launching with FIFA World Cup 2026. Next: Wimbledon, NBA Finals, F1, Olympics LA 2028.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <ConnectButton.Custom>
-              {({ openConnectModal }) => (
-                <Button
-                  onClick={openConnectModal}
-                  size="lg"
-                  className="bg-yellow-400 text-black hover:bg-yellow-500"
-                >
-                  Connect Wallet & Get Started
-                </Button>
-              )}
-            </ConnectButton.Custom>
-            <Button onClick={login} variant="secondary" size="lg" className="bg-white/10 text-white hover:bg-white/20">
-              Connect Flow Wallet
-            </Button>
+            <ConnectWallet />
             <Button onClick={continueAsGuest} variant="ghost" size="lg" className="text-white hover:bg-white/10">
               Explore as Guest
             </Button>

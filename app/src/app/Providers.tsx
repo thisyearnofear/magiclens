@@ -6,6 +6,7 @@ import { RainbowKitProvider, darkTheme, lightTheme } from '@rainbow-me/rainbowki
 import { wagmiConfig } from '@/lib/web3/wagmi-config';
 import { AuthProvider } from '@/auth/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { RainbowBridge } from '@/components/RainbowBridge';
 import { Toaster } from '@/components/ui/sonner';
 import '@/lib/flow/fcl-config';
 import '@rainbow-me/rainbowkit/styles.css';
@@ -36,6 +37,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <ThemeProvider>
             <AuthProvider>
               {children}
+              <RainbowBridge />
               <Toaster />
             </AuthProvider>
           </ThemeProvider>
