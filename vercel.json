@@ -1,4 +1,4 @@
 {
-  "installCommand": "cd app && npm install --legacy-peer-deps",
-  "buildCommand": "cd app && npx next build"
+  "rootDirectory": "app",
+  "installCommand": "npm install --legacy-peer-deps"
 }
