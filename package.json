@@ -1,6 +1,9 @@
 {
   "private": true,
-  "devDependencies": {
-    "next": "16.2.6"
+  "workspaces": ["app"],
+  "scripts": {
+    "build": "cd app && npx next build",
+    "dev": "cd app && npx next dev",
+    "start": "cd app && npx next start"
   }
 }
