@@ -7,7 +7,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit --skipLibCheck",
+    "contracts:compile": "cd blockchain && npx hardhat compile",
+    "contracts:test": "cd blockchain && npx hardhat test",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "eslint --fix"
+    ],
+    "blockchain/contracts/**/*.sol": [
+      "bash -c 'cd blockchain && npx hardhat compile'"
+    ]
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -110,6 +122,8 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.0.5",
     "postcss": "^8.5.1",
     "tailwindcss": "3.4.17",
     "typescript": "~5.6.2",

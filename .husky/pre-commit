@@ -1,0 +1,8 @@
+# Secrets scan (fast, runs on every commit)
+bash scripts/check-secrets.sh
+
+# Lint staged files + compile Solidity on changes
+npx lint-staged
+
+# Type check (catches type errors before they reach CI)
+npx tsc --noEmit --skipLibCheck
