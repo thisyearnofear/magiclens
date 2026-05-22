@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  distDir: '../.next',
   transpilePackages: [
     '@rainbow-me/rainbowkit',
     '@wagmi/core',
