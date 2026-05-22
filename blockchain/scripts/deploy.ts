@@ -44,9 +44,8 @@ async function main() {
   const RemixNFT = await ethers.getContractFactory("RemixNFT");
   const remixNFT = await RemixNFT.deploy(
     deployer.address,      // initialOwner
-    worldCupPackAddr,      // worldCupPackAddress
-    0,                     // mintFee (0 = free during hackathon)
-    250                    // royaltyBps (2.5% = 250 bps)
+    worldCupPackAddr,      // worldCupPackAddress (for boost checks)
+    250                    // royaltyBps (2.5%)
   );
   await remixNFT.waitForDeployment();
   const remixNFTAddr = await remixNFT.getAddress();
@@ -54,7 +53,6 @@ async function main() {
 
   // ── 3. FanCastRewards ──────────────────────────────────
   console.log("\n🏆 Deploying FanCastRewards...");
-
   const FanCastRewards = await ethers.getContractFactory("FanCastRewards");
   const fanCastRewards = await FanCastRewards.deploy(
     deployer.address,      // initialOwner
@@ -64,6 +62,13 @@ async function main() {
   await fanCastRewards.waitForDeployment();
   const fanCastRewardsAddr = await fanCastRewards.getAddress();
   console.log("FanCastRewards deployed to:", fanCastRewardsAddr);
+
+  // ── 4. Fund rewards pool ───────────────────────────────
+  console.log("\n💰 Funding rewards pool...");
+  const usdt = await ethers.getContractAt("MockUSDT", usdtAddress);
+  await usdt.approve(fanCastRewardsAddr, ethers.parseUnits("1000", 6));
+  await fanCastRewards.depositTreasury(ethers.parseUnits("1000", 6));
+  console.log("Deposited 1,000 MockUSDT into FanCastRewards");
 
   // ── Summary ────────────────────────────────────────────
   console.log("\n═══════════════════════════════════════════");
@@ -77,7 +82,6 @@ async function main() {
   console.log(`Chain ID:         ${(await ethers.provider.getNetwork()).chainId}`);
   console.log("═══════════════════════════════════════════\n");
 
-  // Output as env-friendly format
   console.log("Env vars for frontend:");
   console.log(`VITE_WORLDCUP_PACK_ADDRESS=${worldCupPackAddr}`);
   console.log(`VITE_REMIX_NFT_ADDRESS=${remixNFTAddr}`);
