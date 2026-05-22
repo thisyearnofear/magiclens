@@ -35,11 +35,14 @@ logging-server/.env
 Thumbs.db
 
 # Next.js build output
-app/.next/
-app/next-env.d.ts
+.next/
+next-env.d.ts
+
+# Dependencies
+node_modules/
 
 # Package manager lock files (Vercel uses npm)
-app/pnpm-lock.yaml
+pnpm-lock.yaml
 
 # Blockchain
 blockchain/artifacts/
