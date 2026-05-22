@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Medal, Zap, DollarSign } from 'lucide-react';
+import { getUserRemixes } from '@/lib/remix-store';
 
 const DEMO_LEADERBOARD = [
   { rank: 1, title: 'Argentina Goal Messi', creator: '@fan42', votes: 2847, reward: '$30 USDT', color: 'text-yellow-400' },
@@ -23,8 +24,44 @@ const RANK_BADGES: Record<number, { icon: React.ReactNode; className: string }> 
   3: { icon: <Medal className="h-5 w-5" />, className: 'bg-amber-600 text-white' },
 };
 
+interface LeaderboardEntry {
+  rank: number;
+  title: string;
+  creator: string;
+  votes: number;
+  reward: string;
+  color: string;
+  isUser?: boolean;
+}
+
 export default function Leaderboard() {
   const router = useRouter();
+  const [entries, setEntries] = useState<LeaderboardEntry[]>(DEMO_LEADERBOARD);
+
+  useEffect(() => {
+    const userRemixes = getUserRemixes();
+    if (userRemixes.length === 0) {
+      setEntries(DEMO_LEADERBOARD);
+      return;
+    }
+
+    const userEntries: LeaderboardEntry[] = userRemixes.map((r) => ({
+      rank: 0,
+      title: r.title,
+      creator: r.creator,
+      votes: r.votes,
+      reward: '',
+      color: 'text-gray-400',
+      isUser: true,
+    }));
+
+    // Merge and sort by votes descending
+    const merged = [...DEMO_LEADERBOARD, ...userEntries]
+      .sort((a, b) => b.votes - a.votes)
+      .map((entry, idx) => ({ ...entry, rank: idx + 1 }));
+
+    setEntries(merged);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -57,14 +94,14 @@ export default function Leaderboard() {
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-0">
             <div className="divide-y divide-white/5">
-              {DEMO_LEADERBOARD.map((entry) => {
+              {entries.map((entry) => {
                 const badge = RANK_BADGES[entry.rank];
                 return (
                   <div
-                    key={entry.rank}
+                    key={`${entry.title}-${entry.rank}`}
                     className={`flex items-center gap-4 p-4 hover:bg-white/5 transition-colors ${
                       entry.rank <= 3 ? 'bg-yellow-400/5' : ''
-                    }`}
+                    } ${entry.isUser ? 'ring-1 ring-green-400/40 bg-green-400/5' : ''}`}
                   >
                     {/* Rank */}
                     <div className="w-10 text-center">
@@ -81,6 +118,11 @@ export default function Leaderboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="text-white font-medium truncate">{entry.title}</h3>
+                        {entry.isUser && (
+                          <Badge className="bg-green-500/20 text-green-300 text-xs border border-green-500/30">
+                            You
+                          </Badge>
+                        )}
                         {entry.rank <= 3 && (
                           <Zap className="h-4 w-4 text-yellow-400 flex-shrink-0" />
                         )}
@@ -96,16 +138,18 @@ export default function Leaderboard() {
 
                     {/* Reward */}
                     <div className="w-24 text-right">
-                      <div className="text-yellow-400 font-semibold text-sm flex items-center justify-end gap-1">
-                        <DollarSign className="h-3 w-3" />
-                        {entry.reward}
-                      </div>
+                      {entry.reward && (
+                        <div className="text-yellow-400 font-semibold text-sm flex items-center justify-end gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          {entry.reward}
+                        </div>
+                      )}
                     </div>
 
                     {/* Flow badge for top 3 */}
                     {entry.rank <= 3 && (
                       <Badge className="bg-blue-500/20 text-blue-300 text-xs border border-blue-500/30">
-                        🏆 Iconic
+                        Iconic
                       </Badge>
                     )}
                   </div>

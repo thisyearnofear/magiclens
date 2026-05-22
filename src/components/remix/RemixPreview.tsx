@@ -9,9 +9,10 @@ interface RemixPreviewProps {
   packNames: string[];
   onBack: () => void;
   onMint: () => void;
+  isMinting?: boolean;
 }
 
-export function RemixPreview({ clipTitle, packNames, onBack, onMint }: RemixPreviewProps) {
+export function RemixPreview({ clipTitle, packNames, onBack, onMint, isMinting }: RemixPreviewProps) {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
@@ -65,8 +66,8 @@ export function RemixPreview({ clipTitle, packNames, onBack, onMint }: RemixPrev
         <Button variant="ghost" onClick={onBack} className="text-white">
           <ArrowLeft className="h-4 w-4 mr-2" /> Adjust Overlays
         </Button>
-        <Button onClick={onMint} size="lg" className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold">
-          <Zap className="h-5 w-5 mr-2" /> Mint Remix on X Layer
+        <Button onClick={onMint} size="lg" disabled={isMinting} className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold disabled:opacity-50">
+          <Zap className="h-5 w-5 mr-2" /> {isMinting ? 'Minting...' : 'Mint Remix on X Layer'}
         </Button>
       </div>
     </div>

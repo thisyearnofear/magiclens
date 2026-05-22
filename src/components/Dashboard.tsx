@@ -7,7 +7,6 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { GuestBanner } from '@/components/dashboard/GuestBanner';
 import { WelcomeSection } from '@/components/dashboard/WelcomeSection';
 import { GettingStartedChecklist } from '@/components/dashboard/GettingStartedChecklist';
-import { GuestFeatureCards } from '@/components/dashboard/GuestFeatureCards';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import { VideoGrid } from '@/components/dashboard/VideoGrid';
@@ -19,7 +18,6 @@ import { EventCard } from '@/components/dashboard/EventCard';
 import { StatsBar } from '@/components/StatsBar';
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/hooks/useNotifications';
-import { Info } from 'lucide-react';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -66,7 +64,7 @@ export default function Dashboard() {
   if(!profile)return null;
 
   const isNewUser=!isGuest&&profile.bio==='Welcome to MagicLens! Update your profile to get started.';
-  const goHome=()=>{window.location.href='/';};
+  const goHome=()=>{router.push('/');};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -91,10 +89,8 @@ export default function Dashboard() {
         {isGuest&&<GuestBanner onConnect={goHome} />}
         <WelcomeSection isGuest={isGuest} profile={profile} />
       {isNewUser&&<GettingStartedChecklist onNavigate={(p:string)=>router.push(p)} />}
-      {isGuest&&<GuestFeatureCards />}
       <QuickActions isGuest={isGuest} userType={profile.user_type} onNavigate={(p:string)=>router.push(p)} onShowGallery={()=>setShowGallery(true)} />
         {error&&<div className="mb-8 p-4 rounded-lg bg-red-500/20 border border-red-500/30"><div className="flex items-start space-x-3"><div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5"><span className="text-white text-xs">!</span></div><div><h4 className="text-white font-medium">Connection Issue</h4><p className="text-gray-400 text-sm mt-1">{error}</p><Button variant="outline" size="sm" className="mt-2 border-red-500/30 text-red-400 hover:bg-red-500/10" onClick={()=>window.location.reload()}>Retry</Button></div></div></div>}
-        {isGuest&&<div className="mb-8 p-4 rounded-lg bg-gray-800/50 border border-gray-700"><div className="flex items-start space-x-3"><Info className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" /><div><h4 className="text-white font-medium">Guest Mode Limitations</h4><p className="text-gray-400 text-sm mt-1">In guest mode, you can browse content and explore features, but uploads, collaborations, and earnings are disabled. Connect your Flow wallet to unlock the full MagicLens experience.</p></div></div></div>}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 xl:gap-8">
           <ActivityFeed />
           <VideoGrid videos={recentVideos} onEdit={handleEdit} onDelete={handleDelete} onNavigate={(p:string)=>router.push(p)} />

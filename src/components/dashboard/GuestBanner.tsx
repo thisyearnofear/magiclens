@@ -12,7 +12,7 @@ export function GuestBanner({ onConnect }: GuestBannerProps) {
         <div className="flex-1">
           <h3 className="text-lg font-bold text-white mb-1">Guest Mode</h3>
           <p className="text-gray-300 text-sm">
-            Explore MagicLens features. Connect your Flow wallet to unlock full platform capabilities.
+            You&apos;re browsing in guest mode — minting, earning rewards, and collaborations are locked. Connect your Flow wallet to unlock everything.
           </p>
         </div>
         <Button

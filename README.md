@@ -11,7 +11,7 @@ MagicLens turns every iconic sports moment into a mintable, remixable, ownable p
 
 ## 🧱 Architecture
 
-**Frontend:** React + Vite + MediaPipe pose detection + AR editor
+**Frontend:** Next.js 15 (App Router) + MediaPipe pose detection + AR editor
 **Onchain:** X Layer (EVM, hackathon venue) **+** Flow (Cadence + EVM, consumer UX home), unified via FCL + wagmi RainbowKit adapter (one connect button, no chain pickers)
 **Backend:**
 - **Main API Service** (Python/FastAPI) - Core business logic and REST API
@@ -37,14 +37,14 @@ cd services && pip install -r requirements.txt && python main.py
 cd logging-server && pip install -e . && python logging-server.py
 
 # Terminal 3: Collaboration Server
-cd app/server && node index.js
+cd server && node index.js
 
-# 4. Frontend
-cd app && pnpm install && cp .env.example .env && pnpm dev
+# 4. Frontend (from repo root)
+npm install --legacy-peer-deps && cp .env.example .env && npm run dev
 ```
 
 ### 🎉 Services Running
-- **Frontend**: http://localhost:5173
+- **Frontend**: http://localhost:3000
 - **Main API Service**: http://localhost:8000
 - **Logging Server**: http://localhost:9000
 - **Collaboration Server**: http://localhost:3001
@@ -80,10 +80,11 @@ All documentation is available in the [`docs/`](./docs) directory:
 
 ## 🔐 Authentication Flow
 
-MagicLens uses a hybrid authentication system combining Flow blockchain with JWT tokens:
+MagicLens uses a hybrid authentication system combining blockchain wallets with JWT tokens:
 
-1. **Flow Wallet Connection** → **Signature Request** → **Backend Verification** 
-2. **JWT Token Generation** → **Token Storage** → **API Authentication**
+1. **EVM/OKX Wallet via RainbowKit** (primary for hackathon) → **Signature Request** → **Backend Verification**
+2. **Flow Wallet Connection** (secondary, for Cadence NFT minting) → **FCL Auth** → **Backend Verification**
+3. **JWT Token Generation** → **Token Storage** → **API Authentication**
 
 ## 🤝 Contributing
 

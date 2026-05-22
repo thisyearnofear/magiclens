@@ -9,6 +9,9 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import { RemixPreview } from '@/components/remix/RemixPreview';
 import { MintConfirmation } from '@/components/remix/MintConfirmation';
 import { Zap } from 'lucide-react';
+import { useAuthContext } from '@/auth';
+import { useMintRemix } from '@/hooks/useMintRemix';
+import { addRemix } from '@/lib/remix-store';
 import type { SelectedOverlay, OverlayDefinition } from '@/hooks/usePack';
 import type { Video } from '@/lib/sdk';
 
@@ -32,22 +35,47 @@ const OVERLAY_NAMES: Record<string, string> = {
 
 export default function RemixFlow() {
   const router = useRouter();
+  const { isConnected, chain, evmAddress, isWrongNetwork } = useAuthContext();
+  const { mintRemix, isMinting } = useMintRemix();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [clip, setClip] = useState<{ title: string; id: string } | null>(null);
   const [selectedOverlays, setSelectedOverlays] = useState<SelectedOverlay[]>([]);
   const [mintTx, setMintTx] = useState<string | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
   const [leaderboardRank] = useState<number | null>(3);
 
   const goForward = () => { setDirection(1); setStep(s => s + 1); };
   const goBack = () => { setDirection(-1); setStep(s => s - 1); };
 
   const handleMint = async () => {
-    // Simulate minting with a realistic-looking tx hash
-    setMintTx('0x' + Array.from({ length: 64 }, () =>
-      Math.floor(Math.random() * 16).toString(16)
-    ).join(''));
-    goForward();
+    const evmReady = isConnected && chain === 'evm' && !isWrongNetwork;
+
+    const clipTitle = clip?.title || 'Match Moment';
+    const creator = evmAddress ? `${evmAddress.slice(0, 6)}...${evmAddress.slice(-4)}` : '@you';
+
+    if (evmReady) {
+      // Real on-chain mint
+      const hash = await mintRemix(
+        clipTitle,
+        selectedOverlays.map(o => o.id),
+      );
+      if (hash) {
+        setIsDemo(false);
+        setMintTx(hash);
+        addRemix({ title: clipTitle, txHash: hash, creator });
+        goForward();
+      }
+    } else {
+      // Simulated fallback for demo
+      setIsDemo(true);
+      const hash = '0x' + Array.from({ length: 64 }, () =>
+        Math.floor(Math.random() * 16).toString(16)
+      ).join('');
+      setMintTx(hash);
+      addRemix({ title: clipTitle, txHash: hash, creator });
+      goForward();
+    }
   };
 
   return (
@@ -129,27 +157,54 @@ export default function RemixFlow() {
           )}
 
           {step === 2 && clip && (
-            <RemixPreview
-              clipTitle={clip.title}
-              packNames={selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name)}
-              onBack={goBack}
-              onMint={handleMint}
-            />
+            <div>
+              {(!isConnected || chain !== 'evm') && (
+                <div className="max-w-4xl mx-auto px-4 pt-4">
+                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-center text-yellow-300 text-sm">
+                    EVM wallet not connected — minting will run in demo mode.
+                  </div>
+                </div>
+              )}
+              {isConnected && chain === 'evm' && isWrongNetwork && (
+                <div className="max-w-4xl mx-auto px-4 pt-4">
+                  <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 text-center text-orange-300 text-sm">
+                    Wrong network — please switch to X Layer testnet for on-chain minting.
+                  </div>
+                </div>
+              )}
+              <RemixPreview
+                clipTitle={clip.title}
+                packNames={selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name)}
+                onBack={goBack}
+                onMint={handleMint}
+                isMinting={isMinting}
+              />
+            </div>
           )}
 
           {step === 3 && (
-            <MintConfirmation
-              txHash={mintTx}
-              leaderboardRank={leaderboardRank}
-              onViewLeaderboard={() => router.push('/leaderboard')}
-              onCreateAnother={() => {
-                setDirection(1);
-                setStep(0);
-                setClip(null);
-                setSelectedOverlays([]);
-                setMintTx(null);
-              }}
-            />
+            <div>
+              {isDemo && (
+                <div className="max-w-4xl mx-auto px-4 pt-4">
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-center text-blue-300 text-sm">
+                    (Demo) — This transaction was simulated. Connect an EVM wallet to mint on-chain.
+                  </div>
+                </div>
+              )}
+              <MintConfirmation
+                txHash={mintTx}
+                leaderboardRank={leaderboardRank}
+                onViewLeaderboard={() => router.push('/leaderboard')}
+                onCreateAnother={() => {
+                  setDirection(1);
+                  setStep(0);
+                  setClip(null);
+                  setSelectedOverlays([]);
+                  setMintTx(null);
+                  setIsDemo(false);
+                }}
+              />
+            </div>
           )}
         </motion.div>
       </AnimatePresence>
