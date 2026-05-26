@@ -250,6 +250,43 @@ export default function Leaderboard() {
           </motion.div>
         )}
 
+        {/* Your Remixes */}
+        {entries.filter(e => e.isUser).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4"
+          >
+            <Card className="bg-green-500/5 border-green-400/20">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="h-4 w-4 text-green-400" />
+                  <h3 className="text-white text-sm font-semibold">Your Remixes</h3>
+                </div>
+                <div className="space-y-2">
+                  {entries.filter(e => e.isUser).map(entry => (
+                    <div key={entry.tokenId} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className={`text-xs font-bold w-6 text-center ${
+                          entry.rank <= 3 ? 'text-yellow-400' : 'text-gray-500'
+                        }`}>#{entry.rank}</span>
+                        <div className="min-w-0">
+                          <p className="text-white text-sm font-medium truncate">{entry.title}</p>
+                          <p className="text-gray-500 text-[10px]">{entry.creator}</p>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0 ml-3">
+                        <p className="text-white text-xs font-mono">{entry.votes.toLocaleString()}</p>
+                        <p className="text-gray-500 text-[10px]">votes</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Leaderboard table */}
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-0">
