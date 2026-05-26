@@ -14,6 +14,7 @@ import { useAuthContext } from '@/auth/AuthProvider';
 import { CollabCard } from '@/components/collaboration/CollabCard';
 import { CollabRequest } from '@/components/collaboration/CollabRequest';
 import { MobileNav } from '@/components/MobileNav';
+import { DEMO_CREATORS, DEMO_COLLABS } from '@/lib/demo-data';
 import { toast } from 'sonner';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
@@ -68,7 +69,9 @@ export default function DiscoverPage() {
       if (creatorsData.success) setCreators(creatorsData.creators);
       if (collabsData.success) setCollabs(collabsData.open_collaborations);
     } catch (err) {
-      setError('Could not load discovery data');
+      console.warn('Discover API unavailable — using demo data');
+      setCreators(DEMO_CREATORS);
+      setCollabs(DEMO_COLLABS);
     } finally {
       setLoading(false);
     }

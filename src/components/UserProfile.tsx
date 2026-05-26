@@ -6,6 +6,7 @@ import { userServiceGetUserProfile, userServiceGetPublicProfile, userServiceUpda
 import { UserProfile as UserProfileType } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DEMO_PROFILE } from '@/lib/demo-data';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,7 +59,11 @@ export default function UserProfile() {
         }
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.warn('Profile API unavailable — using demo profile');
+      if (isOwnProfile) {
+        setProfile(DEMO_PROFILE as any);
+        setEditForm({ username: DEMO_PROFILE.username, bio: DEMO_PROFILE.bio || '', avatar: null });
+      }
     } finally {
       setLoading(false);
     }

@@ -78,7 +78,7 @@ export default function Leaderboard() {
     if (cycleStatus !== 'closed' && cycleStatus !== 'promoting') return;
     const interval = setInterval(async () => {
       try {
-        const { default: { getLeaderboardDayStatus } } = await import('@/lib/crossvm-client');
+        const { getLeaderboardDayStatus } = await import('@/lib/crossvm-client');
         const data = await getLeaderboardDayStatus(1);
         if (data.success) {
           setCycleStatus(data.day_status.status);
