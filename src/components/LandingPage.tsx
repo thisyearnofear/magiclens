@@ -4,9 +4,10 @@ import { useAuthContext } from '@/auth/AuthProvider';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Upload, Users, X, Zap, Play, Palette, TrendingUp, Trophy, Sparkles, Medal, ArrowRight } from 'lucide-react';
+import { Check, X, Zap, Play, TrendingUp, Trophy, Medal, ArrowRight } from 'lucide-react';
 import { StatsBar } from '@/components/StatsBar';
-import { OnboardingToast } from '@/components/OnboardingToast';
+import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
+import { ScrollRevealSection } from '@/components/ScrollRevealSection';
 
 export default function LandingPage() {
   const { continueAsGuest } = useAuthContext();
@@ -256,43 +257,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="container mx-auto px-4 py-20">
-        <h3 className="text-3xl sm:text-4xl font-bold text-white text-center mb-12">How It Works</h3>
-        <div className="grid md:grid-cols-3 gap-8">
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <Play className="h-12 w-12 text-blue-400 mb-4" />
-              <CardTitle className="text-white">1. Choose a Match Moment</CardTitle>
-              <CardDescription className="text-gray-300">
-                Pick a World Cup clip or upload your own. Our pose detector finds the action.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+      <ScrollRevealSection />
 
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <Palette className="h-12 w-12 text-purple-400 mb-4" />
-              <CardTitle className="text-white">2. Drop AR Overlays</CardTitle>
-              <CardDescription className="text-gray-300">
-                Add flag halos, "GOAL!" lower-thirds, trophy confetti, or GIFs — all pose-aware.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <Trophy className="h-12 w-12 text-green-400 mb-4" />
-              <CardTitle className="text-white">3. Mint & Climb the Ranks</CardTitle>
-              <CardDescription className="text-gray-300">
-                One-click mint on X Layer. Top-10 earn USDT daily. Top-3 become Flow Iconic Moments.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      </section>
-
-      <OnboardingToast />
+      <OnboardingWizard />
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 text-center">

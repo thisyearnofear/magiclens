@@ -34,9 +34,11 @@ interface CollabCardProps {
   collab: OpenCollaboration;
   onStartCollab: (videoId: string) => void;
   isAuthenticated: boolean;
+  onCardClick?: () => void;
+  layoutId?: string;
 }
 
-export function CollabCard({ collab, onStartCollab, isAuthenticated }: CollabCardProps) {
+export function CollabCard({ collab, onStartCollab, isAuthenticated, onCardClick, layoutId }: CollabCardProps) {
   const categoryColors: Record<string, string> = {
     urban: 'bg-blue-500/20 text-blue-300',
     nature: 'bg-green-500/20 text-green-300',
@@ -48,10 +50,13 @@ export function CollabCard({ collab, onStartCollab, isAuthenticated }: CollabCar
   return (
     <motion.div
       layout
+      layoutId={layoutId}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.25 }}
+      onClick={onCardClick}
+      className={onCardClick ? 'cursor-pointer' : ''}
     >
       <Card className="bg-white/5 border-white/10 hover:border-indigo-400/30 hover:bg-white/10 transition-all overflow-hidden group">
         {/* Thumbnail */}
@@ -117,7 +122,7 @@ export function CollabCard({ collab, onStartCollab, isAuthenticated }: CollabCar
               </span>
             </div>
             <Button
-              onClick={() => onStartCollab(collab.id)}
+              onClick={(e) => { e.stopPropagation(); onStartCollab(collab.id); }}
               disabled={!isAuthenticated}
               size="sm"
               className="h-7 text-[11px] bg-indigo-500 hover:bg-indigo-400 text-white"

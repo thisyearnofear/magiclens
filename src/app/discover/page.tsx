@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { CollabCard } from '@/components/collaboration/CollabCard';
+import { CollabPreview } from '@/components/collaboration/CollabPreview';
 import { CollabRequest } from '@/components/collaboration/CollabRequest';
 import { MobileNav } from '@/components/MobileNav';
 import { DemoBanner } from '@/components/DemoBanner';
@@ -55,6 +56,7 @@ export default function DiscoverPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
+  const [previewCollab, setPreviewCollab] = useState<OpenCollaboration | null>(null);
   const [activeTab, setActiveTab] = useState<'creators' | 'collabs'>('collabs');
   const [usingDemo, setUsingDemo] = useState(false);
 
@@ -212,16 +214,31 @@ export default function DiscoverPage() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {collabs.map(collab => (
-                  <CollabCard
-                    key={collab.id}
-                    collab={collab}
-                    onStartCollab={handleStartCollab}
-                    isAuthenticated={isAuthenticated}
-                  />
-                ))}
-              </div>
+              <LayoutGroup>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {collabs.map(collab => (
+                    <CollabCard
+                      key={collab.id}
+                      collab={collab}
+                      onStartCollab={handleStartCollab}
+                      isAuthenticated={isAuthenticated}
+                      onCardClick={() => setPreviewCollab(collab)}
+                      layoutId={`collab-${collab.id}`}
+                    />
+                  ))}
+                </div>
+
+                <AnimatePresence>
+                  {previewCollab && (
+                    <CollabPreview
+                      collab={previewCollab}
+                      onJoin={handleStartCollab}
+                      onClose={() => setPreviewCollab(null)}
+                      isAuthenticated={isAuthenticated}
+                    />
+                  )}
+                </AnimatePresence>
+              </LayoutGroup>
             )}
           </>
         )}
