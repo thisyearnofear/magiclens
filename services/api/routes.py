@@ -1731,3 +1731,112 @@ async def check_iconic_status(day: int, token_id: int):
         }
     except Exception as e:
         return {"success": False, "error": str(e), "is_iconic": False}
+
+
+# ═══════════════════════════════════════════════════════════════
+# Collaboration Discovery
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/discover/creators")
+async def discover_creators(limit: int = 12, offset: int = 0):
+    """Get featured creators (artists + videographers) for discovery."""
+    try:
+        from core.database import execute_query
+
+        creators = execute_query(
+            """SELECT id, user_id, username, user_type, avatar_url, bio,
+                      earnings_total, is_verified, created_at
+               FROM user_profiles
+               WHERE user_type IN ('artist', 'videographer', 'both')
+               ORDER BY earnings_total DESC, created_at DESC
+               LIMIT %s OFFSET %s""",
+            (limit, offset),
+        )
+
+        return {
+            "success": True,
+            "creators": [
+                {
+                    "id": str(c["id"]),
+                    "user_id": str(c["user_id"]),
+                    "username": c["username"],
+                    "user_type": c["user_type"],
+                    "avatar_url": c.get("avatar_url"),
+                    "bio": c.get("bio"),
+                    "earnings_total": float(c.get("earnings_total", 0)),
+                    "is_verified": c.get("is_verified", False),
+                }
+                for c in (creators or [])
+            ],
+        }
+    except Exception as e:
+        logger.error(f"Failed to fetch creators: {e}")
+        return {"success": False, "error": str(e), "creators": []}
+
+
+@app.get("/api/discover/open_collaborations")
+async def discover_open_collaborations(limit: int = 12, offset: int = 0):
+    """Get videos open for collaboration (public videos without active collabs)."""
+    try:
+        from core.database import execute_query
+
+        rows = execute_query(
+            """SELECT v.id, v.title, v.description, v.thumbnail_path, v.category,
+                      v.view_count, v.duration, v.created_at,
+                      up.username AS creator_name, up.avatar_url AS creator_avatar,
+                      up.user_type AS creator_type,
+                      (SELECT COUNT(*) FROM collaborations c WHERE c.video_id = v.id AND c.status IN ('claimed', 'in_progress')) AS active_collabs
+               FROM videos v
+               LEFT JOIN user_profiles up ON v.user_id = up.user_id
+               WHERE v.is_public = TRUE
+               ORDER BY v.created_at DESC
+               LIMIT %s OFFSET %s""",
+            (limit, offset),
+        )
+
+        collabs = []
+        for row in (rows or []):
+            collabs.append({
+                "id": str(row["id"]),
+                "title": row["title"],
+                "description": row.get("description"),
+                "thumbnail_url": row.get("thumbnail_path"),
+                "category": row.get("category"),
+                "view_count": row.get("view_count", 0),
+                "duration": row.get("duration"),
+                "created_at": row.get("created_at").isoformat() if row.get("created_at") else None,
+                "creator_name": row.get("creator_name", "Anonymous"),
+                "creator_avatar": row.get("creator_avatar"),
+                "creator_type": row.get("creator_type", "videographer"),
+                "active_collabs": row.get("active_collabs", 0),
+            })
+
+        return {"success": True, "open_collaborations": collabs}
+    except Exception as e:
+        logger.error(f"Failed to fetch open collaborations: {e}")
+        return {"success": False, "error": str(e), "open_collaborations": []}
+
+
+@app.post("/api/discover/start_collaboration")
+async def start_collaboration_from_discover(
+    body: dict = Body(...),
+    current_user: User = Depends(get_current_user),
+):
+    """Start a collaboration on a video from the discovery page."""
+    try:
+        video_id = body.get("video_id")
+        if not video_id:
+            return {"success": False, "error": "video_id is required"}
+
+        from core.collaboration_service import start_collaboration
+        result = start_collaboration(
+            user=current_user,
+            video_id=UUID(video_id),
+            revenue_split=body.get("revenue_split", 0.7),
+        )
+        return {"success": True, "collaboration": str(result.id)}
+    except ValueError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        logger.error(f"Failed to start collaboration: {e}")
+        return {"success": False, "error": str(e)}

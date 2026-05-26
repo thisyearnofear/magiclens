@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Camera, Palette, Eye, TrendingUp, Zap } from 'lucide-react';
+import { Upload, Camera, Palette, Eye, TrendingUp, Zap, Users } from 'lucide-react';
 
 interface QuickActionsProps {
   isGuest: boolean;
@@ -15,7 +15,7 @@ export function QuickActions({ isGuest, userType, onNavigate, onShowGallery }: Q
   const isArtist = userType === 'artist' || userType === 'both';
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 md:mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6 md:mb-8">
       {/* Create Remix — always visible, primary CTA */}
       <Card
         className="bg-yellow-400/10 border-yellow-400/40 hover:bg-yellow-400/20 transition-colors cursor-pointer group col-span-1"
@@ -88,6 +88,20 @@ export function QuickActions({ isGuest, userType, onNavigate, onShowGallery }: Q
           </CardContent>
         </Card>
       )}
+
+      <Card
+        className="bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20 transition-colors cursor-pointer group"
+        onClick={() => onNavigate('/discover')}
+      >
+        <CardContent className="p-6 text-center relative">
+          <Users className="h-12 w-12 text-indigo-400 mx-auto mb-4" />
+          <h3 className="text-white font-semibold">Find Collaborators</h3>
+          <p className="text-gray-300 text-sm">Discover creators & open collabs</p>
+          <Badge className="mt-2 bg-indigo-500/20 text-indigo-300 text-xs">
+            New
+          </Badge>
+        </CardContent>
+      </Card>
 
       <Card
         className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
