@@ -1,8 +1,9 @@
 import { createClient, createConfig } from '@hey-api/client-fetch';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 // Create a function that returns a fresh client with current token
 export const getAuthenticatedClient = () => {
-    const token = localStorage.getItem('magiclens_token');
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
     console.log('🔑 Creating authenticated client - Token:', token ? 'Found' : 'Not found');
 
     const headers: Record<string, string> = {};

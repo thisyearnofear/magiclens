@@ -8,9 +8,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MascotCharacter } from './MascotCharacter';
+import { STORAGE_KEYS } from '@/lib/constants';
 
-const ONBOARDING_KEY = 'magiclens_onboarding_complete';
-const PREFS_KEY = 'magiclens_user_prefs';
+const ONBOARDING_KEY = STORAGE_KEYS.ONBOARDING_COMPLETE;
+const PREFS_KEY = STORAGE_KEYS.USER_PREFS;
 
 const vibeOptions = [
   { id: 'create', icon: Zap, label: 'Create AR Remixes', desc: 'Drop overlays on match clips' },

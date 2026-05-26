@@ -1,6 +1,7 @@
 // Flow authentication hook - replaces generic Web3 auth
 import { useState, useEffect, useCallback } from 'react';
 import { fcl, authenticate, unauthenticate, subscribeToUser } from '../lib/flow/fcl-config';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 interface FlowUser {
   addr: string | null;
@@ -73,7 +74,7 @@ export function useFlowAuth() {
       console.log('Login response data:', data);
       
       // Store the JWT token in localStorage
-      localStorage.setItem('magiclens_token', data.access_token);
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.access_token);
       
       console.log('Successfully logged in to backend with real signature verification');
     } catch (error) {
@@ -114,7 +115,7 @@ export function useFlowAuth() {
       await unauthenticate();
       setIsGuest(false);
       // Remove JWT token from localStorage
-      localStorage.removeItem('magiclens_token');
+      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
       // User state will be updated via subscription
     } catch (error) {
       console.error('Flow wallet disconnection failed:', error);

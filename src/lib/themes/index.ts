@@ -6,6 +6,7 @@
  */
 
 import { applyTheme, getThemeByName, type ThemeConfig } from "@/lib/theme-config";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 // Types for theme system
 export type ColorMode = "light" | "dark" | "system";
@@ -17,7 +18,7 @@ export function setColorMode(mode: ColorMode): void {
   
   if (!theme) return;
   
-  localStorage.setItem("theme-mode", mode);
+  localStorage.setItem(STORAGE_KEYS.THEME_MODE, mode);
   
   if (mode === "system") {
     const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -40,7 +41,7 @@ export function setTheme(themeName: string): void {
     ? window.matchMedia("(prefers-color-scheme: dark)").matches 
     : mode === "dark";
   
-  localStorage.setItem("theme-name", themeName);
+  localStorage.setItem(STORAGE_KEYS.THEME_NAME, themeName);
   applyTheme(theme, isDark);
 }
 
@@ -51,18 +52,18 @@ export function setThemeFromConfig(themeConfig: ThemeConfig): void {
     ? window.matchMedia("(prefers-color-scheme: dark)").matches 
     : mode === "dark";
   
-  localStorage.setItem("theme-name", themeConfig.name);
+  localStorage.setItem(STORAGE_KEYS.THEME_NAME, themeConfig.name);
   applyTheme(themeConfig, isDark);
 }
 
 // Function to get the current color mode
 export function getCurrentColorMode(): ColorMode {
-  return (localStorage.getItem("theme-mode") as ColorMode) || "system";
+  return (localStorage.getItem(STORAGE_KEYS.THEME_MODE) as ColorMode) || "system";
 }
 
 // Function to get the current theme name
 export function getCurrentTheme(): string {
-  return localStorage.getItem("theme-name") || "default";
+  return localStorage.getItem(STORAGE_KEYS.THEME_NAME) || "default";
 }
 
 // Set up listener for system theme changes
@@ -105,20 +106,20 @@ export function initializeTheme(options: {
   
   if (autoInitialize) {
     // Set initial theme values in localStorage if not present
-    if (!localStorage.getItem("theme-mode")) {
-      localStorage.setItem("theme-mode", mode);
+    if (!localStorage.getItem(STORAGE_KEYS.THEME_MODE)) {
+      localStorage.setItem(STORAGE_KEYS.THEME_MODE, mode);
     }
     
-    if (!localStorage.getItem("theme-name")) {
-      localStorage.setItem("theme-name", theme);
+    if (!localStorage.getItem(STORAGE_KEYS.THEME_NAME)) {
+      localStorage.setItem(STORAGE_KEYS.THEME_NAME, theme);
     }
     
     // Initialize the theme system
     initializeThemeSystem();
   } else {
     // Force update with the provided values
-    localStorage.setItem("theme-mode", mode);
-    localStorage.setItem("theme-name", theme);
+    localStorage.setItem(STORAGE_KEYS.THEME_MODE, mode);
+    localStorage.setItem(STORAGE_KEYS.THEME_NAME, theme);
     
     const themeConfig = getThemeByName(theme);
     if (themeConfig) {

@@ -71,7 +71,6 @@
     "fabric": "^5.3.0",
     "framer-motion": "^11.0.3",
     "html2canvas": "^1.4.1",
-    "html2canvas-pro": "^1.5.10",
     "input-otp": "^1.4.2",
     "knip": "^5.50.4",
     "lodash": "^4.17.21",

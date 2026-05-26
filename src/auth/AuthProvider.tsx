@@ -1,6 +1,7 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react'
 import { useFlowAuth } from '../hooks/use-flow-auth'
 import { useUnifiedAuth, UnifiedWalletState } from './useUnifiedAuth'
+import { STORAGE_KEYS } from '@/lib/constants'
 
 interface AuthContextType extends UnifiedWalletState {
   /** Legacy: login alias for connectFlow */
@@ -18,7 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Periodically check token validity
   useEffect(() => {
     const check = () => {
-      const token = localStorage.getItem('magiclens_token')
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
       if (!token) {
         setTokenValid(false)
         return

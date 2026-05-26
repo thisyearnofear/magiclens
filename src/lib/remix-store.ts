@@ -1,4 +1,6 @@
-const STORAGE_KEY = 'magiclens_user_remixes';
+import { STORAGE_KEYS } from '@/lib/constants';
+
+const STORAGE_KEY = STORAGE_KEYS.USER_REMIXES;
 
 export interface Remix {
   title: string;

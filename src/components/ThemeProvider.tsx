@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { allThemes, getTheme, type Theme } from "@/lib/themes"
+import { STORAGE_KEYS } from "@/lib/constants"
 
 // Define theme settings
 type BaseTheme = "dark" | "light" | "system"
@@ -82,7 +83,7 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   // Initialize theme state from localStorage or defaults
   const [settings, setThemeSettings] = useState<ThemeSettings>(() => {
-    const savedTheme = localStorage.getItem("theme-settings")
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME_SETTINGS)
     if (savedTheme) {
       try {
         return JSON.parse(savedTheme) as ThemeSettings
@@ -100,7 +101,7 @@ export function ThemeProvider({
   // Apply theme when settings change
   useEffect(() => {
     applyTheme(settings)
-    localStorage.setItem("theme-settings", JSON.stringify(settings))
+    localStorage.setItem(STORAGE_KEYS.THEME_SETTINGS, JSON.stringify(settings))
   }, [settings])
 
   // Media query listener for system theme changes

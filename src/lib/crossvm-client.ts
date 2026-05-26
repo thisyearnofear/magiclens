@@ -1,10 +1,11 @@
 import type { CrossVMPromotion, IconicMomentCheck } from '@/types/crossvm';
 import { DEMO_ICONIC_MOMENTS } from '@/lib/demo-data';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
 function getAuthHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('magiclens_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) : null;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   return headers;

@@ -17,6 +17,7 @@ import { CollabRequest } from '@/components/collaboration/CollabRequest';
 import { MobileNav } from '@/components/MobileNav';
 import { DemoBanner } from '@/components/DemoBanner';
 import { DEMO_CREATORS, DEMO_COLLABS } from '@/lib/demo-data';
+import { STORAGE_KEYS } from '@/lib/constants';
 import { toast } from 'sonner';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
@@ -89,7 +90,7 @@ export default function DiscoverPage() {
       toast.info('Connect a wallet to join collaborations');
       return;
     }
-    const token = localStorage.getItem('magiclens_token');
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
     try {
       const res = await fetch(`${API_BASE}/api/discover/start_collaboration`, {
         method: 'POST',

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { STORAGE_KEYS } from '@/lib/constants';
 
 interface NotificationState {
   permission: NotificationPermission;
@@ -8,7 +9,7 @@ interface NotificationState {
 export function useNotifications() {
   const [state, setState] = useState<NotificationState>(() => ({
     permission: typeof Notification !== 'undefined' ? Notification.permission : 'denied',
-    subscribed: localStorage.getItem('magiclens_notifications') === 'true',
+    subscribed: localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS) === 'true',
   }));
 
   const requestPermission = useCallback(async () => {
@@ -16,13 +17,13 @@ export function useNotifications() {
     const permission = await Notification.requestPermission();
     setState(prev => ({ ...prev, permission }));
     if (permission === 'granted') {
-      localStorage.setItem('magiclens_notifications', 'true');
+      localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, 'true');
       setState(prev => ({ ...prev, subscribed: true }));
     }
   }, []);
 
   const unsubscribe = useCallback(() => {
-    localStorage.removeItem('magiclens_notifications');
+    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
     setState(prev => ({ ...prev, subscribed: false }));
   }, []);
 
