@@ -1811,6 +1811,44 @@ async def get_pending_leaderboard_days():
 
 
 # ═══════════════════════════════════════════════════════════════
+# Metadata — ERC-721 token metadata for RemixNFT
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/metadata/RemixNFT/{token_id}")
+async def remix_metadata(token_id: str):
+    """Return ERC-721 metadata JSON for a RemixNFT token."""
+    if token_id == "contract":
+        return {
+            "name": "MagicLens Remixes",
+            "description": "AR sports remixes — turn every iconic moment into a mintable NFT.",
+            "image": "https://magiclens.app/og-image.png",
+            "external_link": "https://magiclens.vercel.app",
+            "seller_fee_basis_points": 500,
+            "fee_recipient": "0x910d4383313814CC47db6ffeD56aC2F2CBE764Cf",
+        }
+    return {
+        "name": f"MagicLens Remix #{token_id}",
+        "description": "An AR-enhanced sports remix created on MagicLens. "
+                       "Minted on X Layer and available for cross-chain promotion to Flow blockchain.",
+        "image": "https://magiclens.app/og-image.png",
+        "external_url": "https://magiclens.vercel.app",
+        "attributes": [
+            {"trait_type": "Platform", "value": "X Layer"},
+            {"trait_type": "Token Standard", "value": "ERC-721"},
+        ],
+    }
+    """Return ERC-721 contract-level metadata."""
+    return {
+        "name": "MagicLens Remixes",
+        "description": "AR sports remixes — turn every iconic moment into a mintable NFT.",
+        "image": "https://magiclens.app/og-image.png",
+        "external_link": "https://magiclens.vercel.app",
+        "seller_fee_basis_points": 500,
+        "fee_recipient": "0x910d4383313814CC47db6ffeD56aC2F2CBE764Cf",
+    }
+
+
+# ═══════════════════════════════════════════════════════════════
 # Demo Seed — creates sample leaderboard data and triggers cross-VM mint
 # ═══════════════════════════════════════════════════════════════
 
