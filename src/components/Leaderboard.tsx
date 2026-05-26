@@ -91,13 +91,10 @@ export default function Leaderboard() {
   }, [cycleStatus]);
 
   const handleCloseDay = async () => {
-    if (isGuest) {
-      toast.info('Connect a wallet to close the leaderboard');
-      return;
-    }
     setClosingDay(true);
     try {
       const { closeLeaderboardDay } = await import('@/lib/crossvm-client');
+      const GUEST_ADDR = '0x00000000000000000000000000000000000d3m0';
       const top10 = entries.slice(0, 10).map(e => ({
         rank: e.rank,
         title: e.title,
@@ -106,12 +103,12 @@ export default function Leaderboard() {
         reward: e.reward,
         xlayer_token_id: e.tokenId,
         xlayer_tx_hash: e.txHash,
-        xlayer_creator_address: evmAddress || '0x0000000000000000000000000000000000000000',
+        xlayer_creator_address: evmAddress || GUEST_ADDR,
       }));
       const result = await closeLeaderboardDay(1, top10);
       if (result.success) {
         setCycleStatus('closed');
-        toast.success('Leaderboard closed! Auto-promote scheduled.', {
+        toast.success(isGuest ? 'Leaderboard closed (guest mode)! Auto-promote scheduled.' : 'Leaderboard closed! Auto-promote scheduled.', {
           description: 'Top-3 entries will be promoted to Flow Iconic Moments shortly.',
         });
       } else {
@@ -143,15 +140,12 @@ export default function Leaderboard() {
   };
 
   const handlePromote = async (entry: LeaderboardEntry) => {
-    if (isGuest) {
-      toast.info('Connect a wallet to promote remixes');
-      return;
-    }
     try {
+      const GUEST_ADDR = '0x00000000000000000000000000000000000d3m0';
       await promote({
         xlayerTokenId: entry.tokenId,
         xlayerTxHash: entry.txHash,
-        xlayerCreatorAddress: evmAddress || '0x0000000000000000000000000000000000000000',
+        xlayerCreatorAddress: evmAddress || GUEST_ADDR,
         title: entry.title,
         day: 1,
         rank: entry.rank,
@@ -208,7 +202,7 @@ export default function Leaderboard() {
                       className="h-7 text-[10px] bg-yellow-400 text-black hover:bg-yellow-500 border-0 px-2"
                     >
                       {closingDay ? <Loader2 className="h-3 w-3 animate-spin" /> : <Clock className="h-3 w-3 mr-1" />}
-                      Close Day
+                      {isGuest ? 'Close Day (Demo)' : 'Close Day'}
                     </Button>
                   </div>
                 )}
