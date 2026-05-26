@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trophy, Medal, Zap, DollarSign, Sparkles, Loader2, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
+import { Trophy, Medal, Zap, DollarSign, Sparkles, Loader2, ArrowRight, Clock, CheckCircle2, Database } from 'lucide-react';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { getUserRemixes } from '@/lib/remix-store';
 import { useIconicMoments } from '@/hooks/useIconicMoments';
@@ -13,6 +13,7 @@ import { MobileNav } from '@/components/MobileNav';
 import { DemoBanner } from '@/components/DemoBanner';
 import { toast } from 'sonner';
 import { DEMO_LEADERBOARD_ENTRIES } from '@/lib/demo-data';
+import { seedDemoData } from '@/lib/crossvm-client';
 import type { CrossVMPromotion } from '@/types/crossvm';
 
 const DEMO_LEADERBOARD = DEMO_LEADERBOARD_ENTRIES;
@@ -35,6 +36,7 @@ export default function Leaderboard() {
   const { moments, promote, isPromoting, loading: momentsLoading } = useIconicMoments({ day: 1 });
   const [entries, setEntries] = useState<LeaderboardEntry[]>(DEMO_LEADERBOARD);
   const [closingDay, setClosingDay] = useState(false);
+  const [seedingDemo, setSeedingDemo] = useState(false);
   const [cycleStatus, setCycleStatus] = useState<'open' | 'closed' | 'promoting' | 'completed' | null>(null);
   const [promoteResults, setPromoteResults] = useState<{ promoted: number; errors: string[] } | null>(null);
 
@@ -122,6 +124,24 @@ export default function Leaderboard() {
     }
   };
 
+  const handleSeedDemo = async () => {
+    setSeedingDemo(true);
+    try {
+      const result = await seedDemoData();
+      if (result.success) {
+        setCycleStatus('completed');
+        setPromoteResults({ promoted: result.promoted || 0, errors: result.errors || [] });
+        toast.success(`Demo data created! Day ${result.day}: ${result.promoted} iconic moments minted.`);
+      } else {
+        toast.error(result.error || 'Seed failed');
+      }
+    } catch {
+      toast.error('Could not reach backend');
+    } finally {
+      setSeedingDemo(false);
+    }
+  };
+
   const handlePromote = async (entry: LeaderboardEntry) => {
     if (isGuest) {
       toast.info('Connect a wallet to promote remixes');
@@ -170,15 +190,27 @@ export default function Leaderboard() {
                   <div className="text-gray-400 text-xs">Prize Pool</div>
                 </div>
                 {cycleStatus === 'open' && (
-                  <Button
-                    onClick={handleCloseDay}
-                    disabled={closingDay}
-                    size="sm"
-                    className="h-7 text-[10px] bg-yellow-400 text-black hover:bg-yellow-500 border-0 px-2"
-                  >
-                    {closingDay ? <Loader2 className="h-3 w-3 animate-spin" /> : <Clock className="h-3 w-3 mr-1" />}
-                    Close Day
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={handleSeedDemo}
+                      disabled={seedingDemo}
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-[10px] border-purple-400/30 text-purple-300 hover:bg-purple-400/10 px-2"
+                    >
+                      {seedingDemo ? <Loader2 className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3 mr-1" />}
+                      Seed Demo
+                    </Button>
+                    <Button
+                      onClick={handleCloseDay}
+                      disabled={closingDay}
+                      size="sm"
+                      className="h-7 text-[10px] bg-yellow-400 text-black hover:bg-yellow-500 border-0 px-2"
+                    >
+                      {closingDay ? <Loader2 className="h-3 w-3 animate-spin" /> : <Clock className="h-3 w-3 mr-1" />}
+                      Close Day
+                    </Button>
+                  </div>
                 )}
                 {cycleStatus !== 'open' && (
                   <Button
