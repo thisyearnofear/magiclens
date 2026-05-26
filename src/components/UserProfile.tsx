@@ -1,6 +1,7 @@
-import { ArrowLeft, Save, X, User, Camera, Palette, Zap, Pencil } from "lucide-react";
+import { ArrowLeft, Save, X, User, Camera, Palette, Zap, Pencil, Copy, Link2 } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useAccount } from 'wagmi';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { userServiceGetUserProfile, userServiceGetPublicProfile, userServiceUpdateUserProfile } from '@/lib/sdk';
 import { UserProfile as UserProfileType } from '@/lib/sdk';
@@ -19,6 +20,7 @@ export default function UserProfile() {
   const { id } = useParams();
   const router = useRouter();
   const { flowAddress: user } = useAuthContext();
+  const { address: evmAddress } = useAccount();
   const [profile, setProfile] = useState<UserProfileType | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -333,6 +335,44 @@ export default function UserProfile() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Referral Link */}
+            {isOwnProfile && evmAddress && (
+              <Card className="bg-gradient-to-r from-yellow-400/5 to-orange-400/5 border-yellow-400/20 mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <Link2 className="h-5 w-5 text-yellow-400 shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <h4 className="text-white font-semibold text-sm">Your Referral Link</h4>
+                        <p className="text-gray-400 text-xs mt-0.5">
+                          Share this link — when someone mints a remix using it, they earn a leaderboard boost!
+                        </p>
+                        <code className="block mt-2 text-[11px] text-yellow-300 bg-yellow-400/10 rounded px-2 py-1 truncate font-mono">
+                          {`https://magiclens.vercel.app?ref=${evmAddress}`}
+                        </code>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(`https://magiclens.vercel.app?ref=${evmAddress}`);
+                          toast.success('Referral link copied!');
+                        } catch {
+                          toast.error('Could not copy link');
+                        }
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="shrink-0 border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/10 h-8"
+                    >
+                      <Copy className="h-3.5 w-3.5 mr-1" />
+                      Copy
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* User Type Info */}
             <div className="space-y-4">
