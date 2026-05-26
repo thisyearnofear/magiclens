@@ -33,18 +33,18 @@ export const CONTRACT_ADDRESSES = {
     FlowToken: '0xf8d6e0586b0a20c7',
   },
   testnet: {
-    ARAssetNFT: 'YOUR_TESTNET_ADDRESS', // Update after deployment
-    CollaborationHub: 'YOUR_TESTNET_ADDRESS',
-    ForteAutomation: 'YOUR_TESTNET_ADDRESS',
+    ARAssetNFT: '0x4520a5a7b69ee3ac',
+    CollaborationHub: '0x4520a5a7b69ee3ac',
+    ForteAutomation: '0x4520a5a7b69ee3ac',
     NonFungibleToken: '0x631e88ae7f1d7c20',
     MetadataViews: '0x631e88ae7f1d7c20',
     FungibleToken: '0x9a0766d93b6608b7',
     FlowToken: '0x7e60df042a9c0868',
   },
   mainnet: {
-    ARAssetNFT: 'YOUR_MAINNET_ADDRESS', // Update after deployment
-    CollaborationHub: 'YOUR_MAINNET_ADDRESS',
-    ForteAutomation: 'YOUR_MAINNET_ADDRESS',
+    ARAssetNFT: '', // Not deployed yet
+    CollaborationHub: '',
+    ForteAutomation: '',
     NonFungibleToken: '0x1d7e57aa55817448',
     MetadataViews: '0x1d7e57aa55817448',
     FungibleToken: '0xf233dcee88fe0abe',
