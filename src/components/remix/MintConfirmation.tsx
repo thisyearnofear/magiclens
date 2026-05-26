@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ExternalLink, Trophy, Medal, ArrowRight, Sparkles, Share2, Copy, Twitter } from 'lucide-react';
+import { CheckCircle, ExternalLink, Trophy, Medal, ArrowRight, Sparkles, Share2, Copy, Twitter, Flame, Timer } from 'lucide-react';
 import { toast } from 'sonner';
+import { getUserRemixes } from '@/lib/remix-store';
+import { computeStreak, getStreakBadge } from '@/lib/streak';
 
 interface MintConfirmationProps {
   txHash: string | null;
@@ -14,6 +16,28 @@ interface MintConfirmationProps {
 }
 
 export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, onCreateAnother }: MintConfirmationProps) {
+  const [streak, setStreak] = useState(0);
+  const [countdown, setCountdown] = useState('');
+
+  useEffect(() => {
+    const remixes = getUserRemixes();
+    setStreak(computeStreak(remixes).current);
+  }, []);
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
+      const diff = end.getTime() - now.getTime();
+      if (diff <= 0) { setCountdown('Closing soon...'); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      setCountdown(`${h}h ${m}m left`);
+    };
+    update();
+    const id = setInterval(update, 10000);
+    return () => clearInterval(id);
+  }, []);
   return (
     <div className="max-w-2xl mx-auto px-4 py-12 text-center relative">
       {/* Floating sparkles */}
@@ -149,6 +173,37 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
                   <div className="text-gray-500 text-[10px]">{item.desc}</div>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Streak + Countdown */}
+      <motion.div
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6 }}
+        className="mb-8"
+      >
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Flame className={`h-5 w-5 ${streak > 0 ? 'text-orange-400' : 'text-gray-500'}`} />
+                <div>
+                  <span className="text-white font-bold text-lg">{streak}</span>
+                  <span className="text-gray-400 text-sm ml-1">day streak</span>
+                  {getStreakBadge(streak) && (
+                    <Badge variant="outline" className={`ml-2 text-[10px] ${getStreakBadge(streak)!.color} border-current`}>
+                      {getStreakBadge(streak)!.icon} {getStreakBadge(streak)!.label}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-gray-500 text-xs">
+                <Timer className="h-3 w-3" />
+                {countdown}
+              </div>
             </div>
           </CardContent>
         </Card>

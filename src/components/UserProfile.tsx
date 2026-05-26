@@ -1,4 +1,4 @@
-import { ArrowLeft, Save, X, User, Camera, Palette, Zap, Pencil, Copy, Link2 } from "lucide-react";
+import { ArrowLeft, Save, X, User, Camera, Palette, Zap, Pencil, Copy, Link2, Flame, Award, Gift, TrendingUp } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
@@ -14,6 +14,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
+import { getReferralStats } from '@/lib/crossvm-client';
+import { getUserRemixes } from '@/lib/remix-store';
+import { computeStreak, getStreakBadge } from '@/lib/streak';
 
 
 export default function UserProfile() {
@@ -32,6 +35,30 @@ export default function UserProfile() {
   });
 
   const isOwnProfile = !id || id === user;
+
+  const [streak, setStreak] = useState({ current: 0, longest: 0, todayMinted: false, dayIds: [] as string[] });
+  const [refStats, setRefStats] = useState<{
+    total_claims: number;
+    days_with_claims: number;
+    total_bonus_votes: number;
+    times_referred: number;
+    recent_claims: any[];
+  } | null>(null);
+  const [loadingRef, setLoadingRef] = useState(false);
+
+  useEffect(() => {
+    const remixes = getUserRemixes();
+    setStreak(computeStreak(remixes));
+  }, []);
+
+  useEffect(() => {
+    if (isOwnProfile && evmAddress) {
+      setLoadingRef(true);
+      getReferralStats(evmAddress).then(res => {
+        if (res.success && res.stats) setRefStats(res.stats);
+      }).finally(() => setLoadingRef(false));
+    }
+  }, [isOwnProfile, evmAddress]);
 
   useEffect(() => {
     loadProfile();
@@ -307,36 +334,98 @@ export default function UserProfile() {
 
           <CardContent>
             {/* Stats */}
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="grid md:grid-cols-4 gap-4 mb-8">
               <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">
                     ${profile.earnings_total?.toFixed(2) || '0.00'}
                   </div>
-                  <p className="text-gray-400 text-sm">Total Earnings</p>
+                  <p className="text-gray-400 text-xs">Earnings</p>
                 </CardContent>
               </Card>
 
               <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">
-                    {profile.user_type === 'videographer' || profile.user_type === 'both' ? '0' : '0'}
+                    {streak.current}
                   </div>
-                  <p className="text-gray-400 text-sm">
-                    {profile.user_type === 'videographer' || profile.user_type === 'both' ? 'Videos Uploaded' : 'Assets Created'}
+                  <p className="text-gray-400 text-xs flex items-center justify-center gap-1">
+                    <Flame className="h-3 w-3 text-orange-400" />
+                    Day Streak
+                  </p>
+                  {getStreakBadge(streak.current) && (
+                    <span className={`text-[10px] ${getStreakBadge(streak.current)!.color}`}>
+                      {getStreakBadge(streak.current)!.icon} {getStreakBadge(streak.current)!.label}
+                    </span>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-4 text-center">
+                  <div className="text-xl font-bold text-white mb-1">
+                    {streak.longest}
+                  </div>
+                  <p className="text-gray-400 text-xs flex items-center justify-center gap-1">
+                    <Award className="h-3 w-3 text-yellow-400" />
+                    Best Streak
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-white mb-1">0</div>
-                  <p className="text-gray-400 text-sm">Collaborations</p>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {getUserRemixes().length}
+                  </div>
+                  <p className="text-gray-400 text-xs">Total Remixes</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Referral Link */}
+            {/* Achievement Badges */}
+            {isOwnProfile && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {getUserRemixes().length > 0 && (
+                  <Badge variant="outline" className="bg-purple-500/10 border-purple-400/30 text-purple-300 text-[11px]">
+                    <Award className="h-3 w-3 mr-1" />
+                    First Mint
+                  </Badge>
+                )}
+                {streak.current >= 3 && (
+                  <Badge variant="outline" className="bg-orange-500/10 border-orange-400/30 text-orange-300 text-[11px]">
+                    <Flame className="h-3 w-3 mr-1" />
+                    Streaker Lv.1
+                  </Badge>
+                )}
+                {streak.current >= 7 && (
+                  <Badge variant="outline" className="bg-orange-500/10 border-orange-400/30 text-orange-300 text-[11px]">
+                    <Flame className="h-3 w-3 mr-1" />
+                    Streaker Lv.2
+                  </Badge>
+                )}
+                {streak.current >= 14 && (
+                  <Badge variant="outline" className="bg-red-500/10 border-red-400/30 text-red-300 text-[11px]">
+                    <Flame className="h-3 w-3 mr-1" />
+                    Streaker Lv.3
+                  </Badge>
+                )}
+                {refStats && refStats.total_claims > 0 && (
+                  <Badge variant="outline" className="bg-green-500/10 border-green-400/30 text-green-300 text-[11px]">
+                    <Gift className="h-3 w-3 mr-1" />
+                    {refStats.total_claims} Referral{refStats.total_claims > 1 ? 's' : ''}
+                  </Badge>
+                )}
+                {refStats && refStats.times_referred > 0 && (
+                  <Badge variant="outline" className="bg-blue-500/10 border-blue-400/30 text-blue-300 text-[11px]">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    Referred
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Referral Link + Stats */}
             {isOwnProfile && evmAddress && (
               <Card className="bg-gradient-to-r from-yellow-400/5 to-orange-400/5 border-yellow-400/20 mb-4">
                 <CardContent className="p-4">
@@ -351,6 +440,23 @@ export default function UserProfile() {
                         <code className="block mt-2 text-[11px] text-yellow-300 bg-yellow-400/10 rounded px-2 py-1 truncate font-mono">
                           {`https://magiclens.vercel.app?ref=${evmAddress}`}
                         </code>
+                        {refStats && (
+                          <div className="flex gap-4 mt-3 text-[11px]">
+                            <span className="text-green-400">
+                              <Gift className="h-3 w-3 inline mr-0.5" />
+                              {refStats.total_claims} claimed
+                            </span>
+                            <span className="text-yellow-400">
+                              <TrendingUp className="h-3 w-3 inline mr-0.5" />
+                              +{refStats.total_bonus_votes} bonus votes
+                            </span>
+                            {refStats.times_referred > 0 && (
+                              <span className="text-blue-400">
+                                You used {refStats.times_referred} link{refStats.times_referred > 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <Button

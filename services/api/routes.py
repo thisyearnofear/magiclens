@@ -2020,3 +2020,112 @@ async def start_collaboration_from_discover(
     except Exception as e:
         logger.error(f"Failed to start collaboration: {e}")
         return {"success": False, "error": str(e)}
+
+
+# ═══════════════════════════════════════════════════════════════
+# Referral System
+# ═══════════════════════════════════════════════════════════════
+
+class ReferralClaimRequest(BaseModel):
+    referrer_address: str
+    referee_address: str
+    day: int = 1
+    xlayer_token_id: int
+    xlayer_tx_hash: str
+
+
+@app.post("/api/referral/claim")
+async def claim_referral(body: ReferralClaimRequest):
+    """Record that a remix was minted via a referral link.
+    
+    The referrer earns a leaderboard vote boost for this day.
+    """
+    from core.database import execute_update, execute_query
+    import uuid
+
+    try:
+        # Prevent self-referral
+        if body.referrer_address.lower() == body.referee_address.lower():
+            return {"success": False, "error": "Cannot refer yourself"}
+
+        # Check for duplicate referral by referee
+        existing = execute_query(
+            "SELECT id FROM referral_claims WHERE referee_address = %s AND day = %s",
+            (body.referee_address.lower(), body.day),
+        )
+        if existing:
+            return {"success": True, "note": "already claimed"}
+
+        execute_update(
+            """INSERT INTO referral_claims
+               (id, referrer_address, referee_address, day, bonus_votes, xlayer_token_id, xlayer_tx_hash)
+               VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+            (
+                str(uuid.uuid4()),
+                body.referrer_address.lower(),
+                body.referee_address.lower(),
+                body.day,
+                200,
+                body.xlayer_token_id,
+                body.xlayer_tx_hash,
+            ),
+        )
+
+        # Count total referrals for this referrer
+        counts = execute_query(
+            "SELECT COUNT(*) AS total FROM referral_claims WHERE referrer_address = %s",
+            (body.referrer_address.lower(),),
+        )
+        total = counts[0]["total"] if counts else 0
+
+        logger.info(f"Referral claimed: {body.referee_address[:10]}... → {body.referrer_address[:10]}... (total: {total})")
+        return {"success": True, "bonus_votes": 200, "total_referrals": total, "day": body.day}
+    except Exception as e:
+        logger.error(f"Referral claim failed: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/referral/stats/{address}")
+async def get_referral_stats(address: str):
+    """Get referral statistics for an address."""
+    from core.database import execute_query
+
+    try:
+        addr = address.lower()
+        counts = execute_query(
+            """SELECT
+                COUNT(*) AS total_claims,
+                COUNT(DISTINCT day) AS days_with_claims,
+                COALESCE(SUM(bonus_votes), 0) AS total_bonus_votes
+               FROM referral_claims WHERE referrer_address = %s""",
+            (addr,),
+        )
+        recent = execute_query(
+            """SELECT day, referee_address, bonus_votes, claimed_at
+               FROM referral_claims WHERE referrer_address = %s
+               ORDER BY claimed_at DESC LIMIT 10""",
+            (addr,),
+        )
+
+        stats = counts[0] if counts else {"total_claims": 0, "days_with_claims": 0, "total_bonus_votes": 0}
+        stats["recent_claims"] = [
+            {
+                "day": r["day"],
+                "referee": r["referee_address"][:10] + "...",
+                "bonus_votes": r["bonus_votes"],
+                "claimed_at": r["claimed_at"].isoformat() if r.get("claimed_at") else None,
+            }
+            for r in (recent or [])
+        ]
+
+        # Also count how many times this address was referred (if they used someone's link)
+        referred = execute_query(
+            "SELECT COUNT(*) AS total FROM referral_claims WHERE referee_address = %s",
+            (addr,),
+        )
+        stats["times_referred"] = referred[0]["total"] if referred else 0
+
+        return {"success": True, "stats": stats}
+    except Exception as e:
+        logger.error(f"Referral stats failed: {e}")
+        return {"success": False, "error": str(e)}

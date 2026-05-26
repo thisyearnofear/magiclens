@@ -8,9 +8,10 @@ export interface Remix {
   creator: string;
   votes: number;
   createdAt: number;
+  referredBy?: string;
 }
 
-export function addRemix(remix: { title: string; txHash: string; creator: string }): void {
+export function addRemix(remix: { title: string; txHash: string; creator: string; referredBy?: string }): void {
   const existing = getUserRemixes();
   const newRemix: Remix = {
     ...remix,

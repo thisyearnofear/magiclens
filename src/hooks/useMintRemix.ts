@@ -16,21 +16,26 @@ export function useMintRemix() {
     chain: xLayerTestnet,
   })
 
-  const mintRemix = async (clipTitle: string, overlayIds: string[]) => {
+  const mintRemix = async (
+    clipTitle: string,
+    overlayIds: string[],
+    referrerAddress?: string | null,
+  ) => {
     const overlayIdsStr = overlayIds.join(',')
     const nextTokenId = Number(totalSupply ?? 0)
     const uri = `${METADATA_BASE}/api/metadata/RemixNFT/${nextTokenId}`
+    const referrer = (referrerAddress || ZERO_ADDRESS) as `0x${string}`
 
     try {
       const hash = await writeContractAsync({
         address: REMIX_NFT_ADDRESS as `0x${string}`,
         abi: REMIX_NFT_ABI,
         functionName: 'mint',
-        args: [uri, overlayIdsStr, [], ZERO_ADDRESS],
+        args: [uri, overlayIdsStr, [], referrer],
         chain: xLayerTestnet,
         account: address,
       })
-      return hash
+      return { hash, nextTokenId, referrer }
     } catch (err: any) {
       toast.error('Mint failed', {
         description: err?.shortMessage || err?.message || 'Transaction rejected',

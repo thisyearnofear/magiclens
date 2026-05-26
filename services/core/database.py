@@ -126,6 +126,23 @@ def create_tables():
                 CREATE INDEX IF NOT EXISTS idx_iconic_moments_day ON iconic_moments(day);
                 CREATE INDEX IF NOT EXISTS idx_iconic_moments_status ON iconic_moments(status);
             """)
+
+            # Create referral_claims table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS referral_claims (
+                    id UUID PRIMARY KEY,
+                    referrer_address VARCHAR(64) NOT NULL,
+                    referee_address VARCHAR(64) NOT NULL,
+                    day INTEGER NOT NULL DEFAULT 1,
+                    bonus_votes INTEGER NOT NULL DEFAULT 200,
+                    xlayer_token_id BIGINT,
+                    xlayer_tx_hash VARCHAR(128),
+                    claimed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE INDEX IF NOT EXISTS idx_referral_referrer ON referral_claims(referrer_address);
+                CREATE INDEX IF NOT EXISTS idx_referral_referee ON referral_claims(referee_address);
+                CREATE INDEX IF NOT EXISTS idx_referral_day ON referral_claims(day);
+            """)
             
         logger.info("Database tables created successfully")
     except Exception as e:

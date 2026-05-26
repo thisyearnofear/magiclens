@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trophy, Medal, Zap, DollarSign, Sparkles, Loader2, ArrowRight, Clock, CheckCircle2, Database } from 'lucide-react';
+import { Trophy, Medal, Zap, DollarSign, Sparkles, Loader2, ArrowRight, Clock, CheckCircle2, Database, Timer } from 'lucide-react';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { getUserRemixes } from '@/lib/remix-store';
 import { useIconicMoments } from '@/hooks/useIconicMoments';
@@ -39,6 +39,23 @@ export default function Leaderboard() {
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [cycleStatus, setCycleStatus] = useState<'open' | 'closed' | 'promoting' | 'completed' | null>(null);
   const [promoteResults, setPromoteResults] = useState<{ promoted: number; errors: string[] } | null>(null);
+  const [countdown, setCountdown] = useState('');
+
+  // Countdown timer to day end (23:59 UTC)
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59));
+      const diff = end.getTime() - now.getTime();
+      if (diff <= 0) { setCountdown('Closing soon...'); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      setCountdown(`${h}h ${m}m left`);
+    };
+    update();
+    const id = setInterval(update, 10000);
+    return () => clearInterval(id);
+  }, []);
 
   const iconicByTokenId = new Map<number, CrossVMPromotion>();
   moments.forEach(m => iconicByTokenId.set(m.xlayer_token_id, m));
@@ -95,11 +112,15 @@ export default function Leaderboard() {
     try {
       const { closeLeaderboardDay } = await import('@/lib/crossvm-client');
       const GUEST_ADDR = '0x00000000000000000000000000000000000d3m0';
+      const userRemixes = getUserRemixes();
+      const referredTxHashes = new Set(
+        userRemixes.filter(r => r.referredBy).map(r => r.txHash)
+      );
       const top10 = entries.slice(0, 10).map(e => ({
         rank: e.rank,
         title: e.title,
         creator: e.creator,
-        votes: e.votes,
+        votes: referredTxHashes.has(e.txHash) ? e.votes + 200 : e.votes,
         reward: e.reward,
         xlayer_token_id: e.tokenId,
         xlayer_tx_hash: e.txHash,
@@ -184,6 +205,11 @@ export default function Leaderboard() {
                   <div className="text-gray-400 text-xs">Prize Pool</div>
                 </div>
                 {cycleStatus === 'open' && (
+                  <div className="text-[10px] text-gray-500 flex items-center gap-1">
+                    <Timer className="h-3 w-3" />
+                    {countdown}
+                  </div>
+                )}
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={handleSeedDemo}
@@ -471,6 +497,41 @@ export default function Leaderboard() {
             </AnimatePresence>
           </CardContent>
         </Card>
+
+        {/* "Beat This" Social Feed */}
+        {entries.length > 0 && (
+          <Card className="bg-white/5 border-white/10 mb-8">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Zap className="h-5 w-5 text-yellow-400" />
+                <h3 className="text-sm font-semibold text-white">Beat This</h3>
+                <span className="text-[11px] text-gray-500 ml-auto">Challenge other creators</span>
+              </div>
+              <div className="grid md:grid-cols-3 gap-3">
+                {entries.slice(0, 3).map(entry => (
+                  <motion.div
+                    key={`beat-${entry.tokenId}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/5 rounded-lg p-3 border border-white/5 hover:border-yellow-400/20 transition-colors"
+                  >
+                    <div className="text-xs font-medium text-white truncate">{entry.title}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[11px] text-gray-400">{entry.creator}</span>
+                      <span className="text-yellow-400 text-xs font-bold ml-auto">{entry.votes} pts</span>
+                    </div>
+                    <button
+                      onClick={() => router.push('/remix')}
+                      className="mt-2 w-full text-[10px] py-1.5 rounded bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20 transition-colors font-medium"
+                    >
+                      Beat {entry.votes} pts
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* CTA */}
         <div className="text-center mt-8">

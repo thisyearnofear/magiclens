@@ -137,6 +137,50 @@ export async function seedDemoData(): Promise<{
 
 // ── Fallback ─────────────────────────────────────────────────────────
 
+// ── Referral API ─────────────────────────────────────────────────────
+
+export async function claimReferral(params: {
+  referrerAddress: string;
+  refereeAddress: string;
+  day?: number;
+  xlayerTokenId: number;
+  xlayerTxHash: string;
+}): Promise<{ success: boolean; bonus_votes?: number; total_referrals?: number; error?: string }> {
+  const res = await safeFetch(`${API_BASE}/api/referral/claim`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      referrer_address: params.referrerAddress,
+      referee_address: params.refereeAddress,
+      day: params.day || 1,
+      xlayer_token_id: params.xlayerTokenId,
+      xlayer_tx_hash: params.xlayerTxHash,
+    }),
+  });
+  if (!res) return { success: false, error: 'Backend unavailable' };
+  return res.json();
+}
+
+export async function getReferralStats(address: string): Promise<{
+  success: boolean;
+  stats?: {
+    total_claims: number;
+    days_with_claims: number;
+    total_bonus_votes: number;
+    times_referred: number;
+    recent_claims: Array<{ day: number; referee: string; bonus_votes: number; claimed_at: string | null }>;
+  };
+  error?: string;
+}> {
+  const res = await safeFetch(`${API_BASE}/api/referral/stats/${address}`, {
+    headers: getAuthHeaders(),
+  });
+  if (!res) return { success: false, error: 'Backend unavailable' };
+  return res.json();
+}
+
+// ── Fallback ─────────────────────────────────────────────────────────
+
 function getFallbackPromotion(params: {
   xlayerTokenId: number;
   title: string;

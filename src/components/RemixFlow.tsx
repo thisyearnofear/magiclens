@@ -11,7 +11,9 @@ import { MintConfirmation } from '@/components/remix/MintConfirmation';
 import { Zap } from 'lucide-react';
 import { useAuthContext } from '@/auth';
 import { useMintRemix } from '@/hooks/useMintRemix';
+import { useReferrer } from '@/hooks/useReferrer';
 import { addRemix } from '@/lib/remix-store';
+import { claimReferral } from '@/lib/crossvm-client';
 import type { SelectedOverlay, OverlayDefinition } from '@/hooks/usePack';
 import type { Video } from '@/lib/sdk';
 
@@ -37,6 +39,7 @@ export default function RemixFlow() {
   const router = useRouter();
   const { isConnected, chain, evmAddress, isWrongNetwork } = useAuthContext();
   const { mintRemix, isMinting } = useMintRemix();
+  const { referrerAddress, clearReferrer } = useReferrer();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [clip, setClip] = useState<{ title: string; id: string } | null>(null);
@@ -58,15 +61,35 @@ export default function RemixFlow() {
       const creator = addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '@you';
 
       if (evmReady) {
-        const hash = await mintRemix(
+        const result = await mintRemix(
           clipTitle,
           selectedOverlays.map(o => o.id),
+          referrerAddress,
         );
-        if (hash) {
+        if (result) {
+          const { hash, nextTokenId } = result;
           setIsDemo(false);
           setMintTx(hash);
-          addRemix({ title: clipTitle, txHash: hash, creator });
+          addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
           goForward();
+
+          // Claim referral reward on backend
+          if (referrerAddress && evmAddress && referrerAddress.toLowerCase() !== evmAddress.toLowerCase()) {
+            claimReferral({
+              referrerAddress,
+              refereeAddress: evmAddress,
+              day: 1,
+              xlayerTokenId: nextTokenId,
+              xlayerTxHash: hash,
+            }).then(res => {
+              if (res.success && res.total_referrals !== undefined) {
+                import('sonner').then(({ toast }) =>
+                  toast.success(`Referrer gets +${res.bonus_votes} leaderboard votes! (${res.total_referrals} total)`)
+                );
+              }
+            });
+            clearReferrer();
+          }
         }
       } else {
         setIsDemo(true);
@@ -74,7 +97,7 @@ export default function RemixFlow() {
           Math.floor(Math.random() * 16).toString(16)
         ).join('');
         setMintTx(hash);
-        addRemix({ title: clipTitle, txHash: hash, creator });
+        addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
         goForward();
       }
     } catch (err) {
