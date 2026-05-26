@@ -205,32 +205,33 @@ export default function Leaderboard() {
                   <div className="text-gray-400 text-xs">Prize Pool</div>
                 </div>
                 {cycleStatus === 'open' && (
-                  <div className="text-[10px] text-gray-500 flex items-center gap-1">
-                    <Timer className="h-3 w-3" />
-                    {countdown}
-                  </div>
-                )}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={handleSeedDemo}
-                      disabled={seedingDemo}
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-[10px] border-purple-400/30 text-purple-300 hover:bg-purple-400/10 px-2"
-                    >
-                      {seedingDemo ? <Loader2 className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3 mr-1" />}
-                      Seed Demo
-                    </Button>
-                    <Button
-                      onClick={handleCloseDay}
-                      disabled={closingDay}
-                      size="sm"
-                      className="h-7 text-[10px] bg-yellow-400 text-black hover:bg-yellow-500 border-0 px-2"
-                    >
-                      {closingDay ? <Loader2 className="h-3 w-3 animate-spin" /> : <Clock className="h-3 w-3 mr-1" />}
-                      {isGuest ? 'Close Day (Demo)' : 'Close Day'}
-                    </Button>
-                  </div>
+                  <>
+                    <div className="text-[10px] text-gray-500 flex items-center gap-1">
+                      <Timer className="h-3 w-3" />
+                      {countdown}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={handleSeedDemo}
+                        disabled={seedingDemo}
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-[10px] border-purple-400/30 text-purple-300 hover:bg-purple-400/10 px-2"
+                      >
+                        {seedingDemo ? <Loader2 className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3 mr-1" />}
+                        Seed Demo
+                      </Button>
+                      <Button
+                        onClick={handleCloseDay}
+                        disabled={closingDay}
+                        size="sm"
+                        className="h-7 text-[10px] bg-yellow-400 text-black hover:bg-yellow-500 border-0 px-2"
+                      >
+                        {closingDay ? <Loader2 className="h-3 w-3 animate-spin" /> : <Clock className="h-3 w-3 mr-1" />}
+                        {isGuest ? 'Close Day (Demo)' : 'Close Day'}
+                      </Button>
+                    </div>
+                  </>
                 )}
                 {cycleStatus !== 'open' && (
                   <Button
