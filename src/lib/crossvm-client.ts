@@ -119,6 +119,22 @@ export async function getPendingPromoteDays() {
   return res ? res.json() : { success: false, pending_days: [] };
 }
 
+export async function seedDemoData(): Promise<{
+  success: boolean;
+  day?: number;
+  promoted?: number;
+  errors?: string[];
+  iconic_moments?: CrossVMPromotion[];
+  error?: string;
+}> {
+  const res = await safeFetch(`${API_BASE}/api/demo/seed`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  if (!res) return { success: false, error: 'Backend unavailable' };
+  return res.json();
+}
+
 // ── Fallback ─────────────────────────────────────────────────────────
 
 function getFallbackPromotion(params: {

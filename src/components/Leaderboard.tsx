@@ -180,6 +180,17 @@ export default function Leaderboard() {
                     Close Day
                   </Button>
                 )}
+                {cycleStatus !== 'open' && (
+                  <Button
+                    onClick={() => router.push('/iconic-moments')}
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-[10px] border-blue-400/30 text-blue-300 hover:bg-blue-400/10 px-2"
+                  >
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    View Iconic Moments
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

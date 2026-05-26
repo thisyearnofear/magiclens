@@ -1811,6 +1811,71 @@ async def get_pending_leaderboard_days():
 
 
 # ═══════════════════════════════════════════════════════════════
+# Demo Seed — creates sample leaderboard data and triggers cross-VM mint
+# ═══════════════════════════════════════════════════════════════
+
+DEMO_ENTRIES_TEMPLATE = [
+    {"rank": 1, "title": "Messi World Cup Triumph", "votes": 2847, "reward": "100 USDT"},
+    {"rank": 2, "title": "Haaland Hat-trick Madness", "votes": 2153, "reward": "50 USDT"},
+    {"rank": 3, "title": "Mbappé Speed Run Goal", "votes": 1890, "reward": "25 USDT"},
+    {"rank": 4, "title": "Bellingham Bicycle Kick", "votes": 1420, "reward": "10 USDT"},
+    {"rank": 5, "title": "Salah Curler Top Corner", "votes": 1095, "reward": "5 USDT"},
+]
+
+DUMMY_ADDRESS = "0xCAfEcAfeCAfECaFeCaFecaFecaFECafECafeCaFe"
+
+
+@app.post("/api/demo/seed")
+async def seed_demo_data():
+    """Seed the application with demo data: leaderboard entries + cross-VM mint.
+
+    Creates 5 demo remixes for a new day, closes the leaderboard,
+    and auto-promotes top-3 to Flow Iconic Moments.
+    """
+    from core.leaderboard_service import leaderboard_service
+    from core.crossvm_service import crossvm_service
+
+    try:
+        # Find the next available day
+        from core.database import execute_query
+        existing = execute_query(
+            "SELECT COALESCE(MAX(day), 0) AS max_day FROM leaderboard_cycles"
+        )
+        day = (existing[0]["max_day"] if existing else 0) + 1
+
+        entries = []
+        for e in DEMO_ENTRIES_TEMPLATE:
+            entries.append({
+                "rank": e["rank"],
+                "title": e["title"],
+                "creator": DUMMY_ADDRESS[:10] + "...",
+                "votes": e["votes"],
+                "reward": e["reward"],
+                "xlayer_token_id": 1000 + e["rank"],
+                "xlayer_tx_hash": "0x" + format(e["rank"] * 12345, "064x"),
+                "xlayer_creator_address": DUMMY_ADDRESS,
+            })
+
+        close_result = leaderboard_service.submit_day_results(day=day, entries=entries)
+        if not close_result.get("success"):
+            return {"success": False, "error": f"Failed to close day: {close_result.get('error')}"}
+
+        promote_result = await leaderboard_service.process_day(day)
+        moments = await crossvm_service.get_iconic_moments(day=day)
+
+        return {
+            "success": True,
+            "day": day,
+            "promoted": promote_result.get("promoted", 0),
+            "already_promoted": promote_result.get("already_promoted", 0),
+            "errors": promote_result.get("errors", []),
+            "iconic_moments": moments,
+        }
+    except Exception as e:
+        logger.error(f"Demo seed failed: {e}")
+        return {"success": False, "error": str(e)}
+
+# ═══════════════════════════════════════════════════════════════
 # Collaboration Discovery
 # ═══════════════════════════════════════════════════════════════
 

@@ -6,12 +6,13 @@ import {
   Sheet, SheetContent, SheetTrigger, SheetClose,
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Menu, Home, Trophy, Users, Zap, User, ArrowLeft } from 'lucide-react'
+import { Menu, Home, Trophy, Users, Zap, User, ArrowLeft, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { href: '/iconic-moments', label: 'Iconic Moments', icon: Sparkles },
   { href: '/discover', label: 'Discover', icon: Users },
   { href: '/remix', label: 'Create Remix', icon: Zap },
   { href: '/profile', label: 'Profile', icon: User },
