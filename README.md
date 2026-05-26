@@ -65,10 +65,12 @@ All documentation is available in the [`docs/`](./docs) directory:
 
 - **🏆 Event-Based Onchain Economy** - Each sports event ships an AR Pack (ERC-1155), Remix Feed (ERC-721), Leaderboard, and USDT/OKB Treasury
 - **🔗 Dual-Chain (X Layer + Flow)** - Volume remixes on X Layer; premium "Iconic Moment" NFTs on Flow Cadence
-- **👛 One Connect Button** - FCL + wagmi RainbowKit adapter unifies OKX Wallet and Flow auth
+- **🔁 Cross-VM Auto-Promote Scheduler** - Daily leaderboard top-3 auto-promoted to Flow Iconic Moments via background asyncio scheduler (60s polling)
+- **👛 One Connect Button** - FCL + wagmi RainbowKit adapter unifies OKX Wallet and Flow auth with purpose-driven tooltips
 - **Flow Blockchain Authentication** with cryptographic signature verification
 - **Video and Asset Management** with PostgreSQL backend
 - **Augmented Reality Editor** for overlay positioning
+- **Collaboration Discovery** - Find and connect with videographers and AR artists via tabbed discovery page
 - **Collaboration Workspace** for artists and videographers
 - **AI-Powered Overlay Selection** - Smart GIF recommendations + asset suggestions
 - **Tenor/GIPHY Integration** - Millions of GIFs for magical overlays
@@ -77,6 +79,7 @@ All documentation is available in the [`docs/`](./docs) directory:
 - **⚡ Database Caching System** - 200-2000x speedup for operations
 - **🔄 Background Processing** - Non-blocking video analysis
 - **🎯 Motion-Aware AR** - Overlays that avoid blocking human movement
+- **📱 Mobile-Responsive Layout** - Card-based leaderboard on mobile, hamburger nav, responsive hero and headings, cross-VM step grid collapse
 
 ## 🔐 Authentication Flow
 

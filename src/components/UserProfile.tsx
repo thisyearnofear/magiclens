@@ -107,8 +107,34 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading profile...</div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+        <header className="border-b border-white/10 bg-black/20">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center space-x-4">
+              <div className="h-9 bg-white/10 rounded w-24 animate-pulse" />
+              <div className="h-6 bg-white/10 rounded w-20 animate-pulse" />
+            </div>
+          </div>
+        </header>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="animate-pulse space-y-6">
+            <div className="bg-white/5 rounded-xl p-8">
+              <div className="flex items-center gap-6">
+                <div className="w-24 h-24 rounded-full bg-white/10" />
+                <div className="space-y-3 flex-1">
+                  <div className="h-6 bg-white/10 rounded w-48" />
+                  <div className="h-4 bg-white/5 rounded w-32" />
+                  <div className="h-4 bg-white/5 rounded w-64" />
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-6">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-24 bg-white/5 rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

@@ -135,7 +135,7 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
               <span><strong className="text-white">X Layer</strong> for volume remixes · <strong className="text-white">Flow</strong> for premium collectibles</span>
             </div>
             {/* How it works */}
-            <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-400/10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-400/10">
               {[
                 { step: '1', label: 'Mint on X Layer', desc: 'Remix minted as ERC-721' },
                 { step: '2', label: 'Leaderboard', desc: 'Votes determine top 3' },
@@ -184,10 +184,13 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
                 Share to X / Twitter
               </Button>
               <Button
-                onClick={() => {
-                  if (txHash) {
-                    navigator.clipboard.writeText(`https://magiclens.app/remix/${txHash}`);
+                onClick={async () => {
+                  if (!txHash) return;
+                  try {
+                    await navigator.clipboard.writeText(`https://magiclens.app/remix/${txHash}`);
                     toast.success('Link copied to clipboard!');
+                  } catch {
+                    toast.error('Could not copy link', { description: 'Clipboard access denied. Copy the URL from the address bar.' });
                   }
                 }}
                 variant="outline"

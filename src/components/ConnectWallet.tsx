@@ -74,7 +74,7 @@ export function ConnectWallet() {
         </Button>
 
         {open && (
-          <div className="absolute right-0 mt-2 w-64 rounded-xl border border-white/10 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
+          <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-16px)] rounded-xl border border-white/10 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
             {/* Header */}
             <div className="px-4 py-3 border-b border-white/10">
               <p className="text-xs text-gray-400 mb-1">Connected wallets</p>
@@ -199,7 +199,7 @@ export function ConnectWallet() {
       </Button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-56 rounded-xl border border-white/10 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-16px)] rounded-xl border border-white/10 bg-gray-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
           <div className="p-2 space-y-1">
             <WalletOption
               icon={<Zap className="h-4 w-4 text-yellow-400" />}

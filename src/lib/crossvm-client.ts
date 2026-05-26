@@ -58,3 +58,47 @@ export async function checkIconicStatus(day: number, tokenId: number): Promise<I
   if (!data.success) throw new Error(data.error || 'Failed to check iconic status');
   return { isIconic: data.is_iconic, iconicMoment: data.iconic_moment };
 }
+
+// ── Leaderboard Cycle Management ─────────────────────────────────────
+
+interface LeaderboardEntryInput {
+  rank: number;
+  title: string;
+  creator: string;
+  votes: number;
+  reward?: string;
+  xlayer_token_id: number;
+  xlayer_tx_hash: string;
+  xlayer_creator_address: string;
+}
+
+export async function closeLeaderboardDay(day: number, entries: LeaderboardEntryInput[]) {
+  const res = await fetch(`${API_BASE}/api/leaderboard/close-day`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ day, entries }),
+  });
+  return res.json();
+}
+
+export async function triggerAutoPromote(day: number) {
+  const res = await fetch(`${API_BASE}/api/leaderboard/process-day/${day}`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  return res.json();
+}
+
+export async function getLeaderboardDayStatus(day: number) {
+  const res = await fetch(`${API_BASE}/api/leaderboard/day-status/${day}`, {
+    headers: getAuthHeaders(),
+  });
+  return res.json();
+}
+
+export async function getPendingPromoteDays() {
+  const res = await fetch(`${API_BASE}/api/leaderboard/pending-days`, {
+    headers: getAuthHeaders(),
+  });
+  return res.json();
+}

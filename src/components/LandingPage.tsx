@@ -36,7 +36,7 @@ export default function LandingPage() {
           <Trophy className="h-4 w-4 text-yellow-400" />
           <span className="text-yellow-400 text-sm font-medium">OKX X Cup Hackathon — World Cup 2026</span>
         </div>
-        <h2 className="text-6xl font-bold text-white mb-6">
+        <h2 className="text-4xl sm:text-6xl font-bold text-white mb-6">
           The <span className="text-yellow-400">AR Remix Layer</span> for Live Sports
         </h2>
         <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -56,7 +56,7 @@ export default function LandingPage() {
 
       {/* Value Proposition Section */}
       <section className="container mx-auto px-4 py-20">
-        <h3 className="text-4xl font-bold text-white text-center mb-16">Connect. Create. Earn.</h3>
+        <h3 className="text-3xl sm:text-4xl font-bold text-white text-center mb-16">Connect. Create. Earn.</h3>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all">
@@ -139,7 +139,7 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section className="container mx-auto px-4 py-20">
-        <h3 className="text-4xl font-bold text-white text-center mb-12">How It Works</h3>
+        <h3 className="text-3xl sm:text-4xl font-bold text-white text-center mb-12">How It Works</h3>
         <div className="grid md:grid-cols-3 gap-8">
           <Card className="bg-white/5 border-white/10">
             <CardHeader>
@@ -176,7 +176,7 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="bg-gradient-to-r from-yellow-400/20 to-purple-400/20 rounded-3xl p-12">
-          <h3 className="text-4xl font-bold text-white mb-6">Ready to Create Iconic Moments?</h3>
+          <h3 className="text-3xl sm:text-4xl font-bold text-white mb-6">Ready to Create Iconic Moments?</h3>
           <p className="text-xl text-gray-300 mb-8">
             Launching with FIFA World Cup 2026. Next: Wimbledon, NBA Finals, F1, Olympics LA 2028.
           </p>

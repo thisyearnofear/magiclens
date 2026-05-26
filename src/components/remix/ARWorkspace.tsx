@@ -75,7 +75,34 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
     show: { opacity: 1, y: 0 }
   };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-4">
+        <div className="animate-pulse space-y-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="space-y-2">
+              <div className="h-7 bg-white/10 rounded w-48" />
+              <div className="h-4 bg-white/5 rounded w-64" />
+            </div>
+            <div className="flex gap-2">
+              <div className="h-9 bg-white/10 rounded w-16" />
+              <div className="h-9 bg-yellow-400/20 rounded w-40" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <div className="aspect-video bg-white/5 rounded-xl" />
+            </div>
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-20 bg-white/5 rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const overlays = manifest?.overlays ?? [];
 
@@ -91,8 +118,8 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
           <h2 className="text-2xl font-bold text-white">Add AR Overlays</h2>
           <p className="text-gray-400 text-sm">Remixing: <span className="text-white font-medium">{clipTitle}</span></p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" onClick={onBack} className="text-white">Back</Button>
+        <div className="flex gap-2 flex-wrap justify-end">
+          <Button variant="ghost" onClick={onBack} className="text-white whitespace-nowrap">Back</Button>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               onClick={() => onNext(selected)}

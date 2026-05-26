@@ -44,37 +44,42 @@ export default function RemixFlow() {
   const [mintTx, setMintTx] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(false);
   const [leaderboardRank] = useState<number | null>(3);
+  const isMobile = useIsMobile();
 
   const goForward = () => { setDirection(1); setStep(s => s + 1); };
   const goBack = () => { setDirection(-1); setStep(s => s - 1); };
 
   const handleMint = async () => {
-    const evmReady = isConnected && chain === 'evm' && !isWrongNetwork;
+    try {
+      const evmReady = isConnected && chain === 'evm' && !isWrongNetwork;
 
-    const clipTitle = clip?.title || 'Match Moment';
-    const creator = evmAddress ? `${evmAddress.slice(0, 6)}...${evmAddress.slice(-4)}` : '@you';
+      const clipTitle = clip?.title || 'Match Moment';
+      const addr = evmAddress || '';
+      const creator = addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '@you';
 
-    if (evmReady) {
-      // Real on-chain mint
-      const hash = await mintRemix(
-        clipTitle,
-        selectedOverlays.map(o => o.id),
-      );
-      if (hash) {
-        setIsDemo(false);
+      if (evmReady) {
+        const hash = await mintRemix(
+          clipTitle,
+          selectedOverlays.map(o => o.id),
+        );
+        if (hash) {
+          setIsDemo(false);
+          setMintTx(hash);
+          addRemix({ title: clipTitle, txHash: hash, creator });
+          goForward();
+        }
+      } else {
+        setIsDemo(true);
+        const hash = '0x' + Array.from({ length: 64 }, () =>
+          Math.floor(Math.random() * 16).toString(16)
+        ).join('');
         setMintTx(hash);
         addRemix({ title: clipTitle, txHash: hash, creator });
         goForward();
       }
-    } else {
-      // Simulated fallback for demo
-      setIsDemo(true);
-      const hash = '0x' + Array.from({ length: 64 }, () =>
-        Math.floor(Math.random() * 16).toString(16)
-      ).join('');
-      setMintTx(hash);
-      addRemix({ title: clipTitle, txHash: hash, creator });
-      goForward();
+    } catch (err) {
+      const { toast } = await import('sonner');
+      toast.error('Mint failed', { description: err instanceof Error ? err.message : 'Could not complete the mint' });
     }
   };
 
@@ -136,7 +141,7 @@ export default function RemixFlow() {
           )}
 
           {step === 1 && clip && (
-            useIsMobile() ? (
+            isMobile ? (
               <QuickRemix
                 onNext={(packIds) => {
                   setSelectedOverlays(packIds.map(id => ({ id, name: id, type: 'overlay', description: '', previewColor: '', thumbnail: '', icon: '' } as SelectedOverlay)));

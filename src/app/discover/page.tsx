@@ -13,6 +13,7 @@ import {
 import { useAuthContext } from '@/auth/AuthProvider';
 import { CollabCard } from '@/components/collaboration/CollabCard';
 import { CollabRequest } from '@/components/collaboration/CollabRequest';
+import { MobileNav } from '@/components/MobileNav';
 import { toast } from 'sonner';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
@@ -113,12 +114,8 @@ export default function DiscoverPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Header */}
       <header className="border-b border-white/10 bg-black/20">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users className="h-8 w-8 text-indigo-400" />
-            <h1 className="text-2xl font-bold text-white">Discover</h1>
-          </div>
-          <button onClick={() => router.push('/')} className="text-gray-400 hover:text-white text-sm">Back</button>
+        <div className="container mx-auto px-4 py-4">
+          <MobileNav title="Discover" icon={<Users className="h-8 w-8 text-indigo-400 shrink-0" />} />
         </div>
       </header>
 

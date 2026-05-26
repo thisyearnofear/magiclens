@@ -39,6 +39,7 @@ import builtins
 
 from core.render_queue import start_render_worker
 from core.metrics import metrics_manager, track_video_upload
+from core.leaderboard_service import start_auto_promote_scheduler
 
 from datetime import datetime, date, time, timedelta
 from concurrent.futures import ThreadPoolExecutor
@@ -263,6 +264,7 @@ metrics_manager.expose_metrics(app)
 @app.on_event("startup")
 async def startup_render_worker():
     start_render_worker()
+    start_auto_promote_scheduler(interval_seconds=60)
 
 
 @app.post("/api/auth/flow/login", response_model=FlowLoginResponse)
@@ -1731,6 +1733,81 @@ async def check_iconic_status(day: int, token_id: int):
         }
     except Exception as e:
         return {"success": False, "error": str(e), "is_iconic": False}
+
+
+# ═══════════════════════════════════════════════════════════════
+# Leaderboard Cycle Management + Auto-Promote
+# ═══════════════════════════════════════════════════════════════
+
+class CloseDayRequest(BaseModel):
+    day: int
+    entries: List[dict]
+
+
+@app.post("/api/leaderboard/close-day")
+async def close_leaderboard_day(body: CloseDayRequest):
+    """Close a leaderboard day with final top entries.
+    
+    Once closed, the auto-promote scheduler will pick up the day
+    and promote top-3 entries to Flow Iconic Moments.
+    """
+    from core.leaderboard_service import leaderboard_service
+
+    try:
+        result = leaderboard_service.submit_day_results(
+            day=body.day,
+            entries=body.entries,
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Failed to close leaderboard day {body.day}: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/leaderboard/process-day/{day}")
+async def process_leaderboard_day(day: int):
+    """Manually trigger auto-promote for a specific day.
+    
+    Scheduler runs automatically every 60s, but this allows
+    manual triggering if needed.
+    """
+    from core.leaderboard_service import leaderboard_service
+
+    try:
+        result = await leaderboard_service.process_day(day)
+        return result
+    except Exception as e:
+        logger.error(f"Failed to process day {day}: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/leaderboard/day-status/{day}")
+async def get_leaderboard_day_status(day: int):
+    """Get the status of a leaderboard day including entries and promotion state."""
+    from core.leaderboard_service import leaderboard_service
+
+    try:
+        status = leaderboard_service.get_day_status(day)
+        if status is None:
+            return {"success": False, "error": f"Day {day} not found"}
+        return {"success": True, "day_status": status}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/leaderboard/pending-days")
+async def get_pending_leaderboard_days():
+    """Get all days that are 'closed' and awaiting auto-promotion."""
+    from core.leaderboard_service import leaderboard_service
+    from core.database import execute_query
+
+    try:
+        days = execute_query(
+            "SELECT day, closed_at FROM leaderboard_cycles WHERE status = 'closed' ORDER BY day ASC"
+        )
+        return {"success": True, "pending_days": days or []}
+    except Exception as e:
+        return {"success": False, "error": str(e), "pending_days": []}
 
 
 # ═══════════════════════════════════════════════════════════════

@@ -41,6 +41,7 @@ export default function VideoGallery() {
       }
     } catch (error) {
       console.error('Error loading videos:', error);
+      toast.error('Failed to load videos', { description: 'The gallery server may be unavailable.' });
     } finally {
       setLoading(false);
     }
@@ -67,6 +68,7 @@ export default function VideoGallery() {
       }
     } catch (error) {
       console.error('Error searching videos:', error);
+      toast.error('Search failed', { description: 'Could not search videos right now.' });
     } finally {
       setLoading(false);
     }
@@ -205,7 +207,7 @@ export default function VideoGallery() {
                           AI Enhance
                         </Button>
                         <Button
-                          onClick={() => handleStartCollaboration(video.id!)}
+                          onClick={() => video.id && handleStartCollaboration(video.id)}
                           disabled={collaborating === video.id}
                           variant="outline"
                           className="text-white border-white/40"
@@ -256,7 +258,11 @@ export default function VideoGallery() {
         {/* Load More */}
         {videos.length > 0 && videos.length % 24 === 0 && (
           <div className="text-center mt-8">
-            <Button variant="secondary" className="bg-white/10 text-white hover:bg-white/20">
+            <Button
+              variant="secondary"
+              className="bg-white/10 text-white hover:bg-white/20"
+              onClick={loadVideos}
+            >
               Load More Videos
             </Button>
           </div>
