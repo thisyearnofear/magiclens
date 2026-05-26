@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Providers from './Providers';
+import ClientProviders from './ClientProviders';
 import './globals.css';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body>
-        <Providers>{children}</Providers>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

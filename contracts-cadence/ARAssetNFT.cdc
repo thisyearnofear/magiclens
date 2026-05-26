@@ -1,15 +1,12 @@
-// ARAssetNFT.cdc - Minimal working version for MagicLens
-// Simple NFT contract for AR overlays
-
-import NonFungibleToken from 0xf8d6e0586b0a20c7
-import ViewResolver from 0xf8d6e0586b0a20c7
-import MetadataViews from 0xf8d6e0586b0a20c7
+import NonFungibleToken from 0x631e88ae7f1d7c20
+import ViewResolver from 0x631e88ae7f1d7c20
+import MetadataViews from 0x631e88ae7f1d7c20
 
 access(all) contract ARAssetNFT: NonFungibleToken {
 
     access(all) event ContractInitialized()
-    access(all) event Withdraw(id: UInt64, from: Address?)
-    access(all) event Deposit(id: UInt64, to: Address?)
+    access(all) event Withdraw(id: UInt64)
+    access(all) event Deposit(id: UInt64)
     access(all) event Minted(id: UInt64, creator: Address)
 
     access(all) let CollectionStoragePath: StoragePath
@@ -61,7 +58,7 @@ access(all) contract ARAssetNFT: NonFungibleToken {
 
         access(NonFungibleToken.Withdraw) fun withdraw(withdrawID: UInt64): @{NonFungibleToken.NFT} {
             let token <- self.ownedNFTs.remove(key: withdrawID) ?? panic("missing NFT")
-            emit Withdraw(id: token.id, from: self.owner?.address)
+            emit Withdraw(id: token.id)
             return <-token
         }
 
@@ -69,7 +66,7 @@ access(all) contract ARAssetNFT: NonFungibleToken {
             let token <- token as! @ARAssetNFT.NFT
             let id: UInt64 = token.id
             let oldToken <- self.ownedNFTs[id] <- token
-            emit Deposit(id: id, to: self.owner?.address)
+            emit Deposit(id: id)
             destroy oldToken
         }
 

@@ -4,8 +4,11 @@ import psycopg
 from psycopg_pool import ConnectionPool
 from typing import Optional
 import logging
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 # Database configuration
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -15,7 +18,10 @@ DB_USER = os.getenv("DB_USER", "magiclens_user")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "magiclens_pass")
 
 # Connection string
+DB_SSLMODE = os.getenv("DB_SSLMODE", "")
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+if DB_SSLMODE:
+    DATABASE_URL += f"?sslmode={DB_SSLMODE}"
 
 # Create connection pool
 pool: Optional[ConnectionPool] = None

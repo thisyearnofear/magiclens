@@ -1,16 +1,9 @@
-// CollaborationHub.cdc
-// Multi-party collaboration smart contracts for MagicLens
-//
-// Enables decentralized collaboration with revenue sharing,
-// access control, and contribution tracking
-
-import ARAssetNFT from "./ARAssetNFT.cdc"
-import FungibleToken from 0xee82856bf20e2aa6
-import FlowToken from 0x0ae53cb6e3f42a79
+import ARAssetNFT from 0x4520a5a7b69ee3ac
+import FungibleToken from 0x9a0766d93b6608b7
+import FlowToken from 0x7e60df042a9c0868
 
 access(all) contract CollaborationHub {
 
-    // Events
     access(all) event ProjectCreated(id: UInt64, creator: Address, name: String)
     access(all) event CollaboratorAdded(projectId: UInt64, collaborator: Address, role: String)
     access(all) event CollaboratorRemoved(projectId: UInt64, collaborator: Address)
@@ -18,14 +11,11 @@ access(all) contract CollaborationHub {
     access(all) event RevenueShared(projectId: UInt64, amount: UFix64, recipients: [Address])
     access(all) event ProjectCompleted(projectId: UInt64, completedAt: UFix64)
 
-    // Storage paths
     access(all) let ProjectStoragePath: StoragePath
     access(all) let ProjectPublicPath: PublicPath
 
-    // Total projects created
     access(all) var totalProjects: UInt64
 
-    // Collaborator Roles
     access(all) enum Role: UInt8 {
         access(all) case owner
         access(all) case editor
@@ -33,7 +23,6 @@ access(all) contract CollaborationHub {
         access(all) case viewer
     }
 
-    // Contribution Types
     access(all) enum ContributionType: UInt8 {
         access(all) case videoUpload
         access(all) case assetCreation
@@ -42,18 +31,16 @@ access(all) contract CollaborationHub {
         access(all) case review
     }
 
-    // Project Status
     access(all) enum ProjectStatus: UInt8 {
         access(all) case active
         access(all) case completed
         access(all) case archived
     }
 
-    // Collaborator Info
     access(all) struct CollaboratorInfo {
         access(all) let address: Address
         access(all) let role: Role
-        access(all) let sharePercentage: UFix64  // Revenue share (0.0 to 100.0)
+        access(all) let sharePercentage: UFix64
         access(all) var contributionCount: UInt64
         access(all) let joinedAt: UFix64
 
@@ -70,7 +57,6 @@ access(all) contract CollaborationHub {
         }
     }
 
-    // Contribution Record
     access(all) struct Contribution {
         access(all) let contributor: Address
         access(all) let contributionType: ContributionType
@@ -92,7 +78,6 @@ access(all) contract CollaborationHub {
         }
     }
 
-    // Project Resource
     access(all) resource Project {
         access(all) let id: UInt64
         access(all) let name: String
@@ -101,7 +86,7 @@ access(all) contract CollaborationHub {
         access(all) var status: ProjectStatus
         access(all) let collaborators: {Address: CollaboratorInfo}
         access(all) let contributions: [Contribution]
-        access(all) let assetIds: [UInt64]  // AR Asset NFT IDs used in project
+        access(all) let assetIds: [UInt64]
         access(all) var totalRevenue: UFix64
         access(all) let createdAt: UFix64
         access(all) var completedAt: UFix64?
@@ -124,7 +109,6 @@ access(all) contract CollaborationHub {
             self.createdAt = getCurrentBlock().timestamp
             self.completedAt = nil
 
-            // Add creator as owner with 100% share initially
             self.collaborators[creator] = CollaboratorInfo(
                 address: creator,
                 role: Role.owner,
@@ -132,7 +116,6 @@ access(all) contract CollaborationHub {
             )
         }
 
-        // Add collaborator to project
         access(all) fun addCollaborator(
             address: Address,
             role: Role,
@@ -144,7 +127,6 @@ access(all) contract CollaborationHub {
                 sharePercentage >= 0.0 && sharePercentage <= 100.0: "Invalid share percentage"
             }
 
-            // Adjust existing shares proportionally
             let totalExistingShare = self.getTotalSharePercentage()
             let remainingShare = 100.0 - totalExistingShare
 
@@ -161,7 +143,6 @@ access(all) contract CollaborationHub {
             emit CollaboratorAdded(projectId: self.id, collaborator: address, role: role.rawValue.toString())
         }
 
-        // Remove collaborator
         access(all) fun removeCollaborator(address: Address) {
             pre {
                 self.collaborators[address] != nil: "Collaborator does not exist"
@@ -172,7 +153,6 @@ access(all) contract CollaborationHub {
             emit CollaboratorRemoved(projectId: self.id, collaborator: address)
         }
 
-        // Record contribution
         access(all) fun recordContribution(
             contributor: Address,
             contributionType: ContributionType,
@@ -201,7 +181,6 @@ access(all) contract CollaborationHub {
             )
         }
 
-        // Add AR asset to project
         access(all) fun addAsset(assetId: UInt64) {
             pre {
                 self.status == ProjectStatus.active: "Project is not active"
@@ -209,21 +188,18 @@ access(all) contract CollaborationHub {
             self.assetIds.append(assetId)
         }
 
-        // Distribute revenue to collaborators
         access(all) fun distributeRevenue(amount: UFix64, vault: @{FungibleToken.Vault}) {
             pre {
                 vault.balance == amount: "Vault balance does not match amount"
             }
 
             let recipients: [Address] = []
-            
+
             for collaboratorAddress in self.collaborators.keys {
                 let collaborator = self.collaborators[collaboratorAddress]!
                 let share = amount * (collaborator.sharePercentage / 100.0)
-                
+
                 if share > 0.0 {
-                    // In production, this would transfer tokens to collaborator
-                    // For hackathon, we emit events
                     recipients.append(collaboratorAddress)
                 }
             }
@@ -231,11 +207,9 @@ access(all) contract CollaborationHub {
             self.totalRevenue = self.totalRevenue + amount
             emit RevenueShared(projectId: self.id, amount: amount, recipients: recipients)
 
-            // Destroy the vault (in production, distribute to collaborators)
             destroy vault
         }
 
-        // Complete project
         access(all) fun complete() {
             pre {
                 self.status == ProjectStatus.active: "Project is not active"
@@ -246,7 +220,6 @@ access(all) contract CollaborationHub {
             emit ProjectCompleted(projectId: self.id, completedAt: getCurrentBlock().timestamp)
         }
 
-        // Get total share percentage
         access(all) fun getTotalSharePercentage(): UFix64 {
             var total: UFix64 = 0.0
             for collaborator in self.collaborators.values {
@@ -255,17 +228,14 @@ access(all) contract CollaborationHub {
             return total
         }
 
-        // Check if address is collaborator
         access(all) fun isCollaborator(address: Address): Bool {
             return self.collaborators[address] != nil
         }
 
-        // Get collaborator role
         access(all) fun getCollaboratorRole(address: Address): Role? {
             return self.collaborators[address]?.role
         }
 
-        // Get project statistics
         access(all) fun getStats(): {String: AnyStruct} {
             return {
                 "totalCollaborators": self.collaborators.length,
@@ -277,21 +247,20 @@ access(all) contract CollaborationHub {
         }
     }
 
-    // Project Manager Interface
     access(all) resource interface ProjectManagerPublic {
         access(all) fun getProjectIDs(): [UInt64]
         access(all) fun borrowProject(id: UInt64): &Project?
     }
 
-    // Project Manager Resource
     access(all) resource ProjectManager: ProjectManagerPublic {
+        access(all) let ownerAddress: Address
         access(all) var projects: @{UInt64: Project}
 
-        init() {
+        init(ownerAddress: Address) {
+            self.ownerAddress = ownerAddress
             self.projects <- {}
         }
 
-        // Create new project
         access(all) fun createProject(
             name: String,
             description: String
@@ -300,11 +269,11 @@ access(all) contract CollaborationHub {
                 id: CollaborationHub.totalProjects,
                 name: name,
                 description: description,
-                creator: self.owner!.address
+                creator: self.ownerAddress
             )
 
             let id = project.id
-            emit ProjectCreated(id: id, creator: self.owner!.address, name: name)
+            emit ProjectCreated(id: id, creator: self.ownerAddress, name: name)
 
             self.projects[id] <-! project
             CollaborationHub.totalProjects = CollaborationHub.totalProjects + 1
@@ -312,17 +281,14 @@ access(all) contract CollaborationHub {
             return id
         }
 
-        // Get all project IDs
         access(all) fun getProjectIDs(): [UInt64] {
             return self.projects.keys
         }
 
-        // Borrow project reference
         access(all) fun borrowProject(id: UInt64): &Project? {
             return &self.projects[id] as &Project?
         }
 
-        // Get projects by collaborator
         access(all) fun getProjectsByCollaborator(address: Address): [UInt64] {
             let projectIds: [UInt64] = []
             for id in self.projects.keys {
@@ -334,13 +300,10 @@ access(all) contract CollaborationHub {
             }
             return projectIds
         }
-
-
     }
 
-    // Create empty project manager
-    access(all) fun createProjectManager(): @ProjectManager {
-        return <- create ProjectManager()
+    access(all) fun createProjectManager(ownerAddress: Address): @ProjectManager {
+        return <- create ProjectManager(ownerAddress: ownerAddress)
     }
 
     init() {
@@ -348,11 +311,9 @@ access(all) contract CollaborationHub {
         self.ProjectStoragePath = /storage/CollaborationProjectManager
         self.ProjectPublicPath = /public/CollaborationProjectManager
 
-        // Create project manager for deployer
-        let manager <- create ProjectManager()
+        let manager <- create ProjectManager(ownerAddress: self.account.address)
         self.account.storage.save(<-manager, to: self.ProjectStoragePath)
 
-        // Create public capability
         let managerCap = self.account.capabilities.storage.issue<&{ProjectManagerPublic}>(self.ProjectStoragePath)
         self.account.capabilities.publish(managerCap, at: self.ProjectPublicPath)
     }
