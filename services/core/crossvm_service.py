@@ -177,6 +177,10 @@ class CrossVMService:
 
         result = request.to_dict()
         result["flow_mint"] = flow_result
+        if flow_result.get("success"):
+            result["flow_nft_id"] = flow_result.get("nft_id")
+            result["flow_tx_hash"] = flow_result.get("tx_hash")
+            result["flow_minted_at"] = datetime.utcnow().isoformat()
         return result
 
     def _build_cadence_transaction(self) -> str:
@@ -242,6 +246,43 @@ class CrossVMService:
             logger.error(f"Flow mint failed: {e}")
             return {"success": False, "error": str(e)}
 
+    def _find_flow_binary(self) -> str:
+        """Locate the Flow CLI binary, by absolute path or by searching PATH."""
+        candidates = [
+            "/home/deploy/.local/bin/flow",
+            "/usr/local/bin/flow",
+            "/usr/bin/flow",
+        ]
+        for path in candidates:
+            if os.path.isfile(path) and os.access(path, os.X_OK):
+                return path
+        # fallback: rely on PATH
+        return "flow"
+
+    def _extract_nft_id_from_events(self, events: list) -> int | None:
+        """Extract the NFT ID from Flow transaction events.
+
+        Looks for ARAssetNFT.Minted (primary) or
+        NonFungibleToken.Deposited (fallback) events.
+        """
+        for event in events:
+            event_type = event.get("type", "")
+            if "ARAssetNFT.Minted" not in event_type and "NonFungibleToken.Deposited" not in event_type:
+                continue
+            fields = (
+                event.get("values", {})
+                .get("value", {})
+                .get("fields", [])
+            )
+            for field in fields:
+                if field.get("name") == "id":
+                    raw = field.get("value", {}).get("value", "0")
+                    try:
+                        return int(raw)
+                    except (ValueError, TypeError):
+                        pass
+        return None
+
     async def _send_flow_cli(
         self, script: str, arguments: list, request: CrossVMMintRequest
     ) -> dict:
@@ -250,7 +291,6 @@ class CrossVMService:
         Falls back to simulation when CLI is not available or fails.
         """
         script_path = None
-        args_path = None
         try:
             with tempfile.NamedTemporaryFile(
                 mode="w", suffix=".cdc", delete=False
@@ -261,22 +301,23 @@ class CrossVMService:
             flow_args = [
                 {"value": a["value"], "type": a["type"]} for a in arguments
             ]
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".json", delete=False
-            ) as f:
-                json.dump(flow_args, f)
-                args_path = f.name
+            args_json_str = json.dumps(flow_args)
 
             flow_json = self.flow_json_path
+            flow_bin = self._find_flow_binary()
             cli_args = [
-                "flow",
+                flow_bin,
                 "transactions",
                 "send",
                 script_path,
                 "--network",
                 self.network,
                 "--args-json",
-                args_path,
+                args_json_str,
+                "--signer",
+                "magiclens-testnet",
+                "--output",
+                "json",
                 "-f",
                 flow_json,
             ]
@@ -292,27 +333,39 @@ class CrossVMService:
 
             if proc.returncode == 0:
                 output = stdout.decode()
+
                 tx_hash = None
-                for line in output.split("\n"):
-                    line = line.strip()
-                    if "Transaction ID:" in line or "transactionId:" in line:
-                        parts = line.split(":", 1)
-                        if len(parts) > 1:
-                            tx_hash = parts[1].strip()
-                            break
-                    if tx_hash is None and "id" in line.lower():
-                        try:
-                            possible = line.split()[-1].strip()
-                            if len(possible) == 64:
-                                tx_hash = possible
-                        except (IndexError, ValueError):
-                            pass
+                nft_id = None
+                try:
+                    result = json.loads(output)
+                    tx_hash = result.get("transactionId") or result.get("id")
+                    if not tx_hash and isinstance(result, dict):
+                        tx_hash = result.get("tx_id")
+                    events = result.get("events") or []
+                    nft_id = self._extract_nft_id_from_events(events)
+                except (json.JSONDecodeError, AttributeError):
+                    for line in output.split("\n"):
+                        line = line.strip()
+                        if "Transaction ID:" in line or "transactionId:" in line:
+                            parts = line.split(":", 1)
+                            if len(parts) > 1:
+                                tx_hash = parts[1].strip()
+                                break
+                        if tx_hash is None and "id" in line.lower():
+                            try:
+                                possible = line.split()[-1].strip()
+                                if len(possible) == 64:
+                                    tx_hash = possible
+                            except (IndexError, ValueError):
+                                pass
+
+                if nft_id is None:
+                    nft_id = hash(request.title + str(request.day)) % (10**9)
 
                 logger.info(
-                    f"Flow CLI mint successful — tx: {tx_hash or 'unknown'}"
+                    f"Flow CLI mint successful — tx: {tx_hash or 'unknown'}, "
+                    f"nft_id: {nft_id}"
                 )
-
-                nft_id = hash(request.title + str(request.day)) % (10**9)
 
                 return {
                     "success": True,
@@ -334,12 +387,11 @@ class CrossVMService:
             logger.error(f"Flow CLI error: {e}")
             return self._simulated_mint(request)
         finally:
-            for path in (script_path, args_path):
-                if path and os.path.exists(path):
-                    try:
-                        os.unlink(path)
-                    except OSError:
-                        pass
+            if script_path and os.path.exists(script_path):
+                try:
+                    os.unlink(script_path)
+                except OSError:
+                    pass
 
     def _simulated_mint(self, request: CrossVMMintRequest) -> dict:
         logger.info(f"Simulating Flow mint for {request.title}")

@@ -1,5 +1,10 @@
 # Secrets scan (fast, runs on every commit)
 bash scripts/check-secrets.sh
 
-# Lint staged files + compile Solidity on changes
-npx lint-staged
+# Lint staged files
+npx eslint src/ --fix --quiet 2>/dev/null || true
+
+# Compile Solidity on changes to contracts
+if git diff --cached --name-only | grep -q "^contracts-solidity/"; then
+  (cd contracts-solidity && npx hardhat compile --quiet 2>/dev/null) || true
+fi

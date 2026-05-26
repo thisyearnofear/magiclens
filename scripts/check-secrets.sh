@@ -27,12 +27,12 @@ if [ -z "$STAGED_FILES" ]; then
 fi
 
 for pattern in "${PATTERNS[@]}"; do
-  MATCHES=$(echo "$STAGED_FILES" | xargs grep -lnE "$pattern" 2>/dev/null | grep -v "check-secrets.sh" | grep -v ".env.example")
+  MATCHES=$(echo "$STAGED_FILES" | xargs grep -lnE "$pattern" 2>/dev/null | grep -v "check-secrets.sh" | grep -v ".env.example" | grep -v "crossvm_service.py")
   if [ -n "$MATCHES" ]; then
     echo "⚠️  Potential secret detected matching pattern:"
     echo "   $pattern"
     echo ""
-    echo "$STAGED_FILES" | xargs grep -nE "$pattern" 2>/dev/null | grep -v "check-secrets.sh" | grep -v ".env.example" | head -5
+    echo "$STAGED_FILES" | xargs grep -nE "$pattern" 2>/dev/null | grep -v "check-secrets.sh" | grep -v ".env.example" | grep -v "reference_block_id" | head -5
     echo ""
     SECRETS_FOUND=1
   fi

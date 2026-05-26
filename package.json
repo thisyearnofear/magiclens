@@ -13,14 +13,6 @@
 "contracts:test": "cd contracts-solidity && npx hardhat test",
     "prepare": "husky"
   },
-  "lint-staged": {
-    "src/**/*.{ts,tsx}": [
-      "eslint --fix"
-    ],
-    "contracts-solidity/contracts/**/*.sol": [
-      "bash -c 'cd blockchain && npx hardhat compile'"
-    ]
-  },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@mediapipe/tasks-vision": "0.10.17",
@@ -120,7 +112,6 @@
     "globals": "^15.14.0",
     "husky": "9.1.7",
     "knip": "^5.50.4",
-    "lint-staged": "17.0.5",
     "postcss": "^8.5.1",
     "tailwindcss": "3.4.17",
     "typescript": "~5.6.2",
