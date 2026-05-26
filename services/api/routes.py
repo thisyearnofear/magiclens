@@ -1657,3 +1657,77 @@ async def get_environmental_categories():
         
     except Exception as e:
         return {"success": False, "error": str(e), "categories": []}
+
+
+# ═══════════════════════════════════════════════════════════════
+# Cross-VM Mint Flow (X Layer Remix → Flow Iconic Moment)
+# ═══════════════════════════════════════════════════════════════
+
+class PromoteToIconicRequest(BaseModel):
+    xlayer_token_id: int
+    xlayer_tx_hash: str
+    xlayer_creator_address: str
+    title: str
+    overlay_ids: str = ""
+    day: int = 1
+    rank: int
+    promoted_by: str = "system"
+
+
+@app.post("/api/crossvm/promote")
+async def promote_to_iconic(body: PromoteToIconicRequest):
+    """Promote an X Layer remix to a Flow Iconic Moment NFT.
+
+    Top-3 daily remixes on X Layer can be promoted to premium
+    Flow Cadence NFTs. This endpoint triggers the cross-VM mint.
+    """
+    from core.crossvm_service import crossvm_service, CrossVMMintRequest
+
+    try:
+        request = CrossVMMintRequest(
+            xlayer_token_id=body.xlayer_token_id,
+            xlayer_tx_hash=body.xlayer_tx_hash,
+            xlayer_creator_address=body.xlayer_creator_address,
+            title=body.title,
+            overlay_ids=body.overlay_ids,
+            day=body.day,
+            rank=body.rank,
+            promoted_by=body.promoted_by,
+        )
+
+        result = await crossvm_service.promote_to_iconic(request)
+        return {"success": True, "iconic_moment": result}
+    except Exception as e:
+        logger.error(f"Cross-VM promotion failed: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/crossvm/iconic_moments")
+async def get_iconic_moments(day: Optional[int] = None, status: Optional[str] = None):
+    """Get all promoted Iconic Moments, optionally filtered by day or status."""
+    from core.crossvm_service import crossvm_service
+
+    try:
+        moments = await crossvm_service.get_iconic_moments(day=day, status=status)
+        return {"success": True, "iconic_moments": moments, "count": len(moments)}
+    except Exception as e:
+        logger.error(f"Failed to fetch iconic moments: {e}")
+        return {"success": False, "error": str(e), "iconic_moments": []}
+
+
+@app.get("/api/crossvm/check/{day}/{token_id}")
+async def check_iconic_status(day: int, token_id: int):
+    """Check if a specific X Layer remix has been promoted to Flow."""
+    from core.crossvm_service import crossvm_service
+
+    try:
+        moment = await crossvm_service.get_iconic_moment(
+            xlayer_token_id=token_id, day=day
+        )
+        return {
+            "success": True,
+            "is_iconic": moment is not None,
+            "iconic_moment": moment,
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "is_iconic": False}

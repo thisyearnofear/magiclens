@@ -44,9 +44,16 @@ node_modules/
 # Package manager lock files (Vercel uses npm)
 pnpm-lock.yaml
 
-# Blockchain
-blockchain/artifacts/
-blockchain/cache/
-blockchain/node_modules/
-blockchain/typechain-types/
-blockchain/.env
+# Solidity build artifacts
+contracts-solidity/artifacts/
+contracts-solidity/cache/
+contracts-solidity/node_modules/
+contracts-solidity/typechain-types/
+contracts-solidity/.env
+
+# Agent config
+.claude/
+.qoder/
+
+# TypeScript
+tsconfig.tsbuildinfo

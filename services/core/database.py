@@ -99,6 +99,28 @@ def create_tables():
                 )
             """)
             
+            # Create iconic_moments table (cross-VM mint tracking)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS iconic_moments (
+                    id UUID PRIMARY KEY,
+                    xlayer_token_id BIGINT NOT NULL,
+                    xlayer_tx_hash VARCHAR(128) NOT NULL,
+                    xlayer_creator_address VARCHAR(64) NOT NULL,
+                    title VARCHAR(200) NOT NULL,
+                    overlay_ids TEXT NOT NULL,
+                    day INTEGER NOT NULL DEFAULT 1,
+                    rank INTEGER NOT NULL,
+                    flow_nft_id BIGINT,
+                    flow_tx_hash VARCHAR(128),
+                    flow_minted_at TIMESTAMP,
+                    promoted_by VARCHAR(64),
+                    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE INDEX IF NOT EXISTS idx_iconic_moments_day ON iconic_moments(day);
+                CREATE INDEX IF NOT EXISTS idx_iconic_moments_status ON iconic_moments(status);
+            """)
+            
         logger.info("Database tables created successfully")
     except Exception as e:
         logger.error(f"Failed to create tables: {e}")

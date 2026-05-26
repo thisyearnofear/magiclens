@@ -9,15 +9,15 @@
     "start": "next start",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit --skipLibCheck",
-    "contracts:compile": "cd blockchain && npx hardhat compile",
-    "contracts:test": "cd blockchain && npx hardhat test",
+"contracts:compile": "cd contracts-solidity && npx hardhat compile",
+"contracts:test": "cd contracts-solidity && npx hardhat test",
     "prepare": "husky"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
       "eslint --fix"
     ],
-    "blockchain/contracts/**/*.sol": [
+    "contracts-solidity/contracts/**/*.sol": [
       "bash -c 'cd blockchain && npx hardhat compile'"
     ]
   },

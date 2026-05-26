@@ -2,7 +2,7 @@ import tseslint from 'typescript-eslint'
 
 export default [
   {
-    ignores: ['blockchain/**', 'node_modules/**', '.next/**', '*.config.*'],
+    ignores: ['contracts-solidity/**', 'node_modules/**', '.next/**', '*.config.*'],
   },
   ...tseslint.configs.recommended.map(config => ({
     ...config,

@@ -102,30 +102,53 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
         </Card>
       </motion.div>
 
-      {/* Leaderboard preview */}
+      {/* Cross-VM: Iconic Moment promotion */}
       <motion.div
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        <Card className="bg-gradient-to-r from-yellow-400/10 to-purple-400/10 border-yellow-400/30 mb-8 text-left">
+        <Card className="bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-blue-600/10 border-blue-400/30 mb-8 text-left overflow-hidden relative">
+          {/* Animated gradient line */}
+          <motion.div
+            className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500"
+            animate={{ backgroundPosition: ['0% 0%', '200% 0%'] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+            style={{ backgroundSize: '200% 100%' }}
+          />
           <CardContent className="p-5">
             <motion.div
               className="flex items-center gap-2 mb-3"
               animate={{ x: [0, 3, 0] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              <Sparkles className="h-5 w-5 text-yellow-400" />
-              <h3 className="text-white font-semibold">Top 3 → Flow Iconic Moments</h3>
+              <Sparkles className="h-5 w-5 text-blue-400" />
+              <h3 className="text-white font-semibold">Cross-VM: X Layer → Flow</h3>
             </motion.div>
             <p className="text-gray-300 text-sm mb-3">
-              {leaderboardRank
-                ? `Your remix is ranked #${leaderboardRank} today! Top 3 earn USDT rewards and become premium Iconic Moment NFTs on Flow.`
-                : 'Your remix has been submitted to today\'s leaderboard. Votes coming in...'}
+              {leaderboardRank && leaderboardRank <= 3
+                ? `Your remix is ranked #${leaderboardRank} today! Top 3 earn USDT rewards AND get promoted to premium Iconic Moment NFTs on Flow Cadence — with gasless transactions and NBA Top Shot lineage.`
+                : `Your remix has been submitted to today's leaderboard. Top 3 remixes are automatically promoted to Flow Iconic Moment NFTs.`}
             </p>
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Medal className="h-4 w-4 text-yellow-400" />
-              <span>Cross-chain by design — <strong className="text-white">X Layer</strong> for volume, <strong className="text-white">Flow</strong> for premium</span>
+            <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
+              <Medal className="h-4 w-4 text-blue-400" />
+              <span><strong className="text-white">X Layer</strong> for volume remixes · <strong className="text-white">Flow</strong> for premium collectibles</span>
+            </div>
+            {/* How it works */}
+            <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-400/10">
+              {[
+                { step: '1', label: 'Mint on X Layer', desc: 'Remix minted as ERC-721' },
+                { step: '2', label: 'Leaderboard', desc: 'Votes determine top 3' },
+                { step: '3', label: 'Auto-promote', desc: 'Minted as Flow Cadence NFT' },
+              ].map((item) => (
+                <div key={item.step} className="text-center">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-300 text-xs font-bold flex items-center justify-center mx-auto mb-1">
+                    {item.step}
+                  </div>
+                  <div className="text-white text-[11px] font-medium">{item.label}</div>
+                  <div className="text-gray-500 text-[10px]">{item.desc}</div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
