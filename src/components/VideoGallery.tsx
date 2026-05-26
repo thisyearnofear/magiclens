@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Search, ArrowLeft, Eye, Users, Zap, Sparkles, Play } from 'lucide-react';
 import { DEMO_VIDEOS } from '@/lib/demo-data';
+import { DemoBanner } from '@/components/DemoBanner';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import { toast } from 'sonner';
 
@@ -19,6 +20,7 @@ export default function VideoGallery() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [collaborating, setCollaborating] = useState<string | null>(null);
+  const [usingDemo, setUsingDemo] = useState(false);
 
   const categories = ['all', 'urban', 'nature', 'indoor', 'street', 'park', 'office'];
 
@@ -43,6 +45,7 @@ export default function VideoGallery() {
     } catch (error) {
       console.warn('Video API unavailable — using demo data');
       setVideos(DEMO_VIDEOS as any);
+      setUsingDemo(true);
     } finally {
       setLoading(false);
     }
@@ -70,6 +73,7 @@ export default function VideoGallery() {
     } catch (error) {
       console.warn('Video search unavailable — showing all videos');
       setVideos(DEMO_VIDEOS as any);
+      setUsingDemo(true);
     } finally {
       setLoading(false);
     }
@@ -99,6 +103,7 @@ export default function VideoGallery() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Header */}
+      {usingDemo && <DemoBanner />}
       <header className="border-b border-white/10 bg-black/20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">

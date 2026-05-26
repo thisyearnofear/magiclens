@@ -10,21 +10,12 @@ import { getUserRemixes } from '@/lib/remix-store';
 import { useIconicMoments } from '@/hooks/useIconicMoments';
 import { IconicMomentBadge } from '@/components/IconicMomentBadge';
 import { MobileNav } from '@/components/MobileNav';
+import { DemoBanner } from '@/components/DemoBanner';
 import { toast } from 'sonner';
+import { DEMO_LEADERBOARD_ENTRIES } from '@/lib/demo-data';
 import type { CrossVMPromotion } from '@/types/crossvm';
 
-const DEMO_LEADERBOARD = [
-  { rank: 1, title: 'Argentina Goal Messi', creator: '@fan42', votes: 2847, reward: '$30 USDT', color: 'text-yellow-400', tokenId: 1001, txHash: '0x' + 'a'.repeat(64) },
-  { rank: 2, title: 'Mbappé Hat-trick Celebration', creator: '@edit_pro', votes: 2102, reward: '$20 USDT', color: 'text-gray-300', tokenId: 1002, txHash: '0x' + 'b'.repeat(64) },
-  { rank: 3, title: 'Trophy Lift Celebration', creator: '@arlab', votes: 1893, reward: '$12 USDT', color: 'text-amber-600', tokenId: 1003, txHash: '0x' + 'c'.repeat(64) },
-  { rank: 4, title: 'Goalkeeper Save Compilation', creator: '@goal_den', votes: 1456, reward: '$8 USDT', color: 'text-gray-400', tokenId: 1004, txHash: '0x' + 'd'.repeat(64) },
-  { rank: 5, title: 'Free Kick Masterclass', creator: '@kick_master', votes: 1234, reward: '$7 USDT', color: 'text-gray-400', tokenId: 1005, txHash: '0x' + 'e'.repeat(64) },
-  { rank: 6, title: 'Fan Celebration in Streets', creator: '@fan_cam', votes: 987, reward: '$6 USDT', color: 'text-gray-400', tokenId: 1006, txHash: '0x' + 'f'.repeat(64) },
-  { rank: 7, title: 'Penalty Shootout Drama', creator: '@drama_edit', votes: 876, reward: '$5 USDT', color: 'text-gray-400', tokenId: 1007, txHash: '0x' + '0'.repeat(64) },
-  { rank: 8, title: 'Half-time Show Highlights', creator: '@showtime', votes: 765, reward: '$5 USDT', color: 'text-gray-400', tokenId: 1008, txHash: '0x' + '1'.repeat(64) },
-  { rank: 9, title: 'Referee Call Analysis', creator: '@ref_review', votes: 654, reward: '$3.50 USDT', color: 'text-gray-400', tokenId: 1009, txHash: '0x' + '2'.repeat(64) },
-  { rank: 10, title: 'Post-match Interview Remix', creator: '@interview', votes: 543, reward: '$3.50 USDT', color: 'text-gray-400', tokenId: 1010, txHash: '0x' + '3'.repeat(64) },
-];
+const DEMO_LEADERBOARD = DEMO_LEADERBOARD_ENTRIES;
 
 interface LeaderboardEntry {
   rank: number;
@@ -157,6 +148,7 @@ export default function Leaderboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <DemoBanner message="Preview data — real leaderboard appears when users mint and vote." />
       <header className="border-b border-white/10 bg-black/20">
         <div className="container mx-auto px-4 py-4">
           <MobileNav title="Today's Leaderboard" icon={<Trophy className="h-8 w-8 text-yellow-400 shrink-0" />} />

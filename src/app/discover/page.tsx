@@ -14,6 +14,7 @@ import { useAuthContext } from '@/auth/AuthProvider';
 import { CollabCard } from '@/components/collaboration/CollabCard';
 import { CollabRequest } from '@/components/collaboration/CollabRequest';
 import { MobileNav } from '@/components/MobileNav';
+import { DemoBanner } from '@/components/DemoBanner';
 import { DEMO_CREATORS, DEMO_COLLABS } from '@/lib/demo-data';
 import { toast } from 'sonner';
 
@@ -55,6 +56,7 @@ export default function DiscoverPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
   const [activeTab, setActiveTab] = useState<'creators' | 'collabs'>('collabs');
+  const [usingDemo, setUsingDemo] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -72,6 +74,7 @@ export default function DiscoverPage() {
       console.warn('Discover API unavailable — using demo data');
       setCreators(DEMO_CREATORS);
       setCollabs(DEMO_COLLABS);
+      setUsingDemo(true);
     } finally {
       setLoading(false);
     }
@@ -116,6 +119,7 @@ export default function DiscoverPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Header */}
+      {usingDemo && <DemoBanner />}
       <header className="border-b border-white/10 bg-black/20">
         <div className="container mx-auto px-4 py-4">
           <MobileNav title="Discover" icon={<Users className="h-8 w-8 text-indigo-400 shrink-0" />} />
