@@ -15,6 +15,8 @@ interface RemixPreviewProps {
   onBack: () => void;
   onMint: () => void;
   isMinting?: boolean;
+  mintButtonLabel?: string;
+  mintLoadingText?: string;
   progressSteps?: TransactionStep[];
   progressTitle?: string;
   progressSubtitle?: string;
@@ -37,6 +39,8 @@ export function RemixPreview({
   onBack,
   onMint,
   isMinting,
+  mintButtonLabel = 'Mint Remix on X Layer',
+  mintLoadingText = 'Minting...',
   progressSteps,
   progressTitle,
   progressSubtitle,
@@ -201,10 +205,10 @@ export function RemixPreview({
           onClick={onMint}
           size="lg"
           loading={isMinting}
-          loadingText="Minting..."
+          loadingText={mintLoadingText}
           className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold disabled:opacity-50"
         >
-          <Zap className="h-5 w-5 mr-2" /> Mint Remix on X Layer
+          <Zap className="h-5 w-5 mr-2" /> {mintButtonLabel}
         </Button>
       </div>
     </div>

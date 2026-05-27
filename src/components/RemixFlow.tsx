@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { StadiumBackdrop } from '@/components/StadiumBackdrop';
@@ -51,22 +51,22 @@ function statusFor(stage: MintStage, index: number): TransactionStepStatus {
   return 'pending';
 }
 
-function mintProgressSteps(stage: MintStage, demoMode: boolean): TransactionStep[] | undefined {
+function mintProgressSteps(stage: MintStage): TransactionStep[] | undefined {
   if (stage === 'idle') return undefined;
   return [
     {
-      label: demoMode ? 'Prepare demo' : 'Prepare metadata',
-      description: demoMode ? 'Creating a simulated remix receipt.' : 'Uploading metadata and overlay details.',
+      label: 'Prepare metadata',
+      description: 'Uploading metadata and overlay details.',
       status: statusFor(stage, 0),
     },
     {
-      label: demoMode ? 'Skip wallet' : 'Wallet approval',
-      description: demoMode ? 'Demo mode does not need a signature.' : 'Confirm the transaction in your EVM wallet.',
+      label: 'Wallet approval',
+      description: 'Confirm the transaction in your EVM wallet.',
       status: statusFor(stage, 1),
     },
     {
-      label: demoMode ? 'Create receipt' : 'Submit to X Layer',
-      description: demoMode ? 'Saving a local remix for leaderboard preview.' : 'Submitting the ERC-721 mint transaction.',
+      label: 'Submit to X Layer',
+      description: 'Submitting the ERC-721 mint transaction.',
       status: statusFor(stage, 2),
     },
     {
@@ -132,7 +132,14 @@ function RemixWorkflowRail({
 
 export default function RemixFlow() {
   const router = useRouter();
-  const { isConnected, chain, evmAddress, isWrongNetwork } = useAuthContext();
+  const {
+    isConnected,
+    chain,
+    evmAddress,
+    isWrongNetwork,
+    connectEVM,
+    switchToTargetNetwork,
+  } = useAuthContext();
   const { mintRemix, isMinting } = useMintRemix();
   const { referrerAddress, clearReferrer } = useReferrer();
   const [step, setStep] = useState(0);
@@ -141,88 +148,97 @@ export default function RemixFlow() {
   const [selectedOverlays, setSelectedOverlays] = useState<SelectedOverlay[]>([]);
   const [overlayStyles, setOverlayStyles] = useState<Record<string, OverlayStyle>>({});
   const [mintTx, setMintTx] = useState<string | null>(null);
-  const [isDemo, setIsDemo] = useState(false);
   const [mintStage, setMintStage] = useState<MintStage>('idle');
+  const [resumeMintAfterConnect, setResumeMintAfterConnect] = useState(false);
+  const [isConnectingWallet, setIsConnectingWallet] = useState(false);
   const [leaderboardRank] = useState<number | null>(null);
   const isMobile = useIsMobile();
+  const evmReady = isConnected && chain === 'evm' && !isWrongNetwork;
 
   const goForward = () => { setDirection(1); setStep(s => s + 1); };
   const goBack = () => { setDirection(-1); setStep(s => s - 1); };
 
   const handleMint = async () => {
     try {
-      const evmReady = isConnected && chain === 'evm' && !isWrongNetwork;
-      setMintStage(evmReady ? 'metadata' : 'metadata');
-
       const clipTitle = clip?.title || 'Match Moment';
       const addr = evmAddress || '';
       const creator = addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '@you';
 
-      if (evmReady) {
-        const result = await measureUserAction(
-          'mint_remix_xlayer',
-          () => mintRemix(
-            clipTitle,
-            selectedOverlays.map(o => o.id),
-            selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name),
-            referrerAddress,
-            { onStage: setMintStage }
-          ),
-          { overlays: selectedOverlays.length, demo: false }
-        );
-        if (result) {
-          const { hash, nextTokenId } = result;
-          setIsDemo(false);
-          setMintTx(hash);
-          addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
-          setMintStage('complete');
-          goForward();
+      if (!evmAddress || chain !== 'evm') {
+        const { toast } = await import('sonner');
+        setResumeMintAfterConnect(true);
+        setIsConnectingWallet(true);
+        toast.info('Connect an EVM wallet to mint this remix', {
+          description: 'Your clip and overlays will stay here. MagicLens will continue minting after connection.',
+        });
+        connectEVM();
+        window.setTimeout(() => setIsConnectingWallet(false), 1500);
+        return;
+      }
 
-          // Claim referral reward on backend
-          if (referrerAddress && evmAddress && referrerAddress.toLowerCase() !== evmAddress.toLowerCase()) {
-            claimReferral({
-              referrerAddress,
-              refereeAddress: evmAddress,
-              day: 1,
-              xlayerTokenId: nextTokenId,
-              xlayerTxHash: hash,
-            }).then(res => {
-              if (res.success && res.total_referrals !== undefined) {
-                import('sonner').then(({ toast }) =>
-                  toast.success(`Referrer gets +${res.bonus_votes} leaderboard votes! (${res.total_referrals} total)`)
-                );
-              }
-            });
-            clearReferrer();
-          }
-        }
-      } else {
-        setIsDemo(true);
-        await measureUserAction(
-          'mint_remix_demo',
-          async () => {
-            setMintStage('metadata');
-            await new Promise((resolve) => setTimeout(resolve, 350));
-            setMintStage('wallet');
-            await new Promise((resolve) => setTimeout(resolve, 250));
-            setMintStage('submitted');
-            const hash = '0x' + Array.from({ length: 64 }, () =>
-              Math.floor(Math.random() * 16).toString(16)
-            ).join('');
-            setMintTx(hash);
-            addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
-            setMintStage('complete');
-          },
-          { overlays: selectedOverlays.length, demo: true }
-        );
+      if (isWrongNetwork) {
+        const { toast } = await import('sonner');
+        setResumeMintAfterConnect(true);
+        toast.info('Switch to X Layer testnet to mint', {
+          description: 'After the network switch, MagicLens will continue with this remix.',
+        });
+        switchToTargetNetwork();
+        return;
+      }
+
+      setResumeMintAfterConnect(false);
+      setIsConnectingWallet(false);
+      setMintStage('metadata');
+      const result = await measureUserAction(
+        'mint_remix_xlayer',
+        () => mintRemix(
+          clipTitle,
+          selectedOverlays.map(o => o.id),
+          selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name),
+          referrerAddress,
+          { onStage: setMintStage }
+        ),
+        { overlays: selectedOverlays.length, demo: false }
+      );
+      if (result) {
+        const { hash, nextTokenId } = result;
+        setMintTx(hash);
+        addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
+        setMintStage('complete');
         goForward();
+
+        // Claim referral reward on backend
+        if (referrerAddress && evmAddress && referrerAddress.toLowerCase() !== evmAddress.toLowerCase()) {
+          claimReferral({
+            referrerAddress,
+            refereeAddress: evmAddress,
+            day: 1,
+            xlayerTokenId: nextTokenId,
+            xlayerTxHash: hash,
+          }).then(res => {
+            if (res.success && res.total_referrals !== undefined) {
+              import('sonner').then(({ toast }) =>
+                toast.success(`Referrer gets +${res.bonus_votes} leaderboard votes! (${res.total_referrals} total)`)
+              );
+            }
+          });
+          clearReferrer();
+        }
       }
     } catch (err) {
       setMintStage('error');
+      setResumeMintAfterConnect(false);
+      setIsConnectingWallet(false);
       const { toast } = await import('sonner');
       toast.error('Mint failed', { description: err instanceof Error ? err.message : 'Could not complete the mint' });
     }
   };
+
+  useEffect(() => {
+    if (!resumeMintAfterConnect || !evmReady || step !== 2 || isMinting) return;
+    setIsConnectingWallet(false);
+    void handleMint();
+  }, [resumeMintAfterConnect, evmReady, step, isMinting]);
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -327,14 +343,14 @@ export default function RemixFlow() {
                     {(!isConnected || chain !== 'evm') && (
                       <div className="max-w-4xl mx-auto px-4 pt-4">
                         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-center text-yellow-300 text-sm">
-                          EVM wallet not connected. MagicLens will create a demo remix so you can continue the flow.
+                          Connect an EVM wallet to mint this remix on X Layer. Your clip and overlays will stay ready.
                         </div>
                       </div>
                     )}
                     {isConnected && chain === 'evm' && isWrongNetwork && (
                       <div className="max-w-4xl mx-auto px-4 pt-4">
                         <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3 text-center text-orange-300 text-sm">
-                          Wrong network. Switch to X Layer testnet for on-chain minting, or continue in demo mode.
+                          Wrong network. Switch to X Layer testnet to mint this remix on-chain.
                         </div>
                       </div>
                     )}
@@ -345,27 +361,18 @@ export default function RemixFlow() {
                       overlayStyles={overlayStyles}
                       onBack={goBack}
                       onMint={handleMint}
-                      isMinting={isMinting}
-                      progressSteps={mintProgressSteps(mintStage, !isConnected || chain !== 'evm' || isWrongNetwork)}
-                      progressTitle={isConnected && chain === 'evm' && !isWrongNetwork ? 'Minting on X Layer' : 'Creating demo remix'}
-                      progressSubtitle={
-                        isConnected && chain === 'evm' && !isWrongNetwork
-                          ? 'MagicLens is preparing metadata, waiting for wallet approval, and submitting your remix NFT.'
-                          : 'Demo mode gives immediate feedback and a local leaderboard entry without an on-chain transaction.'
-                      }
+                      isMinting={isMinting || isConnectingWallet}
+                      mintButtonLabel={!evmAddress || chain !== 'evm' ? 'Connect Wallet to Mint' : isWrongNetwork ? 'Switch Network to Mint' : 'Mint Remix on X Layer'}
+                      mintLoadingText={isConnectingWallet ? 'Opening wallet...' : 'Minting...'}
+                      progressSteps={mintProgressSteps(mintStage)}
+                      progressTitle="Minting on X Layer"
+                      progressSubtitle="MagicLens is preparing metadata, waiting for wallet approval, and submitting your remix NFT."
                     />
                   </div>
                 )}
 
                 {step === 3 && (
                   <div>
-                    {isDemo && (
-                      <div className="max-w-4xl mx-auto px-4 pt-4">
-                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-center text-blue-300 text-sm">
-                          Demo receipt created. Connect an EVM wallet next time to mint on X Layer.
-                        </div>
-                      </div>
-                    )}
                     <MintConfirmation
                       txHash={mintTx}
                       leaderboardRank={leaderboardRank}
@@ -377,7 +384,6 @@ export default function RemixFlow() {
                         setSelectedOverlays([]);
                         setOverlayStyles({});
                         setMintTx(null);
-                        setIsDemo(false);
                         setMintStage('idle');
                       }}
                     />
