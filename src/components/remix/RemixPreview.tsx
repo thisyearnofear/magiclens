@@ -32,7 +32,7 @@ export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, overla
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Preview Your Remix</h2>
-        <p className="text-gray-400">Review before minting on X Layer</p>
+        <p className="text-gray-300">Review before minting on X Layer</p>
       </div>
 
       {/* Video preview with overlays */}
@@ -157,7 +157,7 @@ export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, overla
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-white font-semibold">{clipTitle}</h3>
-              <p className="text-gray-400 text-sm mt-1">
+              <p className="text-gray-300 text-sm mt-1">
                 {packNames.length > 0
                   ? `Using ${packNames.length} overlay pack${packNames.length > 1 ? 's' : ''}: ${packNames.join(', ')}`
                   : 'No overlays selected'}

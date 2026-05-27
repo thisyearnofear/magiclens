@@ -64,7 +64,7 @@ export function GettingStartedChecklist({ onNavigate }: GettingStartedChecklistP
                 >
                   <div>
                     <div className="font-medium text-sm sm:text-base">{step.title}</div>
-                    <div className="text-gray-400 text-xs sm:text-sm">{step.description}</div>
+                    <div className="text-gray-300 text-xs sm:text-sm">{step.description}</div>
                   </div>
                 </Button>
               </div>

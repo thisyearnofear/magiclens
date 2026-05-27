@@ -182,7 +182,7 @@ export default function UserProfile() {
       <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
         <Card className="bg-white/10 border-white/20 max-w-md text-center">
           <CardContent className="p-8">
-            <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Profile Not Found</h2>
             <p className="text-gray-300 mb-4">This user profile doesn't exist or isn't public.</p>
             <Button onClick={() => router.push('/dashboard')} variant="outline">
@@ -346,7 +346,7 @@ export default function UserProfile() {
                   <div className="text-2xl font-bold text-white mb-1">
                     ${profile.earnings_total?.toFixed(2) || '0.00'}
                   </div>
-                  <p className="text-gray-400 text-xs">Earnings</p>
+                  <p className="text-gray-300 text-xs">Earnings</p>
                 </CardContent>
               </Card>
 
@@ -355,7 +355,7 @@ export default function UserProfile() {
                   <div className="text-2xl font-bold text-white mb-1">
                     {streak.current}
                   </div>
-                  <p className="text-gray-400 text-xs flex items-center justify-center gap-1">
+                  <p className="text-gray-300 text-xs flex items-center justify-center gap-1">
                     <Flame className="h-3 w-3 text-orange-400" />
                     Day Streak
                   </p>
@@ -372,7 +372,7 @@ export default function UserProfile() {
                   <div className="text-xl font-bold text-white mb-1">
                     {streak.longest}
                   </div>
-                  <p className="text-gray-400 text-xs flex items-center justify-center gap-1">
+                  <p className="text-gray-300 text-xs flex items-center justify-center gap-1">
                     <Award className="h-3 w-3 text-yellow-400" />
                     Best Streak
                   </p>
@@ -384,7 +384,7 @@ export default function UserProfile() {
                   <div className="text-2xl font-bold text-white mb-1">
                     {getUserRemixes().length}
                   </div>
-                  <p className="text-gray-400 text-xs">Total Remixes</p>
+                  <p className="text-gray-300 text-xs">Total Remixes</p>
                 </CardContent>
               </Card>
             </div>
@@ -440,7 +440,7 @@ export default function UserProfile() {
                       <Link2 className="h-5 w-5 text-yellow-400 shrink-0 mt-0.5" />
                       <div className="min-w-0">
                         <h4 className="text-white font-semibold text-sm">Your Referral Link</h4>
-                        <p className="text-gray-400 text-xs mt-0.5">
+                        <p className="text-gray-300 text-xs mt-0.5">
                           Share this link — when someone mints a remix using it, they earn a leaderboard boost!
                         </p>
                         <code className="block mt-2 text-[11px] text-yellow-300 bg-yellow-400/10 rounded px-2 py-1 truncate font-mono">

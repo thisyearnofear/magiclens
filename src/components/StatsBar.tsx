@@ -104,7 +104,7 @@ export function StatsBar() {
                 <Counter target={stat.target} prefix={stat.prefix} suffix={stat.suffix} />
               </motion.div>
 
-              <p className="text-sm text-gray-400 mt-1 font-medium">{stat.label}</p>
+              <p className="text-sm text-gray-300 mt-1 font-medium">{stat.label}</p>
             </div>
           </motion.div>
         ))}

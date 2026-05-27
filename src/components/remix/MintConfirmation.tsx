@@ -78,7 +78,7 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
           <CheckCircle className="h-12 w-12 text-white" />
         </motion.div>
         <h2 className="text-4xl font-bold text-white mb-2">Remix Minted! 🎉</h2>
-        <p className="text-gray-400 text-lg">Your AR remix is now an NFT on X Layer</p>
+        <p className="text-gray-300 text-lg">Your AR remix is now an NFT on X Layer</p>
       </motion.div>
 
       {/* Transaction details */}
@@ -96,7 +96,7 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
               >
-                <span className="text-gray-400 text-sm">Transaction</span>
+                <span className="text-gray-300 text-sm">Transaction</span>
                 <a
                   href={`https://www.oklink.com/xlayer-testnet/tx/${txHash}`}
                   target="_blank"
@@ -115,11 +115,11 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
               </motion.div>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-gray-400 text-sm">Network</span>
+              <span className="text-gray-300 text-sm">Network</span>
               <Badge className="bg-purple-500/80">X Layer Testnet</Badge>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-400 text-sm">Royalty</span>
+              <span className="text-gray-300 text-sm">Royalty</span>
               <span className="text-white text-sm">2.5% to creator</span>
             </div>
           </CardContent>
@@ -154,7 +154,7 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
                 ? `Your remix is ranked #${leaderboardRank} today! Top 3 earn USDT rewards AND get promoted to premium Iconic Moment NFTs on Flow Cadence — with gasless transactions and NBA Top Shot lineage.`
                 : `Your remix has been submitted to today's leaderboard. Top 3 remixes are automatically promoted to Flow Iconic Moment NFTs.`}
             </p>
-            <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
+            <div className="flex items-center gap-2 text-xs text-gray-300 mb-3">
               <Medal className="h-4 w-4 text-blue-400" />
               <span><strong className="text-white">X Layer</strong> for volume remixes · <strong className="text-white">Flow</strong> for premium collectibles</span>
             </div>
@@ -170,7 +170,7 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
                     {item.step}
                   </div>
                   <div className="text-white text-[11px] font-medium">{item.label}</div>
-                  <div className="text-gray-500 text-[10px]">{item.desc}</div>
+                  <div className="text-gray-300 text-[10px]">{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -189,10 +189,10 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Flame className={`h-5 w-5 ${streak > 0 ? 'text-orange-400' : 'text-gray-500'}`} />
+                <Flame className={`h-5 w-5 ${streak > 0 ? 'text-orange-400' : 'text-gray-300'}`} />
                 <div>
                   <span className="text-white font-bold text-lg">{streak}</span>
-                  <span className="text-gray-400 text-sm ml-1">day streak</span>
+                  <span className="text-gray-300 text-sm ml-1">day streak</span>
                   {getStreakBadge(streak) && (
                     <Badge variant="outline" className={`ml-2 text-[10px] ${getStreakBadge(streak)!.color} border-current`}>
                       {getStreakBadge(streak)!.icon} {getStreakBadge(streak)!.label}
@@ -200,7 +200,7 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-gray-500 text-xs">
+              <div className="flex items-center gap-1 text-gray-300 text-xs">
                 <Timer className="h-3 w-3" />
                 {countdown}
               </div>

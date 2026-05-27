@@ -39,7 +39,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Choose Your Match Moment</h2>
-        <p className="text-gray-400">Pick a World Cup clip to remix with AR overlays</p>
+        <p className="text-gray-300">Pick a World Cup clip to remix with AR overlays</p>
       </div>
 
       {/* Demo clips for hackathon */}
@@ -78,7 +78,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
                 </div>
                 <div className="p-4 text-center">
                   <h4 className="text-white font-semibold mb-1">{clip.title}</h4>
-                  <p className="text-gray-400 text-xs">{clip.description}</p>
+                  <p className="text-gray-300 text-xs">{clip.description}</p>
                 </div>
               </CardContent>
             </Card>
@@ -99,7 +99,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
               >
                 <CardContent className="p-4">
                   <div className="aspect-video bg-gray-800 rounded-lg mb-3 flex items-center justify-center">
-                    <Play className="h-8 w-8 text-gray-500" />
+                    <Play className="h-8 w-8 text-gray-300" />
                   </div>
                   <h4 className="text-white font-medium text-sm truncate">{clip.title || 'Untitled'}</h4>
                 </CardContent>

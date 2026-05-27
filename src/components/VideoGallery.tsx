@@ -134,13 +134,13 @@ export default function VideoGallery() {
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 h-4 w-4" />
                 <Input
                   placeholder="Search videos..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-300"
                 />
               </div>
             </div>
@@ -182,9 +182,9 @@ export default function VideoGallery() {
         ) : videos.length === 0 ? (
           <Card className="bg-white/5 border-white/10">
             <CardContent className="p-12 text-center">
-              <Play className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <Play className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">No Videos Found</h3>
-              <p className="text-gray-400 mb-4">
+              <p className="text-gray-300 mb-4">
                 {searchQuery ? 'Try adjusting your search terms or filters.' : 'No videos available in this category.'}
               </p>
               <Button variant="outline" onClick={() => { setSearchQuery(''); setSelectedCategory('all'); loadVideos(); }}>
@@ -242,10 +242,10 @@ export default function VideoGallery() {
                     </div>
 
                     {video.description && (
-                      <p className="text-gray-400 text-sm mb-3 line-clamp-2">{video.description}</p>
+                      <p className="text-gray-300 text-sm mb-3 line-clamp-2">{video.description}</p>
                     )}
 
-                    <div className="flex items-center justify-between text-xs text-gray-400">
+                    <div className="flex items-center justify-between text-xs text-gray-300">
                       <div className="flex items-center space-x-3">
                         <span className="flex items-center space-x-1">
                           <Eye className="h-3 w-3" />

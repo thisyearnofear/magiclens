@@ -130,7 +130,7 @@ export default function RemixFlow() {
             </motion.div>
             <button
               onClick={() => router.push('/')}
-              className="text-gray-400 hover:text-white text-sm transition-colors"
+              className="text-gray-300 hover:text-white text-sm transition-colors"
             >
               Exit
             </button>

@@ -107,7 +107,7 @@ export default function PublicRemix() {
               animate={{ opacity: [0.2, 0.5, 0.2] }}
               transition={{ duration: 3, repeat: Infinity }}
             />
-            <div className="absolute bottom-3 left-3 right-3 flex justify-between text-[10px] text-gray-400">
+            <div className="absolute bottom-3 left-3 right-3 flex justify-between text-[10px] text-gray-300">
               <span className="flex items-center gap-1"><Sparkles className="h-3 w-3" /> AR Overlays Active</span>
               <span>X Layer NFT</span>
             </div>
@@ -116,7 +116,7 @@ export default function PublicRemix() {
             {txHash && (
               <>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Transaction</span>
+                  <span className="text-gray-300">Transaction</span>
                   <a
                     href={`https://www.oklink.com/xlayer-testnet/tx/${txHash}`}
                     target="_blank"
@@ -128,7 +128,7 @@ export default function PublicRemix() {
                   </a>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Network</span>
+                  <span className="text-gray-300">Network</span>
                   <span className="text-purple-300 text-xs font-medium">X Layer Testnet</span>
                 </div>
               </>

@@ -71,10 +71,10 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
     <div className="h-[calc(100vh-9rem)] flex flex-col max-w-lg mx-auto relative">
       {/* Header */}
       <div className="px-3 py-2 flex items-center justify-between shrink-0">
-        <button onClick={onBack} className="text-gray-400 text-sm">Back</button>
+        <button onClick={onBack} className="text-gray-300 text-sm">Back</button>
         <div className="text-center">
           <h2 className="text-sm font-bold text-white">AR Overlays</h2>
-          <p className="text-gray-500 text-[10px]">{clipTitle}</p>
+          <p className="text-gray-300 text-[10px]">{clipTitle}</p>
         </div>
         <Button
           onClick={() => onNext(selected, {})}
@@ -123,7 +123,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
       >
         <div className="px-3 h-full overflow-y-auto pb-6">
           <div className="flex items-center justify-between mb-2 sticky top-0 bg-gradient-to-b from-purple-900/90 via-blue-900/90 to-transparent pt-1 pb-2">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">World Cup 2026 Packs</h3>
+            <h3 className="text-xs font-semibold text-gray-300 uppercase tracking-wider">World Cup 2026 Packs</h3>
             <Trophy className="h-3.5 w-3.5 text-yellow-400" />
           </div>
 
@@ -152,12 +152,12 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <div className={`p-1 rounded ${isSelected ? 'bg-yellow-400/20' : 'bg-white/10'}`}>
-                          <IconComp className={`h-3 w-3 ${isSelected ? 'text-yellow-400' : 'text-gray-400'}`} />
+                          <IconComp className={`h-3 w-3 ${isSelected ? 'text-yellow-400' : 'text-gray-300'}`} />
                         </div>
                         <span className="text-white font-medium text-sm">{overlay.name}</span>
                         {isSelected && <Check className="h-4 w-4 text-yellow-400 flex-shrink-0 ml-auto" />}
                       </div>
-                      <p className="text-gray-500 text-[11px] mt-0.5">{overlay.description}</p>
+                      <p className="text-gray-300 text-[11px] mt-0.5">{overlay.description}</p>
                     </div>
                   </button>
 

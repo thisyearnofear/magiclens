@@ -178,7 +178,7 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
-              <h5 className="text-lg font-semibold text-gray-400 mb-3">Guest Mode</h5>
+              <h5 className="text-lg font-semibold text-gray-300 mb-3">Guest Mode</h5>
               <ul className="text-gray-300 text-left space-y-2">
                 <li className="flex items-start"><X className="h-4 w-4 text-red-400 mt-1 mr-2 flex-shrink-0" />No minting or rewards</li>
                 <li className="flex items-start"><X className="h-4 w-4 text-red-400 mt-1 mr-2 flex-shrink-0" />No onchain ownership</li>
@@ -211,7 +211,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 border-t border-white/10">
-        <div className="flex flex-col items-center text-gray-400 gap-2">
+        <div className="flex flex-col items-center text-gray-300 gap-2">
           <p>&copy; 2026 MagicLens. The AR remix layer for live sports.</p>
           <p className="text-sm">
             Built for the <a href="https://web3.okx.com/xlayer/build-x-hackathon/xcup" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">OKX X Cup</a> on X Layer + Flow
@@ -263,7 +263,7 @@ function HeroVideoPlayer() {
           <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
           <div className="w-3 h-3 rounded-full bg-green-500/80" />
           <div className="ml-3 flex-1 max-w-[200px] bg-white/10 rounded-full px-3 py-1">
-            <span className="text-[10px] text-gray-400">magiclens.app/remix</span>
+            <span className="text-[10px] text-gray-300">magiclens.app/remix</span>
           </div>
         </div>
 
@@ -275,7 +275,7 @@ function HeroVideoPlayer() {
             </div>
             <div className="text-left">
               <div className="text-white text-sm font-medium">AR Overlay Studio</div>
-              <div className="text-gray-500 text-[10px]">Remixing: {HERO_CLIPS[activeClip].label}</div>
+              <div className="text-gray-300 text-[10px]">Remixing: {HERO_CLIPS[activeClip].label}</div>
             </div>
           </div>
 
@@ -327,7 +327,7 @@ function HeroVideoPlayer() {
                 className={`flex-1 text-center px-3 py-1.5 rounded-lg text-xs transition-all ${
                   i === activeClip
                     ? 'bg-yellow-400/20 border border-yellow-400/40 text-yellow-300'
-                    : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200'
+                    : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-gray-200'
                 }`}
               >
                 {clip.label}
@@ -338,7 +338,7 @@ function HeroVideoPlayer() {
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-center gap-2">
               <Medal className="h-3.5 w-3.5 text-yellow-400" />
-              <span className="text-gray-400 text-[10px]">Pose-aware tracking · AR overlays ready</span>
+              <span className="text-gray-300 text-[10px]">Pose-aware tracking · AR overlays ready</span>
             </div>
             <motion.div
               className="text-yellow-400 text-xs font-medium flex items-center gap-1"

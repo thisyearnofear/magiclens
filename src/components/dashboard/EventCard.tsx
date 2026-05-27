@@ -33,8 +33,8 @@ export function EventCard({
           {/* Event info */}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <Trophy className={`h-5 w-5 ${isActive ? 'text-yellow-400' : 'text-gray-500'}`} />
-              <h2 className={`text-xl font-bold ${isActive ? 'text-white' : 'text-gray-400'}`}>
+              <Trophy className={`h-5 w-5 ${isActive ? 'text-yellow-400' : 'text-gray-300'}`} />
+              <h2 className={`text-xl font-bold ${isActive ? 'text-white' : 'text-gray-300'}`}>
                 {name}
               </h2>
               {isActive && (
@@ -48,11 +48,11 @@ export function EventCard({
             {/* Stats */}
             <div className="flex flex-wrap gap-4 mt-3">
               <div className="flex items-center gap-1.5 text-sm">
-                <Package className={`h-4 w-4 ${isActive ? 'text-purple-400' : 'text-gray-500'}`} />
+                <Package className={`h-4 w-4 ${isActive ? 'text-purple-400' : 'text-gray-300'}`} />
                 <span className="text-gray-200">{packCount} AR packs</span>
               </div>
               <div className="flex items-center gap-1.5 text-sm">
-                <Sparkles className={`h-4 w-4 ${isActive ? 'text-yellow-400' : 'text-gray-500'}`} />
+                <Sparkles className={`h-4 w-4 ${isActive ? 'text-yellow-400' : 'text-gray-300'}`} />
                 <span className="text-gray-200">{iconicCount} Iconic Moments</span>
               </div>
             </div>

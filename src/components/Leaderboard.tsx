@@ -71,7 +71,7 @@ export default function Leaderboard() {
       creator: r.creator,
       votes: r.votes,
       reward: '',
-      color: 'text-gray-400',
+      color: 'text-gray-300',
       tokenId: parseInt(r.txHash.slice(-8), 16) % 10000 + 2000,
       txHash: r.txHash,
       isUser: true,
@@ -205,11 +205,11 @@ export default function Leaderboard() {
               <div className="text-right flex flex-col items-end gap-2">
                 <div>
                   <div className="text-2xl font-bold text-yellow-400">8</div>
-                  <div className="text-gray-400 text-xs">Iconic Moments</div>
+                  <div className="text-gray-300 text-xs">Iconic Moments</div>
                 </div>
                 {cycleStatus === 'open' && (
                   <>
-                    <div className="text-[10px] text-gray-500 flex items-center gap-1">
+                    <div className="text-[10px] text-gray-300 flex items-center gap-1">
                       <Timer className="h-3 w-3" />
                       {countdown}
                     </div>
@@ -263,7 +263,7 @@ export default function Leaderboard() {
                     <Sparkles className="h-4 w-4 text-blue-400" />
                     <h3 className="text-sm font-semibold text-blue-300">Cross-VM</h3>
                   </div>
-                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                  <p className="text-[11px] text-gray-300 leading-relaxed">
                     Top 3 daily remixes are minted as premium <strong className="text-blue-300">Flow Cadence</strong> NFTs with gasless transactions.
                   </p>
                 </div>
@@ -335,16 +335,16 @@ export default function Leaderboard() {
                     <div key={entry.tokenId} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
                       <div className="flex items-center gap-3 min-w-0">
                         <span className={`text-xs font-bold w-6 text-center ${
-                          entry.rank <= 3 ? 'text-yellow-400' : 'text-gray-500'
+                          entry.rank <= 3 ? 'text-yellow-400' : 'text-gray-300'
                         }`}>#{entry.rank}</span>
                         <div className="min-w-0">
                           <p className="text-white text-sm font-medium truncate">{entry.title}</p>
-                          <p className="text-gray-500 text-[10px]">{entry.creator}</p>
+                          <p className="text-gray-300 text-[10px]">{entry.creator}</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0 ml-3">
                         <p className="text-white text-xs font-mono">{entry.votes.toLocaleString()}</p>
-                        <p className="text-gray-500 text-[10px]">votes</p>
+                        <p className="text-gray-300 text-[10px]">votes</p>
                       </div>
                     </div>
                   ))}
@@ -383,7 +383,7 @@ export default function Leaderboard() {
                               {badge.icon}
                             </div>
                           ) : (
-                            <span className="text-gray-500 font-mono text-sm">{entry.rank}</span>
+                            <span className="text-gray-300 font-mono text-sm">{entry.rank}</span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -392,10 +392,10 @@ export default function Leaderboard() {
                             {entry.isUser && <Badge className="bg-green-500/20 text-green-300 text-[10px] border border-green-500/30">You</Badge>}
                             {iconic && <IconicMomentBadge flowNftId={iconic.flow_nft_id} flowTxHash={iconic.flow_tx_hash} status={iconic.status as any} />}
                           </div>
-                          <p className="text-gray-500 text-[11px]">{entry.creator}</p>
+                          <p className="text-gray-300 text-[11px]">{entry.creator}</p>
                           <div className="flex items-center gap-3 mt-1.5">
                             <span className="text-white font-mono text-xs">{entry.votes.toLocaleString()}</span>
-                            <span className="text-gray-500 text-[10px]">votes</span>
+                            <span className="text-gray-300 text-[10px]">votes</span>
                             {entry.reward && (
                               <span className="text-yellow-400 font-semibold text-xs flex items-center gap-0.5">
                                 <DollarSign className="h-3 w-3" />{entry.reward}
@@ -438,7 +438,7 @@ export default function Leaderboard() {
                             {badge.icon}
                           </div>
                         ) : (
-                          <span className="text-gray-500 font-mono text-base">{entry.rank}</span>
+                          <span className="text-gray-300 font-mono text-base">{entry.rank}</span>
                         )}
                       </div>
 
@@ -456,12 +456,12 @@ export default function Leaderboard() {
                             />
                           )}
                         </div>
-                        <p className="text-gray-500 text-[11px]">{entry.creator}</p>
+                        <p className="text-gray-300 text-[11px]">{entry.creator}</p>
                       </div>
 
                       <div className="text-right min-w-[60px] shrink-0">
                         <div className="text-white font-mono text-xs">{entry.votes.toLocaleString()}</div>
-                        <div className="text-gray-500 text-[10px]">votes</div>
+                        <div className="text-gray-300 text-[10px]">votes</div>
                       </div>
 
                       <div className="w-20 text-right shrink-0">
@@ -509,7 +509,7 @@ export default function Leaderboard() {
               <div className="flex items-center gap-2 mb-4">
                 <Zap className="h-5 w-5 text-yellow-400" />
                 <h3 className="text-sm font-semibold text-white">Beat This</h3>
-                <span className="text-[11px] text-gray-500 ml-auto">Challenge other creators</span>
+                <span className="text-[11px] text-gray-300 ml-auto">Challenge other creators</span>
               </div>
               <div className="grid md:grid-cols-3 gap-3">
                 {entries.slice(0, 3).map(entry => (
@@ -521,7 +521,7 @@ export default function Leaderboard() {
                   >
                     <div className="text-xs font-medium text-white truncate">{entry.title}</div>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[11px] text-gray-400">{entry.creator}</span>
+                      <span className="text-[11px] text-gray-300">{entry.creator}</span>
                       <span className="text-yellow-400 text-xs font-bold ml-auto">{entry.votes} pts</span>
                     </div>
                     <button

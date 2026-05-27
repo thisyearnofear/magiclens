@@ -222,7 +222,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
         <div className="flex items-center gap-3">
           <div>
             <h2 className="text-2xl font-bold text-white">Add AR Overlays</h2>
-            <p className="text-gray-400 text-sm">Remixing: <span className="text-white font-medium">{clipTitle}</span></p>
+            <p className="text-gray-300 text-sm">Remixing: <span className="text-white font-medium">{clipTitle}</span></p>
           </div>
           {/* Undo/Redo */}
           <div className="flex gap-1 ml-4">
@@ -271,7 +271,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
               <button
                 onClick={() => setMode('preview')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
-                  mode === 'preview' ? 'bg-yellow-400/20 text-yellow-300 shadow-sm' : 'text-gray-500 hover:text-gray-300'
+                  mode === 'preview' ? 'bg-yellow-400/20 text-yellow-300 shadow-sm' : 'text-gray-300 hover:text-gray-300'
                 }`}
               >
                 <span>🎬</span> Editor
@@ -279,7 +279,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
               <button
                 onClick={() => setMode('live')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 relative ${
-                  mode === 'live' ? 'bg-green-500/20 text-green-300 shadow-sm ring-1 ring-green-500/30' : 'text-gray-500 hover:text-gray-300'
+                  mode === 'live' ? 'bg-green-500/20 text-green-300 shadow-sm ring-1 ring-green-500/30' : 'text-gray-300 hover:text-gray-300'
                 }`}
               >
                 <span className={`w-2 h-2 rounded-full ${mode === 'live' ? 'bg-green-400 animate-pulse' : 'bg-gray-600'}`} />
@@ -290,7 +290,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
             {/* Opacity slider for selected overlay */}
             {selectedOverlayId && selectedStyle && (
               <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5 border border-white/5 ml-auto">
-                <Sun className="h-3.5 w-3.5 text-gray-400" />
+                <Sun className="h-3.5 w-3.5 text-gray-300" />
                 <input
                   type="range"
                   min={0.1}
@@ -300,7 +300,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                   onChange={(e) => handleOpacityChange(selectedOverlayId, parseFloat(e.target.value))}
                   className="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-yellow-400"
                 />
-                <span className="text-[10px] text-gray-400 w-8 text-right font-mono">
+                <span className="text-[10px] text-gray-300 w-8 text-right font-mono">
                   {Math.round(selectedStyle.opacity * 100)}%
                 </span>
               </div>
@@ -410,7 +410,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                               <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[10px]">🎙</div>
                               <span className="text-yellow-400 text-[10px] font-bold">LIVE</span>
                               {isSel && (
-                                <span className="text-[8px] text-gray-500 ml-auto">✏️ dbl-click</span>
+                                <span className="text-[8px] text-gray-300 ml-auto">✏️ dbl-click</span>
                               )}
                             </div>
                             <p className="text-white text-sm leading-tight">
@@ -470,7 +470,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                     </Badge>
                   </motion.div>
                   <div className="absolute bottom-3 right-3 z-30">
-                    <span className="text-[9px] text-gray-500 bg-black/50 backdrop-blur-sm px-2 py-1 rounded">
+                    <span className="text-[9px] text-gray-300 bg-black/50 backdrop-blur-sm px-2 py-1 rounded">
                       Click to select · Drag to move · Corners to resize · ↻ to rotate · ⌘Z to undo
                     </span>
                   </div>
@@ -497,7 +497,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
         {/* ═══ PACK SELECTOR ═══ */}
         <motion.div variants={container} initial="hidden" animate="show" className="space-y-2">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">World Cup 2026 Packs</h3>
+            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">World Cup 2026 Packs</h3>
             <Trophy className="h-4 w-4 text-yellow-400" />
           </div>
 
@@ -524,12 +524,12 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <div className={`p-1 rounded-md ${isSelected ? 'bg-yellow-400/20' : 'bg-white/10'}`}>
-                            <IconComp className={`h-3.5 w-3.5 ${isSelected ? 'text-yellow-400' : 'text-gray-400'}`} />
+                            <IconComp className={`h-3.5 w-3.5 ${isSelected ? 'text-yellow-400' : 'text-gray-300'}`} />
                           </div>
                           <span className="text-white font-medium text-sm truncate">{overlay.name}</span>
                           {isSelected && <Check className="h-4 w-4 text-yellow-400 flex-shrink-0" />}
                         </div>
-                        <p className="text-gray-500 text-xs mt-0.5 truncate">{overlay.description}</p>
+                        <p className="text-gray-300 text-xs mt-0.5 truncate">{overlay.description}</p>
                       </div>
                     </div>
 

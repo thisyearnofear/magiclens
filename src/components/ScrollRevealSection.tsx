@@ -72,13 +72,13 @@ function StepCard({
         </div>
 
         <h3 className="text-white text-xl sm:text-2xl font-bold mb-3">{step.title}</h3>
-        <p className="text-gray-400 text-sm sm:text-base leading-relaxed flex-1">{step.description}</p>
+        <p className="text-gray-300 text-sm sm:text-base leading-relaxed flex-1">{step.description}</p>
 
         <motion.div
           style={{ opacity: useTransform(progress, [0.6, 1], [0, 1]) }}
           className="mt-auto pt-4"
         >
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-xs text-gray-300">
             <Check className={`h-3.5 w-3.5 ${step.accent}`} />
             <span className={step.accent}>
               {index === 0 ? 'Pose tracking ready' : index === 1 ? '6 overlay types available' : 'Dual-chain minting'}
@@ -107,7 +107,7 @@ function StepCounter({ current }: { current: MotionValue<number> }) {
           />
         ))}
       </div>
-      <motion.span className="text-sm text-gray-400 font-mono">
+      <motion.span className="text-sm text-gray-300 font-mono">
         Step <motion.span className="text-yellow-400 font-bold">{display}</motion.span> of 3
       </motion.span>
     </motion.div>

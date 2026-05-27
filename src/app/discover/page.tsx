@@ -140,7 +140,7 @@ export default function DiscoverPage() {
           className="mb-8"
         >
           <h2 className="text-3xl font-bold text-white mb-2">Find Your Creative Match</h2>
-          <p className="text-gray-400">
+          <p className="text-gray-300">
             Connect with videographers and AR artists to create amazing remixes together.
           </p>
         </motion.div>
@@ -152,7 +152,7 @@ export default function DiscoverPage() {
             className={`px-4 py-2 text-xs font-medium rounded-md transition-all flex items-center gap-2 ${
               activeTab === 'collabs'
                 ? 'bg-indigo-500/20 text-indigo-300 shadow-sm'
-                : 'text-gray-500 hover:text-gray-300'
+                : 'text-gray-300 hover:text-gray-300'
             }`}
           >
             <Zap className="h-3.5 w-3.5" />
@@ -166,7 +166,7 @@ export default function DiscoverPage() {
             className={`px-4 py-2 text-xs font-medium rounded-md transition-all flex items-center gap-2 ${
               activeTab === 'creators'
                 ? 'bg-indigo-500/20 text-indigo-300 shadow-sm'
-                : 'text-gray-500 hover:text-gray-300'
+                : 'text-gray-300 hover:text-gray-300'
             }`}
           >
             <Users className="h-3.5 w-3.5" />
@@ -181,7 +181,7 @@ export default function DiscoverPage() {
         {loading && (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 text-indigo-400 animate-spin" />
-            <span className="ml-3 text-gray-400">Discovering collaborations...</span>
+            <span className="ml-3 text-gray-300">Discovering collaborations...</span>
           </div>
         )}
 
@@ -193,7 +193,7 @@ export default function DiscoverPage() {
                 <AlertCircle className="h-5 w-5 text-red-400" />
                 <div>
                   <h3 className="text-white font-medium">Connection Issue</h3>
-                  <p className="text-gray-400 text-sm">{error}</p>
+                  <p className="text-gray-300 text-sm">{error}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={fetchData} className="border-red-500/30 text-red-400">
@@ -210,7 +210,7 @@ export default function DiscoverPage() {
               <div className="text-center py-16">
                 <Zap className="h-16 w-16 text-gray-600 mx-auto mb-4" />
                 <h3 className="text-white text-lg font-medium mb-2">No open collaborations yet</h3>
-                <p className="text-gray-400 text-sm mb-6">
+                <p className="text-gray-300 text-sm mb-6">
                   Upload a video or create a remix to get started.
                 </p>
                 <Button onClick={() => router.push('/upload-video')} className="bg-indigo-500 hover:bg-indigo-400 text-white">
@@ -254,7 +254,7 @@ export default function DiscoverPage() {
               <div className="text-center py-16">
                 <Users className="h-16 w-16 text-gray-600 mx-auto mb-4" />
                 <h3 className="text-white text-lg font-medium mb-2">No creators yet</h3>
-                <p className="text-gray-400 text-sm">Be the first to create a profile!</p>
+                <p className="text-gray-300 text-sm">Be the first to create a profile!</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -282,11 +282,11 @@ export default function DiscoverPage() {
                             <Sparkles className="h-3.5 w-3.5 text-blue-400" />
                           )}
                         </div>
-                        <Badge className="mt-1 capitalize text-[10px] bg-white/5 text-gray-400">
+                        <Badge className="mt-1 capitalize text-[10px] bg-white/5 text-gray-300">
                           {creator.user_type}
                         </Badge>
                         {creator.bio && (
-                          <p className="text-gray-500 text-xs mt-2 line-clamp-2">{creator.bio}</p>
+                          <p className="text-gray-300 text-xs mt-2 line-clamp-2">{creator.bio}</p>
                         )}
                         {creator.earnings_total !== undefined && creator.earnings_total > 0 && (
                           <p className="text-yellow-400 text-xs mt-2 font-medium">

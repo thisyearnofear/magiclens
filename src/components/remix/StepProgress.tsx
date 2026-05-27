@@ -27,7 +27,7 @@ export function StepProgress({ current, total, labels }: StepProgressProps) {
                       ? 'bg-green-500 text-white'
                       : i === current
                       ? 'bg-yellow-400 text-black ring-2 ring-yellow-400/50'
-                      : 'bg-white/10 text-gray-400'
+                      : 'bg-white/10 text-gray-300'
                   }`}
                   animate={i === current ? { scale: [1, 1.1, 1] } : {}}
                   transition={{ duration: 1.5, repeat: Infinity, repeatType: 'reverse' }}
@@ -46,7 +46,7 @@ export function StepProgress({ current, total, labels }: StepProgressProps) {
                 </motion.div>
                 <motion.span
                   className={`mt-1 sm:mt-2 text-[10px] sm:text-xs font-medium text-center truncate max-w-[60px] sm:max-w-none ${
-                    i === current ? 'text-yellow-400' : i < current ? 'text-green-400' : 'text-gray-500'
+                    i === current ? 'text-yellow-400' : i < current ? 'text-green-400' : 'text-gray-300'
                   }`}
                   animate={i === current ? { opacity: [0.6, 1] } : {}}
                   transition={{ duration: 1, repeat: Infinity, repeatType: 'reverse' }}
