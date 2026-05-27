@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { userServiceGetUserProfile, videoServiceGetVideos, assetServiceGetAssets, videoServiceDeleteVideo, videoServiceUpdateVideo, UserProfile, Video, ArtistAsset } from '@/lib/sdk';
@@ -60,14 +61,57 @@ export default function Dashboard() {
     finally{setLoading(false);}
   })();},[router,isGuest]);
 
-  if(loading)return<div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center"><div className="text-white text-xl">Loading your dashboard...</div></div>;
+  if(loading)return<div className="min-h-screen bg-gradient-to-br from-purple-950 via-blue-950 to-indigo-950 flex items-center justify-center"><div className="text-white text-xl">Loading your dashboard...</div></div>;
   if(!profile)return null;
 
   const isNewUser=!isGuest&&profile.bio==='Welcome to MagicLens! Update your profile to get started.';
   const goHome=()=>{router.push('/');};
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Stadium background image */}
+      <div
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80&auto=format)',
+        }}
+      />
+      {/* Dark overlay + gradient */}
+      <div className="fixed inset-0 z-[1] bg-gradient-to-br from-purple-950/90 via-blue-950/85 to-indigo-950/90" />
+
+      {/* Gooey animated blobs */}
+      <svg className="fixed inset-0 z-[2] w-full h-full pointer-events-none opacity-30" aria-hidden="true">
+        <defs>
+          <filter id="gooey">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="40" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 60 -20" result="gooey" />
+            <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
+          </filter>
+        </defs>
+        <g filter="url(#gooey)">
+          <motion.circle
+            cx="15%" cy="20%" r="120"
+            fill="rgba(168,85,247,0.5)"
+            animate={{ cx: ['15%', '25%', '15%'], cy: ['20%', '35%', '20%'], r: [120, 150, 120] }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.circle
+            cx="80%" cy="25%" r="100"
+            fill="rgba(59,130,246,0.4)"
+            animate={{ cx: ['80%', '70%', '80%'], cy: ['25%', '40%', '25%'], r: [100, 130, 100] }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          />
+          <motion.circle
+            cx="50%" cy="70%" r="90"
+            fill="rgba(250,204,21,0.25)"
+            animate={{ cx: ['50%', '40%', '50%'], cy: ['70%', '55%', '70%'], r: [90, 120, 90] }}
+            transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+          />
+        </g>
+      </svg>
+
+      {/* Content layer */}
+      <div className="relative z-[3]">
       <DashboardHeader isGuest={isGuest} profile={profile} onDisconnect={disconnectWallet} onNavigate={(path:string)=>router.push(path)} />
       <div className="container mx-auto px-4 py-8">
         <EventCard />
@@ -100,6 +144,7 @@ export default function Dashboard() {
       <EditVideoDialog open={editOpen} video={editingVideo} onClose={()=>setEditOpen(false)} onSave={handleUpdate} />
       <DeleteVideoDialog open={deleteOpen} video={deletingVideo} loading={isDeleting} onClose={()=>setDeleteOpen(false)} onConfirm={confirmDelete} />
       <EnvironmentalGalleryDialog open={showGallery} onClose={()=>setShowGallery(false)} />
+      </div>
     </div>
   );
 }
