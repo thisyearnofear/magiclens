@@ -3,23 +3,21 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trophy, Zap, Users, Package } from 'lucide-react';
+import { Trophy, Zap, Package, Sparkles } from 'lucide-react';
 
 interface EventCardProps {
   name?: string;
   dateRange?: string;
   packCount?: number;
-  remixCount?: number;
-  rewardPool?: string;
+  iconicCount?: number;
   isActive?: boolean;
 }
 
 export function EventCard({
   name = 'FIFA World Cup 2026',
   dateRange = 'Jun 8 — Jul 8, 2026',
-  packCount = 6,
-  remixCount = 1247,
-  rewardPool = '$100 USDT',
+  packCount = 5,
+  iconicCount = 8,
   isActive = true,
 }: EventCardProps) {
   const router = useRouter();
@@ -27,7 +25,7 @@ export function EventCard({
   return (
     <Card className={`bg-gradient-to-r ${
       isActive
-        ? 'from-yellow-400/15 to-purple-400/15 border-yellow-400/30'
+        ? 'from-yellow-400/20 to-purple-400/20 border-yellow-400/40'
         : 'from-gray-500/10 to-gray-600/10 border-white/10'
     } mb-6`}>
       <CardContent className="p-6">
@@ -45,21 +43,17 @@ export function EventCard({
                 </Badge>
               )}
             </div>
-            <p className="text-gray-400 text-sm">{dateRange}</p>
+            <p className="text-gray-300 text-sm">{dateRange}</p>
 
             {/* Stats */}
             <div className="flex flex-wrap gap-4 mt-3">
               <div className="flex items-center gap-1.5 text-sm">
                 <Package className={`h-4 w-4 ${isActive ? 'text-purple-400' : 'text-gray-500'}`} />
-                <span className="text-gray-300">{packCount} AR packs</span>
+                <span className="text-gray-200">{packCount} AR packs</span>
               </div>
               <div className="flex items-center gap-1.5 text-sm">
-                <Users className={`h-4 w-4 ${isActive ? 'text-blue-400' : 'text-gray-500'}`} />
-                <span className="text-gray-300">{remixCount.toLocaleString()} remixes</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm">
-                <Trophy className={`h-4 w-4 ${isActive ? 'text-yellow-400' : 'text-gray-500'}`} />
-                <span className="text-yellow-400 font-medium">{rewardPool} prize pool</span>
+                <Sparkles className={`h-4 w-4 ${isActive ? 'text-yellow-400' : 'text-gray-500'}`} />
+                <span className="text-gray-200">{iconicCount} Iconic Moments</span>
               </div>
             </div>
           </div>
@@ -75,7 +69,7 @@ export function EventCard({
             <Button
               onClick={() => router.push('/leaderboard')}
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-white/30 text-white hover:bg-white/10"
             >
               Leaderboard
             </Button>
