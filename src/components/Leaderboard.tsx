@@ -14,6 +14,7 @@ import { IconicMomentBadge } from '@/components/IconicMomentBadge';
 import { MobileNav } from '@/components/MobileNav';
 import { DemoBanner } from '@/components/DemoBanner';
 import { TransactionProgress, type TransactionStep, type TransactionStepStatus } from '@/components/TransactionProgress';
+import { ProductJourneyHeader } from '@/components/ProductJourneyHeader';
 import { toast } from 'sonner';
 import { DEMO_LEADERBOARD_ENTRIES } from '@/lib/demo-data';
 import { closeLeaderboardDay, seedDemoData } from '@/lib/crossvm-client';
@@ -236,6 +237,15 @@ export default function Leaderboard() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        <ProductJourneyHeader
+          active="compete"
+          title="Compete for the daily promotion"
+          subtitle="Every X Layer remix enters the leaderboard. Top-10 earn rewards, and the top-3 are promoted into premium Flow Iconic Moments."
+          metric={countdown || 'Today'}
+          metricLabel="cycle"
+          className="mb-6"
+        />
+
         {/* Prize pool + Cross-VM banner */}
         <div className="grid md:grid-cols-3 gap-4 mb-6">
           <Card className="bg-gradient-to-r from-yellow-400/20 to-purple-400/20 border-yellow-400/30 md:col-span-2">
@@ -403,6 +413,16 @@ export default function Leaderboard() {
 
         {/* Leaderboard table */}
         <Card className="bg-white/5 border-white/10">
+          <div className="flex flex-col gap-2 border-b border-white/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-white">Daily rankings</h2>
+              <p className="text-xs text-gray-400">Rank, reward, and Flow promotion status in one scan.</p>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-gray-400">
+              <span className="rounded bg-yellow-400/10 px-2 py-1 text-yellow-300">Top 3 promote</span>
+              <span className="rounded bg-white/5 px-2 py-1">Top 10 reward</span>
+            </div>
+          </div>
           <CardContent className="p-0">
             <AnimatePresence>
               {entries.map((entry, idx) => {

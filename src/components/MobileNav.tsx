@@ -38,19 +38,28 @@ export function MobileNav({ title, icon }: MobileNavProps) {
     if (!token || pathname === '/discover/requests') return
 
     let cancelled = false
-    fetch(`${API_BASE}/api/discover/my_requests`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (!cancelled && data.success) {
-          const pending = (data.incoming || []).filter((r: { status: string }) => r.status === 'pending').length
-          setPendingRequests(pending)
-        }
-      })
-      .catch(() => {})
 
-    return () => { cancelled = true }
+    const fetchPending = () => {
+      fetch(`${API_BASE}/api/discover/my_requests`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (!cancelled && data.success) {
+            const pending = (data.incoming || []).filter((r: { status: string }) => r.status === 'pending').length
+            setPendingRequests(pending)
+          }
+        })
+        .catch(() => {})
+    }
+
+    fetchPending()
+    const interval = setInterval(fetchPending, 30_000)
+
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
   }, [pathname])
 
   return (

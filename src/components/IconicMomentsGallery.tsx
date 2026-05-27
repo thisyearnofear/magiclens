@@ -12,6 +12,7 @@ import type { CrossVMPromotion } from '@/types/crossvm';
 import { getIconicMoments, seedDemoData } from '@/lib/crossvm-client';
 import { measureUserAction } from '@/lib/action-observability';
 import { TransactionProgress, type TransactionStep } from '@/components/TransactionProgress';
+import { ProductJourneyHeader } from '@/components/ProductJourneyHeader';
 import { useToast } from '@/hooks/use-toast';
 
 const RANK_ICONS: Record<number, typeof Trophy> = {
@@ -36,6 +37,7 @@ const flowSeedSteps: TransactionStep[] = [
 function MomentCard({ moment }: { moment: CrossVMPromotion }) {
   const RankIcon = moment.rank <= 3 ? RANK_ICONS[moment.rank] : null;
   const rankColor = moment.rank <= 3 ? RANK_COLORS[moment.rank] : '';
+  const hue = moment.rank === 1 ? 'from-yellow-400/35 via-green-500/20 to-sky-500/25' : moment.rank === 2 ? 'from-slate-200/25 via-blue-500/20 to-purple-500/25' : 'from-amber-500/25 via-rose-500/15 to-blue-500/25';
 
   return (
     <motion.div
@@ -45,7 +47,19 @@ function MomentCard({ moment }: { moment: CrossVMPromotion }) {
       exit={{ opacity: 0, scale: 0.95 }}
     >
       <Card className="overflow-hidden bg-white/5 border-white/10 hover:bg-white/10 transition-colors h-full">
-        <div className="aspect-video relative bg-gradient-to-br from-purple-900/40 to-blue-900/40 flex items-center justify-center">
+        <div className={`aspect-video relative bg-gradient-to-br ${hue} flex items-center justify-center overflow-hidden`}>
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute left-6 top-8 h-24 w-24 rounded-full border border-white/15" />
+          <div className="absolute right-8 top-10 h-16 w-28 skew-x-[-18deg] rounded-md border border-white/10 bg-white/5" />
+          <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">Iconic remix</div>
+              <div className="mt-1 max-w-[12rem] truncate text-lg font-black text-white">{moment.title}</div>
+            </div>
+            <div className="rounded-md bg-black/45 px-2 py-1 text-xs font-semibold text-white backdrop-blur">
+              #{moment.rank}
+            </div>
+          </div>
           {RankIcon && (
             <RankIcon className={`h-16 w-16 ${rankColor} opacity-30`} />
           )}
@@ -216,17 +230,19 @@ export function IconicMomentsGallery() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Sparkles className="h-7 w-7 text-purple-400" />
-            Iconic Moments
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Premium AR remixes promoted from X Layer to Flow blockchain
-          </p>
-        </div>
+      <ProductJourneyHeader
+        active="promote"
+        title="Iconic Moments minted on Flow"
+        subtitle="The top daily remixes graduate from X Layer competition into premium Cadence NFTs with explorer-linked receipts."
+        metric={`${mintedCount}`}
+        metricLabel="minted"
+      />
 
+      <div className="flex items-center justify-between flex-wrap gap-4 rounded-lg border border-white/10 bg-black/25 p-3">
+        <div className="flex items-center gap-2 text-sm text-gray-300">
+          <Sparkles className="h-4 w-4 text-purple-300" />
+          Flow promotion gallery
+        </div>
         <div className="flex items-center gap-3">
           {mintedCount > 0 && (
             <Badge variant="secondary" className="text-sm px-3 py-1">
