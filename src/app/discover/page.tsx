@@ -20,9 +20,10 @@ import { MobileNav } from '@/components/MobileNav';
 import { DemoBanner } from '@/components/DemoBanner';
 import { DEMO_CREATORS, DEMO_COLLABS } from '@/lib/demo-data';
 import { STORAGE_KEYS } from '@/lib/constants';
+import { getApiBaseUrl } from '@/lib/api-base';
 import { toast } from 'sonner';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE = getApiBaseUrl();
 
 function CollabCardSkeleton() {
   return (

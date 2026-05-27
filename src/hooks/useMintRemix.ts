@@ -2,10 +2,10 @@ import { useAccount, useWriteContract, useReadContract } from 'wagmi'
 import { xLayerTestnet } from 'wagmi/chains'
 import { REMIX_NFT_ABI, REMIX_NFT_ADDRESS } from '@/lib/web3/contracts'
 import { uploadMetadataToGrove } from '@/lib/grove'
+import { getApiBaseUrl } from '@/lib/api-base'
 import { toast } from 'sonner'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
-const FALLBACK_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
 
 export function useMintRemix() {
   const { address } = useAccount()
@@ -29,7 +29,7 @@ export function useMintRemix() {
     const referrer = (referrerAddress || ZERO_ADDRESS) as `0x${string}`
 
     // Upload metadata to Grove; fall back to backend URL on failure
-    let uri = `${FALLBACK_BASE}/api/metadata/RemixNFT/${nextTokenId}`
+    let uri = `${getApiBaseUrl()}/api/metadata/RemixNFT/${nextTokenId}`
     options?.onStage?.('metadata')
     try {
       uri = await uploadMetadataToGrove({

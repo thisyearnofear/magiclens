@@ -1,5 +1,6 @@
 import { createClient, createConfig } from '@hey-api/client-fetch';
 import { STORAGE_KEYS } from '@/lib/constants';
+import { getApiBaseUrl } from '@/lib/api-base';
 
 export const getAuthenticatedClient = () => {
     const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
@@ -9,7 +10,7 @@ export const getAuthenticatedClient = () => {
     }
     return createClient(
         createConfig({
-            baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            baseUrl: getApiBaseUrl(),
             headers,
         })
     );

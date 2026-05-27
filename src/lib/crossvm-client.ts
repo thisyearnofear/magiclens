@@ -1,8 +1,9 @@
 import type { CrossVMPromotion, IconicMomentCheck } from '@/types/crossvm';
+import { getApiBaseUrl } from '@/lib/api-base';
 import { DEMO_ICONIC_MOMENTS } from '@/lib/demo-data';
 import { STORAGE_KEYS } from '@/lib/constants';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE = getApiBaseUrl();
 
 const DEFAULT_TIMEOUT_MS = 20_000;
 

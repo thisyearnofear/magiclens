@@ -10,8 +10,9 @@ import { Badge } from '@/components/ui/badge'
 import { Menu, Home, Trophy, Users, Zap, User, ArrowLeft, Sparkles, Inbox } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { STORAGE_KEYS } from '@/lib/constants'
+import { getApiBaseUrl } from '@/lib/api-base'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000'
+const API_BASE = getApiBaseUrl()
 
 const NAV_ITEMS = [
   { href: '/', label: 'Home', icon: Home },
