@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, DollarSign, Globe, Layers } from 'lucide-react';
+import { Trophy, Box, GitFork, Layers } from 'lucide-react';
 
 interface StatItem {
   icon: React.ReactNode;
@@ -13,26 +13,25 @@ interface StatItem {
 const stats: StatItem[] = [
   {
     icon: <Trophy className="h-6 w-6 text-yellow-400" />,
-    target: 1247,
-    suffix: '+',
-    label: 'remixes created',
-  },
-  {
-    icon: <DollarSign className="h-6 w-6 text-green-400" />,
-    target: 1000,
-    prefix: '$',
-    suffix: '+',
-    label: 'rewards distributed',
-  },
-  {
-    icon: <Globe className="h-6 w-6 text-blue-400" />,
-    target: 32,
+    target: 8,
     suffix: '',
-    label: 'countries',
+    label: 'Iconic Moments minted',
+  },
+  {
+    icon: <Box className="h-6 w-6 text-green-400" />,
+    target: 6,
+    suffix: '',
+    label: 'smart contracts deployed',
+  },
+  {
+    icon: <GitFork className="h-6 w-6 text-blue-400" />,
+    target: 2,
+    suffix: '',
+    label: 'blockchain networks',
   },
   {
     icon: <Layers className="h-6 w-6 text-purple-400" />,
-    target: 6,
+    target: 5,
     suffix: '',
     label: 'overlay packs',
   },

@@ -319,8 +319,8 @@ export default function RemixFlow() {
 interface EventCardProps {
   name: string;         // "FIFA World Cup 2026"
   dateRange: string;    // "Jun 8 - Jul 8, 2026"
-  packCount: number;    // 6 available AR packs
-  remixCount: number;   // 1,247 remixes submitted
+  packCount: number;    // 5 available AR packs
+  remixCount: number;   // 8 Iconic Moments minted
   isActive: boolean;
   onStartRemix: () => void;
 }
@@ -332,7 +332,7 @@ interface EventCardProps {
 The dashboard top section shows:
 ```
 🏆 FIFA World Cup 2026                     [Create Remix] [Leaderboard]
-   📦 6 AR packs available  |  🖼️ 1,247 remixes  |  🏅 Top prize: $100 USDT
+   📦 5 AR packs available  |  🖼️ 8 Iconic Moments  |  🏅 Top prize: $100 USDT
 
 📅 Upcoming events:
    Wimbledon 2026              → Coming July 2026

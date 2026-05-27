@@ -66,7 +66,7 @@
 | **Route** | Back to `/dashboard` |
 | **Visual** | Dashboard showing both wallets connected (Flow + EVM). EventCard with stats |
 | **Voiceover** | "This is the dual-chain story. X Layer handles the volume — thousands of fan remixes, low fees, USDT rewards. Flow handles the premium — Iconic Moment NFTs backed by the same tech as NBA Top Shot. One app, two chains, seamless UX." |
-| **On-screen** | Pointer to EventCard: "1,247 remixes", pointer to blockchain section: "Top 3 → Flow" |
+| **On-screen** | Pointer to EventCard: "8 Iconic Moments", pointer to blockchain section: "Top 3 → Flow" |
 
 ## Scene 8: What's Next (1:45–2:00)
 

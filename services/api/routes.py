@@ -1853,11 +1853,11 @@ async def remix_metadata(token_id: str):
 # ═══════════════════════════════════════════════════════════════
 
 DEMO_ENTRIES_TEMPLATE = [
-    {"rank": 1, "title": "Messi World Cup Triumph", "votes": 2847, "reward": "100 USDT"},
-    {"rank": 2, "title": "Haaland Hat-trick Madness", "votes": 2153, "reward": "50 USDT"},
-    {"rank": 3, "title": "Mbappé Speed Run Goal", "votes": 1890, "reward": "25 USDT"},
-    {"rank": 4, "title": "Bellingham Bicycle Kick", "votes": 1420, "reward": "10 USDT"},
-    {"rank": 5, "title": "Salah Curler Top Corner", "votes": 1095, "reward": "5 USDT"},
+    {"rank": 1, "title": "[Demo] Goal King Remix", "votes": 150, "reward": "100 USDT"},
+    {"rank": 2, "title": "[Demo] Hat-trick Hero", "votes": 120, "reward": "50 USDT"},
+    {"rank": 3, "title": "[Demo] Speed Run Strike", "votes": 95, "reward": "25 USDT"},
+    {"rank": 4, "title": "[Demo] Bicycle Kick Moment", "votes": 70, "reward": "10 USDT"},
+    {"rank": 5, "title": "[Demo] Top Corner Curler", "votes": 50, "reward": "5 USDT"},
 ]
 
 DUMMY_ADDRESS = "0xCAfEcAfeCAfECaFeCaFecaFecaFECafECafeCaFe"
