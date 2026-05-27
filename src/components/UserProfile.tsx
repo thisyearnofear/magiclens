@@ -18,6 +18,8 @@ import { toast } from 'sonner';
 import { getReferralStats } from '@/lib/crossvm-client';
 import { getUserRemixes } from '@/lib/remix-store';
 import { computeStreak, getStreakBadge } from '@/lib/streak';
+import { useWeb3Profile } from '@/hooks/useWeb3Profile';
+import { Web3Identities } from '@/components/Web3Identities';
 
 
 export default function UserProfile() {
@@ -46,6 +48,11 @@ export default function UserProfile() {
     recent_claims: any[];
   } | null>(null);
   const [loadingRef, setLoadingRef] = useState(false);
+
+  // Resolve Web3 identity (ENS / Lens / Farcaster) from wallet address
+  const idStr = typeof id === 'string' ? id : undefined;
+  const identityAddress = (isOwnProfile ? evmAddress : idStr) || user || undefined;
+  const web3 = useWeb3Profile(identityAddress);
 
   useEffect(() => {
     const remixes = getUserRemixes();
@@ -185,6 +192,26 @@ export default function UserProfile() {
             <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-white mb-2">Profile Not Found</h2>
             <p className="text-gray-300 mb-4">This user profile doesn't exist or isn't public.</p>
+
+            {/* Show Web3 identity as a rich fallback */}
+            {!web3.loading && web3.displayName && (
+              <div className="mb-4">
+                <Web3Identities web3={web3} walletAddress={identityAddress} layout="full" />
+              </div>
+            )}
+
+            {web3.loading && (
+              <div className="mb-4 flex justify-center">
+                <div className="animate-pulse flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-full bg-white/10" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-28 bg-white/10 rounded" />
+                    <div className="h-3 w-20 bg-white/5 rounded" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <Button onClick={() => router.push('/dashboard')} variant="outline">
               Back to Dashboard
             </Button>
@@ -289,7 +316,7 @@ export default function UserProfile() {
                       {profile.username}
                     </CardTitle>
 
-                    <div className="flex items-center space-x-2 mb-4">
+                    <div className="flex items-center space-x-2 mb-2">
                       <Badge className={`${profile.user_type === 'artist' ? 'bg-purple-500' :
                           profile.user_type === 'videographer' ? 'bg-blue-500' :
                             'bg-gradient-to-r from-purple-500 to-blue-500'
@@ -304,6 +331,13 @@ export default function UserProfile() {
                         </Badge>
                       )}
                     </div>
+
+                    {/* Web3 identities (ENS / Lens / Farcaster) */}
+                    {!web3.loading && (web3.displayName || web3.avatarUrl) && (
+                      <div className="mb-3">
+                        <Web3Identities web3={web3} walletAddress={identityAddress} layout="compact" />
+                      </div>
+                    )}
 
                     {profile.bio && (
                       <CardDescription className="text-gray-300 text-base">

@@ -19,6 +19,8 @@ import { EventCard } from '@/components/dashboard/EventCard';
 import { StatsBar } from '@/components/StatsBar';
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useWeb3Profile } from '@/hooks/useWeb3Profile';
+import { Web3Identities } from '@/components/Web3Identities';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -35,6 +37,9 @@ export default function Dashboard() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const { permission, subscribed, requestPermission } = useNotifications();
+
+  // Resolve Web3 identity (ENS / Lens / Farcaster) from wallet address
+  const web3 = useWeb3Profile(user);
 
   const handleEdit=(id:string,title:string)=>{setEditingVideo({id,title});setEditOpen(true);};
   const handleDelete=(id:string,title:string)=>{setDeletingVideo({id,title});setDeleteOpen(true);};
@@ -128,6 +133,29 @@ export default function Dashboard() {
         )}
         <StatsBar />
         {isGuest&&<GuestBanner onConnect={goHome} />}
+        {/* Web3 identity (ENS / Lens / Farcaster) — shown when no MagicLens profile exists */}
+        {!isGuest && !profile.username?.startsWith('User ') && !web3.loading && (web3.displayName || web3.avatarUrl) && (
+          <div className="mb-6">
+            <Web3Identities web3={web3} walletAddress={user} layout="compact" />
+          </div>
+        )}
+
+        {/* Enriched fallback banner — when user has no MagicLens profile but has a Web3 identity */}
+        {!isGuest && web3.displayName && !web3.loading && profile.bio === 'Welcome to MagicLens! Update your profile to get started.' && (
+          <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-400/20">
+            <div className="flex items-center gap-4 flex-wrap">
+              <Web3Identities web3={web3} walletAddress={user} layout="compact" />
+              <span className="text-gray-400 text-xs">
+                We found your Web3 identity!{' '}
+                <a href="/profile" className="text-yellow-400 hover:text-yellow-300 underline">
+                  Create a MagicLens profile
+                </a>{' '}
+                to add videos and assets.
+              </span>
+            </div>
+          </div>
+        )}
+
         <WelcomeSection isGuest={isGuest} profile={profile} />
       {isNewUser&&<GettingStartedChecklist onNavigate={(p:string)=>router.push(p)} />}
       <QuickActions isGuest={isGuest} userType={profile.user_type} onNavigate={(p:string)=>router.push(p)} onShowGallery={()=>setShowGallery(true)} />
