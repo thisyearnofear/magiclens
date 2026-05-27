@@ -1,19 +1,67 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, X, Zap, Play, TrendingUp, Trophy, Medal, ArrowRight } from 'lucide-react';
+import { Check, X, Zap, Play, Pause, TrendingUp, Trophy, Medal, ArrowRight } from 'lucide-react';
 import { StatsBar } from '@/components/StatsBar';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { ScrollRevealSection } from '@/components/ScrollRevealSection';
+
+const HERO_CLIPS = [
+  { src: '/clips/demo1.mp4', label: 'Match-winning Goal' },
+  { src: '/clips/demo2.mp4', label: 'Trophy Lift Ceremony' },
+  { src: '/clips/demo3.mp4', label: 'Fan Celebration' },
+];
 
 export default function LandingPage() {
   const { continueAsGuest } = useAuthContext();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Stadium background image */}
+      <div
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1920&q=80&auto=format)',
+        }}
+      />
+      <div className="fixed inset-0 z-[1] bg-gradient-to-br from-purple-950/90 via-blue-950/85 to-indigo-950/90" />
+
+      {/* Gooey animated blobs */}
+      <svg className="fixed inset-0 z-[2] w-full h-full pointer-events-none opacity-30" aria-hidden="true">
+        <defs>
+          <filter id="gooey-landing">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="40" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 60 -20" result="gooey" />
+            <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
+          </filter>
+        </defs>
+        <g filter="url(#gooey-landing)">
+          <motion.circle
+            cx="15%" cy="20%" r="120"
+            fill="rgba(168,85,247,0.5)"
+            animate={{ cx: ['15%', '25%', '15%'], cy: ['20%', '35%', '20%'], r: [120, 150, 120] }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.circle
+            cx="80%" cy="25%" r="100"
+            fill="rgba(59,130,246,0.4)"
+            animate={{ cx: ['80%', '70%', '80%'], cy: ['25%', '40%', '25%'], r: [100, 130, 100] }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          />
+          <motion.circle
+            cx="50%" cy="70%" r="90"
+            fill="rgba(250,204,21,0.25)"
+            animate={{ cx: ['50%', '40%', '50%'], cy: ['70%', '55%', '70%'], r: [90, 120, 90] }}
+            transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+          />
+        </g>
+      </svg>
+
+      {/* Content layer */}
+      <div className="relative z-[3]">
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <nav className="flex items-center justify-between">
@@ -34,24 +82,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-16 pb-24 text-center relative overflow-hidden">
-        {/* Floating decorations */}
-        <motion.div
-          className="absolute top-20 left-[10%] text-yellow-400/20 text-6xl pointer-events-none"
-          animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        >✦</motion.div>
-        <motion.div
-          className="absolute top-40 right-[12%] text-blue-400/15 text-4xl pointer-events-none"
-          animate={{ y: [0, -15, 0], rotate: [0, -5, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        >⬡</motion.div>
-        <motion.div
-          className="absolute bottom-32 left-[20%] text-purple-400/15 text-5xl pointer-events-none"
-          animate={{ y: [0, -25, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        >◇</motion.div>
-
+      <section className="container mx-auto px-4 pt-12 pb-20 text-center relative overflow-hidden">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 bg-yellow-400/10 border border-yellow-400/30 rounded-full">
           <Trophy className="h-4 w-4 text-yellow-400" />
           <span className="text-yellow-400 text-sm font-medium">OKX X Cup Hackathon — World Cup 2026</span>
@@ -62,114 +93,15 @@ export default function LandingPage() {
         <p className="text-lg sm:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
           Drop pose-aware AR overlays on match clips. Mint as NFTs on X Layer. Earn USDT. Top remixes become Flow Iconic Moments.
         </p>
-        <div className="flex gap-4 justify-center flex-wrap mb-16">
+        <div className="flex gap-4 justify-center flex-wrap mb-12">
           <ConnectWallet />
           <Button onClick={continueAsGuest} variant="ghost" size="lg" className="text-white hover:bg-white/10">
             Explore as Guest
           </Button>
         </div>
 
-        {/* Visual mockup */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="max-w-3xl mx-auto"
-        >
-          <div className="relative bg-gradient-to-b from-gray-800/80 to-gray-900/80 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-sm overflow-hidden">
-            {/* Mockup browser bar */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
-              <div className="w-3 h-3 rounded-full bg-red-500/80" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-              <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              <div className="ml-3 flex-1 max-w-[200px] bg-white/10 rounded-full px-3 py-1">
-                <span className="text-[10px] text-gray-400">magiclens.app/remix</span>
-              </div>
-            </div>
-
-            {/* Mockup content */}
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-yellow-400/20 flex items-center justify-center">
-                  <Zap className="h-4 w-4 text-yellow-400" />
-                </div>
-                <div className="text-left">
-                  <div className="text-white text-sm font-medium">AR Overlay Studio</div>
-                  <div className="text-gray-500 text-[10px]">Remixing: World Cup Final Highlight</div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-5 gap-2 mb-3">
-                {[
-                  { label: 'Flag', icon: '🏳️', active: true },
-                  { label: 'Confetti', icon: '🎊', active: true },
-                  { label: 'GOAL!', icon: '⚡', active: true },
-                  { label: 'Bubble', icon: '💬', active: false },
-                  { label: 'Sparkle', icon: '✨', active: false },
-                ].map((item, i) => (
-                  <motion.div
-                    key={item.label}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + i * 0.08 }}
-                    className={`rounded-lg p-2 text-center cursor-pointer transition-all ${
-                      item.active
-                        ? 'bg-yellow-400/20 border border-yellow-400/40 ring-1 ring-yellow-400/20'
-                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    <div className="text-lg mb-0.5">{item.icon}</div>
-                    <div className={`text-[9px] ${item.active ? 'text-yellow-300' : 'text-gray-500'}`}>{item.label}</div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Simulated video preview area */}
-              <div className="aspect-video bg-gradient-to-br from-blue-900/60 via-purple-900/60 to-indigo-900/60 rounded-xl border border-white/10 flex items-center justify-center relative overflow-hidden">
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-t from-yellow-400/10 to-transparent"
-                  animate={{ opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                />
-                <motion.div
-                  className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Play className="h-6 w-6 text-white ml-0.5" />
-                </motion.div>
-
-                {/* Pose skeleton dots */}
-                {[
-                  { x: '45%', y: '25%' }, { x: '50%', y: '30%' },
-                  { x: '48%', y: '50%' }, { x: '35%', y: '65%' }, { x: '60%', y: '65%' },
-                ].map((dot, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute w-2 h-2 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/50"
-                    style={{ left: dot.x, top: dot.y }}
-                    animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.3, 1] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-                  />
-                ))}
-              </div>
-
-              <div className="flex items-center justify-between mt-3">
-                <div className="flex items-center gap-2">
-                  <Medal className="h-3.5 w-3.5 text-yellow-400" />
-                  <span className="text-gray-400 text-[10px]">Pose-aware tracking · 3 overlays active</span>
-                </div>
-                <motion.div
-                  className="text-yellow-400 text-xs font-medium flex items-center gap-1"
-                  animate={{ x: [0, 3, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  Mint Remix <ArrowRight className="h-3 w-3" />
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+        {/* Hero video player */}
+        <HeroVideoPlayer />
       </section>
 
       <StatsBar />
@@ -286,6 +218,138 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+      </div>
     </div>
+  );
+}
+
+function HeroVideoPlayer() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [activeClip, setActiveClip] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handlePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play().catch(() => {});
+      setIsPlaying(true);
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const switchClip = (index: number) => {
+    setActiveClip(index);
+    setIsPlaying(false);
+    const video = videoRef.current;
+    if (video) {
+      video.load();
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 0.3 }}
+      className="max-w-3xl mx-auto"
+    >
+      <div className="relative bg-gradient-to-b from-gray-800/80 to-gray-900/80 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-sm overflow-hidden">
+        {/* Browser bar */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10">
+          <div className="w-3 h-3 rounded-full bg-red-500/80" />
+          <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+          <div className="w-3 h-3 rounded-full bg-green-500/80" />
+          <div className="ml-3 flex-1 max-w-[200px] bg-white/10 rounded-full px-3 py-1">
+            <span className="text-[10px] text-gray-400">magiclens.app/remix</span>
+          </div>
+        </div>
+
+        {/* Studio header */}
+        <div className="p-4 sm:pb-3">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-yellow-400/20 flex items-center justify-center">
+              <Zap className="h-4 w-4 text-yellow-400" />
+            </div>
+            <div className="text-left">
+              <div className="text-white text-sm font-medium">AR Overlay Studio</div>
+              <div className="text-gray-500 text-[10px]">Remixing: {HERO_CLIPS[activeClip].label}</div>
+            </div>
+          </div>
+
+          {/* Video player */}
+          <div
+            className="aspect-video bg-black rounded-xl border border-white/10 relative overflow-hidden cursor-pointer group"
+            onClick={handlePlay}
+          >
+            <video
+              ref={videoRef}
+              src={HERO_CLIPS[activeClip].src}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="w-full h-full object-cover"
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+            />
+            {/* Play/Pause overlay */}
+            <div className={`absolute inset-0 flex items-center justify-center transition-opacity ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'} bg-black/30`}>
+              <div className="w-14 h-14 bg-white/15 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/25 transition-colors">
+                {isPlaying
+                  ? <Pause className="h-5 w-5 text-white" />
+                  : <Play className="h-5 w-5 text-white ml-0.5" />}
+              </div>
+            </div>
+            {/* Pose tracking dots */}
+            {isPlaying && [
+              { x: '45%', y: '25%' }, { x: '50%', y: '30%' },
+              { x: '48%', y: '50%' }, { x: '35%', y: '65%' }, { x: '60%', y: '65%' },
+            ].map((dot, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/50"
+                style={{ left: dot.x, top: dot.y }}
+                animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.3, 1] }}
+                transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+              />
+            ))}
+          </div>
+
+          {/* Clip selector tabs */}
+          <div className="flex gap-2 mt-3">
+            {HERO_CLIPS.map((clip, i) => (
+              <button
+                key={clip.src}
+                onClick={() => switchClip(i)}
+                className={`flex-1 text-center px-3 py-1.5 rounded-lg text-xs transition-all ${
+                  i === activeClip
+                    ? 'bg-yellow-400/20 border border-yellow-400/40 text-yellow-300'
+                    : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200'
+                }`}
+              >
+                {clip.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-2">
+              <Medal className="h-3.5 w-3.5 text-yellow-400" />
+              <span className="text-gray-400 text-[10px]">Pose-aware tracking · AR overlays ready</span>
+            </div>
+            <motion.div
+              className="text-yellow-400 text-xs font-medium flex items-center gap-1"
+              animate={{ x: [0, 3, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              Mint Remix <ArrowRight className="h-3 w-3" />
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
