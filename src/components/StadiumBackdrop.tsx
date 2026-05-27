@@ -1,5 +1,4 @@
 'use client';
-import { motion } from 'framer-motion';
 
 /**
  * Shared stadium backdrop with gooey animated blobs.
@@ -19,7 +18,7 @@ export function StadiumBackdrop({ opacity = 0.3 }: { opacity?: number }) {
       {/* Dark gradient overlay */}
       <div className="fixed inset-0 z-[1] bg-gradient-to-br from-purple-950/90 via-blue-950/85 to-indigo-950/90" />
 
-      {/* Gooey animated blobs */}
+      {/* Gooey animated blobs — CSS animations (Framer Motion can't interpolate SVG %) */}
       <svg className="fixed inset-0 z-[2] w-full h-full pointer-events-none" style={{ opacity }} aria-hidden="true">
         <defs>
           <filter id="gooey">
@@ -29,23 +28,20 @@ export function StadiumBackdrop({ opacity = 0.3 }: { opacity?: number }) {
           </filter>
         </defs>
         <g filter="url(#gooey)">
-          <motion.circle
+          <circle
             cx="15%" cy="20%" r="120"
             fill="rgba(168,85,247,0.5)"
-            animate={{ cx: ['15%', '25%', '15%'], cy: ['20%', '35%', '20%'], r: [120, 150, 120] }}
-            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ animation: 'gooey-blob-1 12s ease-in-out infinite' }}
           />
-          <motion.circle
+          <circle
             cx="80%" cy="25%" r="100"
             fill="rgba(59,130,246,0.4)"
-            animate={{ cx: ['80%', '70%', '80%'], cy: ['25%', '40%', '25%'], r: [100, 130, 100] }}
-            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            style={{ animation: 'gooey-blob-2 15s ease-in-out infinite 2s' }}
           />
-          <motion.circle
+          <circle
             cx="50%" cy="70%" r="90"
             fill="rgba(250,204,21,0.25)"
-            animate={{ cx: ['50%', '40%', '50%'], cy: ['70%', '55%', '70%'], r: [90, 120, 90] }}
-            transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+            style={{ animation: 'gooey-blob-3 18s ease-in-out infinite 4s' }}
           />
         </g>
       </svg>

@@ -79,7 +79,6 @@ export function useFlowNFTs(userAddress: string | null) {
       });
 
       const result = await fcl.tx(transactionId).onceSealed();
-      console.log('Account setup successful:', result);
       
       return result;
     } catch (err) {
@@ -117,7 +116,6 @@ export function useFlowNFTs(userAddress: string | null) {
       });
 
       const result = await fcl.tx(transactionId).onceSealed();
-      console.log('NFT minted successfully:', result);
       
       // Refresh NFTs after minting
       await fetchNFTs();

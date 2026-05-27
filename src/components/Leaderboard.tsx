@@ -38,8 +38,9 @@ export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>(DEMO_LEADERBOARD);
   const [closingDay, setClosingDay] = useState(false);
   const [seedingDemo, setSeedingDemo] = useState(false);
-  const [cycleStatus, setCycleStatus] = useState<'open' | 'closed' | 'promoting' | 'completed' | null>(null);
+  const [cycleStatus, setCycleStatus] = useState<'open' | 'closed' | 'promoting' | 'completed'>('open');
   const [promoteResults, setPromoteResults] = useState<{ promoted: number; errors: string[] } | null>(null);
+  const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [countdown, setCountdown] = useState('');
 
   // Countdown timer to day end (23:59 UTC)
@@ -110,6 +111,7 @@ export default function Leaderboard() {
 
   const handleCloseDay = async () => {
     setClosingDay(true);
+    setActionStatus('Closing the leaderboard and queueing top-3 Flow promotions...');
     try {
       const { closeLeaderboardDay } = await import('@/lib/crossvm-client');
       const GUEST_ADDR = '0x00000000000000000000000000000000000d3m0';
@@ -130,13 +132,16 @@ export default function Leaderboard() {
       const result = await closeLeaderboardDay(1, top10);
       if (result.success) {
         setCycleStatus('closed');
+        setActionStatus('Leaderboard closed. Waiting for the auto-promote scheduler...');
         toast.success(isGuest ? 'Leaderboard closed (guest mode)! Auto-promote scheduled.' : 'Leaderboard closed! Auto-promote scheduled.', {
           description: 'Top-3 entries will be promoted to Flow Iconic Moments shortly.',
         });
       } else {
+        setActionStatus(null);
         toast.error(result.error || 'Failed to close day');
       }
     } catch (err) {
+      setActionStatus(null);
       toast.error('Failed to close leaderboard day');
     } finally {
       setClosingDay(false);
@@ -145,16 +150,20 @@ export default function Leaderboard() {
 
   const handleSeedDemo = async () => {
     setSeedingDemo(true);
+    setActionStatus('Seeding demo leaderboard entries and minting top remixes on Flow...');
     try {
       const result = await seedDemoData();
       if (result.success) {
         setCycleStatus('completed');
         setPromoteResults({ promoted: result.promoted || 0, errors: result.errors || [] });
+        setActionStatus(null);
         toast.success(`Demo data created! Day ${result.day}: ${result.promoted} iconic moments minted.`);
       } else {
+        setActionStatus(null);
         toast.error(result.error || 'Seed failed');
       }
     } catch {
+      setActionStatus(null);
       toast.error('Could not reach backend');
     } finally {
       setSeedingDemo(false);
@@ -163,6 +172,7 @@ export default function Leaderboard() {
 
   const handlePromote = async (entry: LeaderboardEntry) => {
     try {
+      setActionStatus(`Promoting "${entry.title}" to a Flow Iconic Moment...`);
       const GUEST_ADDR = '0x00000000000000000000000000000000000d3m0';
       await promote({
         xlayerTokenId: entry.tokenId,
@@ -179,6 +189,8 @@ export default function Leaderboard() {
       toast.error('Promotion failed', {
         description: err instanceof Error ? err.message : 'Could not promote remix',
       });
+    } finally {
+      setActionStatus(null);
     }
   };
 
@@ -216,21 +228,25 @@ export default function Leaderboard() {
                     <div className="flex items-center gap-2">
                       <Button
                         onClick={handleSeedDemo}
-                        disabled={seedingDemo}
+                        loading={seedingDemo}
+                        loadingText="Seeding..."
+                        disabled={closingDay}
                         size="sm"
                         variant="outline"
                         className="h-7 text-[10px] border-purple-400/30 text-purple-300 hover:bg-purple-400/10 px-2"
                       >
-                        {seedingDemo ? <Loader2 className="h-3 w-3 animate-spin" /> : <Database className="h-3 w-3 mr-1" />}
+                        <Database className="h-3 w-3 mr-1" />
                         Seed Demo
                       </Button>
                       <Button
                         onClick={handleCloseDay}
-                        disabled={closingDay}
+                        loading={closingDay}
+                        loadingText="Closing..."
+                        disabled={seedingDemo}
                         size="sm"
                         className="h-7 text-[10px] bg-yellow-400 text-black hover:bg-yellow-500 border-0 px-2"
                       >
-                        {closingDay ? <Loader2 className="h-3 w-3 animate-spin" /> : <Clock className="h-3 w-3 mr-1" />}
+                        <Clock className="h-3 w-3 mr-1" />
                         {isGuest ? 'Close Day (Demo)' : 'Close Day'}
                       </Button>
                     </div>
@@ -312,6 +328,21 @@ export default function Leaderboard() {
                     </p>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {actionStatus && cycleStatus === 'open' && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4"
+          >
+            <Card className="bg-blue-500/10 border-blue-400/30">
+              <CardContent className="p-3 flex items-center gap-3">
+                <Loader2 className="h-5 w-5 text-blue-400 animate-spin shrink-0" />
+                <p className="text-sm font-medium text-white">{actionStatus}</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -411,15 +442,12 @@ export default function Leaderboard() {
                               ) : (
                                 <Button
                                   onClick={() => handlePromote(entry)}
-                                  disabled={isPromoting(1, entry.tokenId)}
+                                  loading={isPromoting(1, entry.tokenId)}
+                                  loadingText="Promoting..."
                                   size="sm"
                                   className="h-7 text-[11px] bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 px-2"
                                 >
-                                  {isPromoting(1, entry.tokenId) ? (
-                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                  ) : (
-                                    <>Promote to Flow <ArrowRight className="h-3 w-3 ml-0.5" /></>
-                                  )}
+                                  Promote to Flow <ArrowRight className="h-3 w-3 ml-0.5" />
                                 </Button>
                               )}
                             </div>
@@ -482,15 +510,12 @@ export default function Leaderboard() {
                         ) : canPromote ? (
                           <Button
                             onClick={() => handlePromote(entry)}
-                            disabled={isPromoting(1, entry.tokenId)}
+                            loading={isPromoting(1, entry.tokenId)}
+                            loadingText="Promoting..."
                             size="sm"
                             className="h-7 text-[11px] bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white border-0 px-2"
                           >
-                            {isPromoting(1, entry.tokenId) ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <>Promote <ArrowRight className="h-3 w-3 ml-0.5" /></>
-                            )}
+                            Promote <ArrowRight className="h-3 w-3 ml-0.5" />
                           </Button>
                         ) : null}
                       </div>

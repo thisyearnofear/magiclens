@@ -84,12 +84,10 @@ export const useRealtimeCollaboration = (
     
     // Handle connection events
     socket.on('connect', () => {
-      console.log('Connected to collaboration server');
       setIsConnected(true);
     });
     
     socket.on('disconnect', () => {
-      console.log('Disconnected from collaboration server');
       setIsConnected(false);
     });
     

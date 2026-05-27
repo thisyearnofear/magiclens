@@ -2,8 +2,6 @@
 import * as fcl from '@onflow/fcl';
 import { flowConfig } from './config';
 
-// Configure FCL
-console.log('🔗 Configuring FCL with app icon:', `${window.location.origin}/magiclens.png`);
 fcl.config({
   'app.detail.title': 'MagicLens',
   'app.detail.icon': `${window.location.origin}/magiclens.png`,

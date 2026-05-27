@@ -238,11 +238,9 @@ export default function CollaborationWorkspace() {
                   visible: true
                 }))}
                 onOverlayUpdate={(updatedOverlays) => {
-                  console.log('Overlays updated:', updatedOverlays);
                   // Here we would sync back to the backend
                 }}
                 onTimeUpdate={(currentTime) => {
-                  console.log('Video time:', currentTime);
                 }}
               />
             )}

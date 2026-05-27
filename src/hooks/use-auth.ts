@@ -14,7 +14,6 @@ export function useAuth() {
         try {
             // TODO: Implement web3 wallet connection
             // Example: Connect to MetaMask, WalletConnect, etc.
-            console.log("Web3 wallet connection to be implemented");
             setIsLoggedIn(false);
             setWalletAddress(null);
         } catch (error) {

@@ -1,17 +1,17 @@
-import { http, createConfig } from 'wagmi'
+import { http, createConfig, type CreateConnectorFn } from 'wagmi'
 import { xLayerTestnet, xLayer } from 'wagmi/chains'
 import { walletConnect, injected } from 'wagmi/connectors'
 
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'magiclens-demo'
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 
-// Create wagmi config with X Layer support
-// RainbowKit auto-detects OKX Wallet, MetaMask, and other EIP-1193 wallets
+const connectors: CreateConnectorFn[] = [injected()]
+if (projectId && projectId !== 'magiclens-demo') {
+  connectors.push(walletConnect({ projectId }))
+}
+
 export const wagmiConfig = createConfig({
   chains: [xLayerTestnet, xLayer],
-  connectors: [
-    injected(),
-    walletConnect({ projectId }),
-  ],
+  connectors,
   transports: {
     [xLayerTestnet.id]: http('https://testrpc.xlayer.tech'),
     [xLayer.id]: http('https://rpc.xlayer.tech'),

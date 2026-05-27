@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
-import { Loader2, Sparkles, ExternalLink, RefreshCw, Trophy, Medal } from 'lucide-react';
+import { Sparkles, ExternalLink, RefreshCw, Trophy, Medal } from 'lucide-react';
 import type { CrossVMPromotion } from '@/types/crossvm';
 import { getIconicMoments, seedDemoData } from '@/lib/crossvm-client';
 import { useToast } from '@/hooks/use-toast';
@@ -137,20 +137,32 @@ function MomentSkeleton() {
 export function IconicMomentsGallery() {
   const [moments, setMoments] = useState<CrossVMPromotion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const hasLoadedRef = useRef(false);
   const { toast } = useToast();
 
   const fetchMoments = useCallback(async () => {
-    setLoading(true);
+    const isInitialLoad = !hasLoadedRef.current;
+    setLoading(isInitialLoad);
+    setRefreshing(!isInitialLoad);
     try {
       const data = await getIconicMoments();
       setMoments(data);
     } catch {
-      setMoments([]);
+      if (isInitialLoad) setMoments([]);
+      toast({
+        title: 'Refresh Failed',
+        description: 'Could not reach the backend. Showing the last loaded moments.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
+      setRefreshing(false);
+      hasLoadedRef.current = true;
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     fetchMoments();
@@ -158,9 +170,13 @@ export function IconicMomentsGallery() {
 
   const handleSeed = async () => {
     setSeeding(true);
+    setStatusMessage('Creating leaderboard entries and minting top remixes on Flow. This can take up to a minute.');
     try {
       const result = await seedDemoData();
       if (result.success) {
+        if (result.iconic_moments?.length) {
+          setMoments(result.iconic_moments);
+        }
         toast({
           title: 'Demo Data Created',
           description: `Day ${result.day}: ${result.promoted} iconic moments minted on Flow!`,
@@ -181,6 +197,7 @@ export function IconicMomentsGallery() {
       });
     } finally {
       setSeeding(false);
+      setStatusMessage(null);
     }
   };
 
@@ -208,21 +225,25 @@ export function IconicMomentsGallery() {
             </Badge>
           )}
 
-          <Button variant="outline" size="sm" onClick={fetchMoments} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+          <Button variant="outline" size="sm" onClick={fetchMoments} loading={refreshing} disabled={loading || seeding}>
+            <RefreshCw className="h-4 w-4 mr-1" />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
 
-          <Button onClick={handleSeed} disabled={seeding}>
-            {seeding ? (
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4 mr-1" />
-            )}
-            {seeding ? 'Minting...' : 'Seed Demo Data'}
+          <Button onClick={handleSeed} loading={seeding} loadingText="Minting on Flow..." disabled={refreshing}>
+            <Sparkles className="h-4 w-4 mr-1" />
+            Seed Demo Data
           </Button>
         </div>
       </div>
+
+      {statusMessage && (
+        <Card className="bg-blue-500/10 border-blue-400/30">
+          <CardContent className="p-3 text-sm text-blue-100">
+            {statusMessage}
+          </CardContent>
+        </Card>
+      )}
 
       <AnimatePresence mode="wait">
         {loading ? (
@@ -255,12 +276,8 @@ export function IconicMomentsGallery() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button onClick={handleSeed} disabled={seeding}>
-                    {seeding ? (
-                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-4 w-4 mr-1" />
-                    )}
+                  <Button onClick={handleSeed} loading={seeding} loadingText="Minting on Flow...">
+                    <Sparkles className="h-4 w-4 mr-1" />
                     Seed Demo Data
                   </Button>
                 </div>

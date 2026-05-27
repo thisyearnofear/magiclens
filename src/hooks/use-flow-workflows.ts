@@ -107,7 +107,6 @@ export function useFlowWorkflows(userAddress: string | null) {
       });
 
       const result = await fcl.tx(transactionId).onceSealed();
-      console.log('Workflow created successfully:', result);
       
       // Refresh workflows after creation
       await fetchWorkflows();

@@ -58,7 +58,6 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
 
   const loadVideoData = async () => {
     try {
-      console.log('QuickCollaboration - Loading video with ID:', videoId);
 
       if (!videoId || videoId === 'dashboard') {
         console.error('Invalid video ID:', videoId);

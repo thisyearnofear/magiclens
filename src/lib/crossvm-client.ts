@@ -4,6 +4,8 @@ import { STORAGE_KEYS } from '@/lib/constants';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
+const DEFAULT_TIMEOUT_MS = 20_000;
+
 function getAuthHeaders(): Record<string, string> {
   const token = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) : null;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -11,12 +13,36 @@ function getAuthHeaders(): Record<string, string> {
   return headers;
 }
 
-async function safeFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response | null> {
+async function safeFetch(input: RequestInfo | URL, init?: RequestInit & { timeoutMs?: number }): Promise<Response | null> {
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), init?.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const fetchInit = { ...(init ?? {}) };
+  delete fetchInit.timeoutMs;
+  const signal = fetchInit.signal;
+  delete fetchInit.signal;
   try {
-    const res = await fetch(input, init);
+    const res = await fetch(input, {
+      ...fetchInit,
+      signal: signal ?? controller.signal,
+    });
     return res;
   } catch {
     return null;
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
+}
+
+async function readJson<T extends Record<string, unknown>>(res: Response | null, fallback: T): Promise<any> {
+  if (!res) return fallback;
+  try {
+    const data = await res.json();
+    if (!res.ok && typeof data?.error === 'string') {
+      return { ...fallback, success: false, error: data.error };
+    }
+    return data;
+  } catch {
+    return { ...fallback, success: false, error: 'Invalid backend response' };
   }
 }
 
@@ -43,9 +69,10 @@ export async function promoteToIconic(params: {
       rank: params.rank,
       promoted_by: params.promotedBy || 'system',
     }),
+    timeoutMs: 120_000,
   });
   if (!res) {
-    return getFallbackPromotion(params);
+    throw new Error('Backend unavailable');
   }
   const data = await res.json();
   if (!data.success) throw new Error(data.error || 'Promotion failed');
@@ -58,6 +85,7 @@ export async function getIconicMoments(day?: number, status?: string): Promise<C
   if (status) params.set('status', status);
   const res = await safeFetch(`${API_BASE}/api/crossvm/iconic_moments?${params}`, {
     headers: getAuthHeaders(),
+    timeoutMs: 15_000,
   });
   if (!res) return DEMO_ICONIC_MOMENTS as CrossVMPromotion[];
   const data = await res.json();
@@ -68,6 +96,7 @@ export async function getIconicMoments(day?: number, status?: string): Promise<C
 export async function checkIconicStatus(day: number, tokenId: number): Promise<IconicMomentCheck> {
   const res = await safeFetch(`${API_BASE}/api/crossvm/check/${day}/${tokenId}`, {
     headers: getAuthHeaders(),
+    timeoutMs: 15_000,
   });
   if (!res) return { isIconic: false, iconicMoment: null };
   const data = await res.json();
@@ -93,30 +122,56 @@ export async function closeLeaderboardDay(day: number, entries: LeaderboardEntry
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({ day, entries }),
+    timeoutMs: 30_000,
   });
-  return res ? res.json() : { success: false, error: 'Backend unavailable' };
+  return readJson(res, { success: false, error: 'Backend unavailable' });
 }
 
 export async function triggerAutoPromote(day: number) {
   const res = await safeFetch(`${API_BASE}/api/leaderboard/process-day/${day}`, {
     method: 'POST',
     headers: getAuthHeaders(),
+    timeoutMs: 120_000,
   });
-  return res ? res.json() : { success: false, error: 'Backend unavailable' };
+  return readJson(res, { success: false, error: 'Backend unavailable' });
 }
 
-export async function getLeaderboardDayStatus(day: number) {
+export async function getLeaderboardDayStatus(day: number): Promise<{
+  success: boolean;
+  error?: string;
+  day_status?: {
+    day: number;
+    status: 'open' | 'closed' | 'promoting' | 'completed';
+    closed_at?: string;
+    completed_at?: string;
+    entries?: Array<{
+      rank: number;
+      title: string;
+      creator: string;
+      votes: number;
+      reward?: string;
+      xlayer_token_id: number;
+      xlayer_tx_hash: string;
+      xlayer_creator_address: string;
+      iconic_status?: string | null;
+      flow_nft_id?: string | null;
+      flow_tx_hash?: string | null;
+    }>;
+  };
+}> {
   const res = await safeFetch(`${API_BASE}/api/leaderboard/day-status/${day}`, {
     headers: getAuthHeaders(),
+    timeoutMs: 15_000,
   });
-  return res ? res.json() : { success: false, error: 'Backend unavailable' };
+  return readJson(res, { success: false, error: 'Backend unavailable' });
 }
 
 export async function getPendingPromoteDays() {
   const res = await safeFetch(`${API_BASE}/api/leaderboard/pending-days`, {
     headers: getAuthHeaders(),
+    timeoutMs: 15_000,
   });
-  return res ? res.json() : { success: false, pending_days: [] };
+  return readJson(res, { success: false, pending_days: [] });
 }
 
 export async function seedDemoData(): Promise<{
@@ -130,9 +185,9 @@ export async function seedDemoData(): Promise<{
   const res = await safeFetch(`${API_BASE}/api/demo/seed`, {
     method: 'POST',
     headers: getAuthHeaders(),
+    timeoutMs: 120_000,
   });
-  if (!res) return { success: false, error: 'Backend unavailable' };
-  return res.json();
+  return readJson(res, { success: false, error: 'Backend unavailable' });
 }
 
 // ── Fallback ─────────────────────────────────────────────────────────
@@ -156,9 +211,9 @@ export async function claimReferral(params: {
       xlayer_token_id: params.xlayerTokenId,
       xlayer_tx_hash: params.xlayerTxHash,
     }),
+    timeoutMs: 30_000,
   });
-  if (!res) return { success: false, error: 'Backend unavailable' };
-  return res.json();
+  return readJson(res, { success: false, error: 'Backend unavailable' });
 }
 
 export async function getReferralStats(address: string): Promise<{
@@ -174,33 +229,7 @@ export async function getReferralStats(address: string): Promise<{
 }> {
   const res = await safeFetch(`${API_BASE}/api/referral/stats/${address}`, {
     headers: getAuthHeaders(),
+    timeoutMs: 15_000,
   });
-  if (!res) return { success: false, error: 'Backend unavailable' };
-  return res.json();
-}
-
-// ── Fallback ─────────────────────────────────────────────────────────
-
-function getFallbackPromotion(params: {
-  xlayerTokenId: number;
-  title: string;
-  day?: number;
-  rank: number;
-}): CrossVMPromotion {
-  return {
-    id: `demo-promo-${Date.now()}`,
-    xlayer_token_id: params.xlayerTokenId,
-    xlayer_tx_hash: 'demo-' + '0'.repeat(64),
-    xlayer_creator_address: '0x0000',
-    title: params.title,
-    overlay_ids: '',
-    day: params.day || 1,
-    rank: params.rank,
-    flow_nft_id: 9999,
-    flow_tx_hash: 'demo-flow-' + '0'.repeat(64),
-    flow_minted_at: new Date().toISOString(),
-    promoted_by: 'system',
-    status: 'minted',
-    created_at: new Date().toISOString(),
-  };
+  return readJson(res, { success: false, error: 'Backend unavailable' });
 }

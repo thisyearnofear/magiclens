@@ -129,7 +129,6 @@ export function ThemeProvider({
 
   // Theme setters
   const setTheme = (newSettings: Partial<ThemeSettings>) => {
-    console.log('setTheme called with:', newSettings)
     setThemeSettings(prev => ({
       ...prev,
       ...newSettings
@@ -137,7 +136,6 @@ export function ThemeProvider({
   }
 
   const setBaseTheme = (base: BaseTheme) => {
-    console.log('setBaseTheme called with:', base)
     setThemeSettings(prev => ({
       ...prev,
       base

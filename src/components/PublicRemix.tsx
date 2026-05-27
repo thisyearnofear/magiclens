@@ -49,17 +49,15 @@ export default function PublicRemix() {
           </filter>
         </defs>
         <g filter="url(#gooey-share)">
-          <motion.circle
+          <circle
             cx="20%" cy="30%" r="100"
             fill="rgba(168,85,247,0.4)"
-            animate={{ cx: ['20%', '30%', '20%'], cy: ['30%', '45%', '30%'] }}
-            transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ animation: 'gooey-blob-4 14s ease-in-out infinite' }}
           />
-          <motion.circle
+          <circle
             cx="75%" cy="60%" r="80"
             fill="rgba(59,130,246,0.3)"
-            animate={{ cx: ['75%', '65%', '75%'], cy: ['60%', '45%', '60%'] }}
-            transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+            style={{ animation: 'gooey-blob-5 16s ease-in-out infinite 3s' }}
           />
         </g>
       </svg>
