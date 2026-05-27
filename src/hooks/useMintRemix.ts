@@ -22,6 +22,7 @@ export function useMintRemix() {
     overlayIds: string[],
     overlayNames: string[],
     referrerAddress?: string | null,
+    options?: { onStage?: (stage: 'metadata' | 'wallet' | 'submitted') => void },
   ) => {
     const overlayIdsStr = overlayIds.join(',')
     const nextTokenId = Number(totalSupply ?? 0)
@@ -29,6 +30,7 @@ export function useMintRemix() {
 
     // Upload metadata to Grove; fall back to backend URL on failure
     let uri = `${FALLBACK_BASE}/api/metadata/RemixNFT/${nextTokenId}`
+    options?.onStage?.('metadata')
     try {
       uri = await uploadMetadataToGrove({
         name: `MagicLens Remix #${nextTokenId}`,
@@ -47,6 +49,7 @@ export function useMintRemix() {
     }
 
     try {
+      options?.onStage?.('wallet')
       const hash = await writeContractAsync({
         address: REMIX_NFT_ADDRESS as `0x${string}`,
         abi: REMIX_NFT_ABI,
@@ -55,6 +58,7 @@ export function useMintRemix() {
         chain: xLayerTestnet,
         account: address,
       })
+      options?.onStage?.('submitted')
       return { hash, nextTokenId, referrer }
     } catch (err: any) {
       toast.error('Mint failed', {

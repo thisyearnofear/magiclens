@@ -11,6 +11,7 @@ import { Sparkles, ExternalLink, RefreshCw, Trophy, Medal } from 'lucide-react';
 import type { CrossVMPromotion } from '@/types/crossvm';
 import { getIconicMoments, seedDemoData } from '@/lib/crossvm-client';
 import { measureUserAction } from '@/lib/action-observability';
+import { TransactionProgress, type TransactionStep } from '@/components/TransactionProgress';
 import { useToast } from '@/hooks/use-toast';
 
 const RANK_ICONS: Record<number, typeof Trophy> = {
@@ -24,6 +25,13 @@ const RANK_COLORS: Record<number, string> = {
   2: 'text-gray-300',
   3: 'text-amber-600',
 };
+
+const flowSeedSteps: TransactionStep[] = [
+  { label: 'Seed entries', description: 'Create daily leaderboard contenders.', status: 'complete' },
+  { label: 'Promote top 3', description: 'Queue winners for cross-VM minting.', status: 'active' },
+  { label: 'Mint on Flow', description: 'Create premium Cadence NFTs.', status: 'active' },
+  { label: 'Refresh gallery', description: 'Load FlowScan-linked moments.', status: 'pending' },
+];
 
 function MomentCard({ moment }: { moment: CrossVMPromotion }) {
   const RankIcon = moment.rank <= 3 ? RANK_ICONS[moment.rank] : null;
@@ -240,11 +248,11 @@ export function IconicMomentsGallery() {
       </div>
 
       {statusMessage && (
-        <Card className="bg-blue-500/10 border-blue-400/30">
-          <CardContent className="p-3 text-sm text-blue-100">
-            {statusMessage}
-          </CardContent>
-        </Card>
+        <TransactionProgress
+          title="Creating Iconic Moments"
+          subtitle={statusMessage}
+          steps={flowSeedSteps}
+        />
       )}
 
       <AnimatePresence mode="wait">

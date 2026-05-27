@@ -5,7 +5,7 @@ import { walletConnect, injected } from 'wagmi/connectors'
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 
 const connectors: CreateConnectorFn[] = [injected()]
-if (projectId && projectId !== 'magiclens-demo') {
+if (projectId) {
   connectors.push(walletConnect({ projectId }))
 }
 

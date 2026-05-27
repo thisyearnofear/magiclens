@@ -143,7 +143,24 @@ def create_tables():
                 CREATE INDEX IF NOT EXISTS idx_referral_referee ON referral_claims(referee_address);
                 CREATE INDEX IF NOT EXISTS idx_referral_day ON referral_claims(day);
             """)
-            
+
+            # Create collaboration_requests table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS collaboration_requests (
+                    id UUID PRIMARY KEY,
+                    from_user_id UUID NOT NULL,
+                    from_username VARCHAR(50) NOT NULL,
+                    to_profile_id UUID NOT NULL,
+                    to_username VARCHAR(50) NOT NULL,
+                    message TEXT,
+                    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                    responded_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE INDEX IF NOT EXISTS idx_collab_req_to ON collaboration_requests(to_profile_id);
+                CREATE INDEX IF NOT EXISTS idx_collab_req_from ON collaboration_requests(from_user_id);
+            """)
+
         logger.info("Database tables created successfully")
     except Exception as e:
         logger.error(f"Failed to create tables: {e}")

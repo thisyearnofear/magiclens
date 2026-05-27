@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: process.env.VITE_WALLETCONNECT_PROJECT_ID || 'magiclens-demo',
+    NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: process.env.VITE_WALLETCONNECT_PROJECT_ID || '1917e42082d0dcb7af56fc4b3aaae79c',
     NEXT_PUBLIC_XLAYER_NETWORK: process.env.VITE_XLAYER_NETWORK || 'testnet',
     NEXT_PUBLIC_FLOW_NETWORK: process.env.VITE_FLOW_NETWORK || 'testnet',
     NEXT_PUBLIC_API_BASE_URL: process.env.VITE_API_BASE_URL || '',

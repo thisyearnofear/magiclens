@@ -2022,6 +2022,200 @@ async def start_collaboration_from_discover(
         return {"success": False, "error": str(e)}
 
 
+@app.post("/api/discover/send_request")
+async def send_collaboration_request(
+    body: dict = Body(...),
+    current_user: User = Depends(get_current_user),
+):
+    """Send a collaboration request to a creator's profile."""
+    import uuid
+
+    try:
+        profile_id = body.get("profile_id")
+        message = body.get("message", "")
+
+        if not profile_id:
+            return {"success": False, "error": "profile_id is required"}
+
+        from core.database import execute_query, execute_update
+
+        # Look up the sender's profile
+        sender_profiles = execute_query(
+            "SELECT id, username FROM user_profiles WHERE user_id = %s",
+            (current_user.id,),
+        )
+        if not sender_profiles:
+            return {"success": False, "error": "You need to create a profile before sending requests"}
+
+        sender = sender_profiles[0]
+
+        # Look up the target profile
+        target_profiles = execute_query(
+            "SELECT id, username FROM user_profiles WHERE id = %s",
+            (UUID(profile_id),),
+        )
+        if not target_profiles:
+            return {"success": False, "error": "Creator profile not found"}
+
+        target = target_profiles[0]
+
+        # Prevent self-request
+        if str(sender["id"]) == str(target["id"]):
+            return {"success": False, "error": "Cannot send a collaboration request to yourself"}
+
+        # Check for existing pending request
+        existing = execute_query(
+            """SELECT id FROM collaboration_requests
+               WHERE from_user_id = %s AND to_profile_id = %s AND status = 'pending'""",
+            (sender["id"], target["id"]),
+        )
+        if existing:
+            return {"success": False, "error": "You already have a pending request to this creator"}
+
+        # Create the request
+        request_id = str(uuid.uuid4())
+        execute_update(
+            """INSERT INTO collaboration_requests
+               (id, from_user_id, from_username, to_profile_id, to_username, message, status)
+               VALUES (%s, %s, %s, %s, %s, %s, 'pending')""",
+            (request_id, sender["id"], sender["username"], target["id"], target["username"], message),
+        )
+
+        logger.info(f"Collab request sent: {sender['username']} → {target['username']}")
+        return {
+            "success": True,
+            "request_id": request_id,
+            "to_username": target["username"],
+        }
+
+    except ValueError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        logger.error(f"Failed to send collaboration request: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.get("/api/discover/my_requests")
+async def get_my_collaboration_requests(
+    current_user: User = Depends(get_current_user),
+):
+    """Get collaboration requests for the current user (both sent and received)."""
+    try:
+        from core.database import execute_query
+
+        # Look up the user's profile
+        profiles = execute_query(
+            "SELECT id, username FROM user_profiles WHERE user_id = %s",
+            (current_user.id,),
+        )
+        if not profiles:
+            return {"success": False, "error": "No profile found. Create a profile first."}
+
+        profile_id = profiles[0]["id"]
+
+        # Fetch incoming requests (sent TO this user)
+        incoming = execute_query(
+            """SELECT id, from_user_id, from_username, to_profile_id, to_username,
+                      message, status, created_at, responded_at
+               FROM collaboration_requests
+               WHERE to_profile_id = %s
+               ORDER BY created_at DESC
+               LIMIT 50""",
+            (profile_id,),
+        )
+
+        # Fetch outgoing requests (sent BY this user)
+        outgoing = execute_query(
+            """SELECT id, from_user_id, from_username, to_profile_id, to_username,
+                      message, status, created_at, responded_at
+               FROM collaboration_requests
+               WHERE from_user_id = %s
+               ORDER BY created_at DESC
+               LIMIT 50""",
+            (profile_id,),
+        )
+
+        def serialize(row: dict) -> dict:
+            return {
+                "id": str(row["id"]),
+                "from_user_id": str(row["from_user_id"]),
+                "from_username": row["from_username"],
+                "to_profile_id": str(row["to_profile_id"]),
+                "to_username": row["to_username"],
+                "message": row.get("message", ""),
+                "status": row["status"],
+                "created_at": row["created_at"].isoformat() if row.get("created_at") else None,
+                "responded_at": row["responded_at"].isoformat() if row.get("responded_at") else None,
+            }
+
+        return {
+            "success": True,
+            "incoming": [serialize(r) for r in (incoming or [])],
+            "outgoing": [serialize(r) for r in (outgoing or [])],
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to fetch collaboration requests: {e}")
+        return {"success": False, "error": str(e), "incoming": [], "outgoing": []}
+
+
+@app.post("/api/discover/respond_request")
+async def respond_to_collaboration_request(
+    body: dict = Body(...),
+    current_user: User = Depends(get_current_user),
+):
+    """Accept or decline a collaboration request."""
+    try:
+        request_id = body.get("request_id")
+        action = body.get("action")  # 'accept' or 'decline'
+
+        if not request_id or action not in ("accept", "decline"):
+            return {"success": False, "error": "request_id and action ('accept'|'decline') are required"}
+
+        from core.database import execute_query, execute_update
+        from uuid import UUID as UUIDType
+
+        # Look up the user's profile
+        profiles = execute_query(
+            "SELECT id, username FROM user_profiles WHERE user_id = %s",
+            (current_user.id,),
+        )
+        if not profiles:
+            return {"success": False, "error": "No profile found"}
+
+        profile_id = profiles[0]["id"]
+
+        # Fetch the request
+        reqs = execute_query(
+            """SELECT * FROM collaboration_requests WHERE id = %s""",
+            (UUIDType(request_id),),
+        )
+        if not reqs:
+            return {"success": False, "error": "Request not found"}
+
+        req = reqs[0]
+
+        # Only the recipient can respond
+        if str(req["to_profile_id"]) != str(profile_id):
+            return {"success": False, "error": "This request was not sent to you"}
+
+        if req["status"] != "pending":
+            return {"success": False, "error": f"Request already {req['status']}"}
+
+        new_status = "accepted" if action == "accept" else "declined"
+        execute_update(
+            """UPDATE collaboration_requests SET status = %s, responded_at = NOW() WHERE id = %s""",
+            (new_status, UUIDType(request_id)),
+        )
+
+        logger.info(f"Collab request {request_id[:8]} → {new_status}")
+        return {"success": True, "status": new_status}
+
+    except Exception as e:
+        logger.error(f"Failed to respond to collaboration request: {e}")
+        return {"success": False, "error": str(e)}
+
+
 # ═══════════════════════════════════════════════════════════════
 # Referral System
 # ═══════════════════════════════════════════════════════════════

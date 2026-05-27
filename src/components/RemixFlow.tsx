@@ -15,6 +15,8 @@ import { useMintRemix } from '@/hooks/useMintRemix';
 import { useReferrer } from '@/hooks/useReferrer';
 import { addRemix } from '@/lib/remix-store';
 import { claimReferral } from '@/lib/crossvm-client';
+import { measureUserAction } from '@/lib/action-observability';
+import type { TransactionStep, TransactionStepStatus } from '@/components/TransactionProgress';
 import type { SelectedOverlay } from '@/hooks/usePack';
 import type { OverlayStyle } from '@/components/remix/EditorOverlay';
 
@@ -36,6 +38,44 @@ const OVERLAY_NAMES: Record<string, string> = {
   'ref-card': 'Ref-Card Overlay',
 };
 
+type MintStage = 'idle' | 'metadata' | 'wallet' | 'submitted' | 'complete' | 'error';
+
+function statusFor(stage: MintStage, index: number): TransactionStepStatus {
+  const order: MintStage[] = ['metadata', 'wallet', 'submitted', 'complete'];
+  const current = order.indexOf(stage);
+  if (stage === 'error') return index === 3 ? 'error' : index < 3 ? 'complete' : 'pending';
+  if (current === -1) return 'pending';
+  if (index < current) return 'complete';
+  if (index === current) return stage === 'complete' ? 'complete' : 'active';
+  return 'pending';
+}
+
+function mintProgressSteps(stage: MintStage, demoMode: boolean): TransactionStep[] | undefined {
+  if (stage === 'idle') return undefined;
+  return [
+    {
+      label: demoMode ? 'Prepare demo' : 'Prepare metadata',
+      description: demoMode ? 'Creating a simulated remix receipt.' : 'Uploading metadata and overlay details.',
+      status: statusFor(stage, 0),
+    },
+    {
+      label: demoMode ? 'Skip wallet' : 'Wallet approval',
+      description: demoMode ? 'Demo mode does not need a signature.' : 'Confirm the transaction in your EVM wallet.',
+      status: statusFor(stage, 1),
+    },
+    {
+      label: demoMode ? 'Create receipt' : 'Submit to X Layer',
+      description: demoMode ? 'Saving a local remix for leaderboard preview.' : 'Submitting the ERC-721 mint transaction.',
+      status: statusFor(stage, 2),
+    },
+    {
+      label: 'Ready',
+      description: 'Your remix can now compete on the leaderboard.',
+      status: statusFor(stage, 3),
+    },
+  ];
+}
+
 export default function RemixFlow() {
   const router = useRouter();
   const { isConnected, chain, evmAddress, isWrongNetwork } = useAuthContext();
@@ -48,6 +88,7 @@ export default function RemixFlow() {
   const [overlayStyles, setOverlayStyles] = useState<Record<string, OverlayStyle>>({});
   const [mintTx, setMintTx] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(false);
+  const [mintStage, setMintStage] = useState<MintStage>('idle');
   const [leaderboardRank] = useState<number | null>(null);
   const isMobile = useIsMobile();
 
@@ -57,23 +98,30 @@ export default function RemixFlow() {
   const handleMint = async () => {
     try {
       const evmReady = isConnected && chain === 'evm' && !isWrongNetwork;
+      setMintStage(evmReady ? 'metadata' : 'metadata');
 
       const clipTitle = clip?.title || 'Match Moment';
       const addr = evmAddress || '';
       const creator = addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '@you';
 
       if (evmReady) {
-        const result = await mintRemix(
-          clipTitle,
-          selectedOverlays.map(o => o.id),
-          selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name),
-          referrerAddress,
+        const result = await measureUserAction(
+          'mint_remix_xlayer',
+          () => mintRemix(
+            clipTitle,
+            selectedOverlays.map(o => o.id),
+            selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name),
+            referrerAddress,
+            { onStage: setMintStage }
+          ),
+          { overlays: selectedOverlays.length, demo: false }
         );
         if (result) {
           const { hash, nextTokenId } = result;
           setIsDemo(false);
           setMintTx(hash);
           addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
+          setMintStage('complete');
           goForward();
 
           // Claim referral reward on backend
@@ -96,14 +144,27 @@ export default function RemixFlow() {
         }
       } else {
         setIsDemo(true);
-        const hash = '0x' + Array.from({ length: 64 }, () =>
-          Math.floor(Math.random() * 16).toString(16)
-        ).join('');
-        setMintTx(hash);
-        addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
+        await measureUserAction(
+          'mint_remix_demo',
+          async () => {
+            setMintStage('metadata');
+            await new Promise((resolve) => setTimeout(resolve, 350));
+            setMintStage('wallet');
+            await new Promise((resolve) => setTimeout(resolve, 250));
+            setMintStage('submitted');
+            const hash = '0x' + Array.from({ length: 64 }, () =>
+              Math.floor(Math.random() * 16).toString(16)
+            ).join('');
+            setMintTx(hash);
+            addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
+            setMintStage('complete');
+          },
+          { overlays: selectedOverlays.length, demo: true }
+        );
         goForward();
       }
     } catch (err) {
+      setMintStage('error');
       const { toast } = await import('sonner');
       toast.error('Mint failed', { description: err instanceof Error ? err.message : 'Could not complete the mint' });
     }
@@ -218,6 +279,13 @@ export default function RemixFlow() {
                 onBack={goBack}
                 onMint={handleMint}
                 isMinting={isMinting}
+                progressSteps={mintProgressSteps(mintStage, !isConnected || chain !== 'evm' || isWrongNetwork)}
+                progressTitle={isConnected && chain === 'evm' && !isWrongNetwork ? 'Minting on X Layer' : 'Creating demo remix'}
+                progressSubtitle={
+                  isConnected && chain === 'evm' && !isWrongNetwork
+                    ? 'MagicLens is preparing metadata, waiting for wallet approval, and submitting your remix NFT.'
+                    : 'Demo mode gives immediate feedback and a local leaderboard entry without an on-chain transaction.'
+                }
               />
             </div>
           )}
@@ -243,6 +311,7 @@ export default function RemixFlow() {
                   setOverlayStyles({});
                   setMintTx(null);
                   setIsDemo(false);
+                  setMintStage('idle');
                 }}
               />
             </div>

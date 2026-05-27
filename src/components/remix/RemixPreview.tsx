@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { TransactionProgress, type TransactionStep } from '@/components/TransactionProgress';
 import { ArrowLeft, Zap } from 'lucide-react';
 import type { SelectedOverlay } from '@/hooks/usePack';
 import type { OverlayStyle } from '@/components/remix/EditorOverlay';
@@ -14,6 +15,9 @@ interface RemixPreviewProps {
   onBack: () => void;
   onMint: () => void;
   isMinting?: boolean;
+  progressSteps?: TransactionStep[];
+  progressTitle?: string;
+  progressSubtitle?: string;
 }
 
 const OVERLAY_NAMES: Record<string, string> = {
@@ -25,7 +29,18 @@ const OVERLAY_NAMES: Record<string, string> = {
   'ref-card': 'Ref-Card Overlay',
 };
 
-export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, overlayStyles = {}, onBack, onMint, isMinting }: RemixPreviewProps) {
+export function RemixPreview({
+  clipTitle,
+  clipVideoUrl,
+  selectedOverlays,
+  overlayStyles = {},
+  onBack,
+  onMint,
+  isMinting,
+  progressSteps,
+  progressTitle,
+  progressSubtitle,
+}: RemixPreviewProps) {
   const packNames = selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name);
 
   return (
@@ -168,13 +183,28 @@ export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, overla
         </CardContent>
       </Card>
 
+      {progressSteps && (
+        <TransactionProgress
+          title={progressTitle || 'Minting remix'}
+          subtitle={progressSubtitle || 'Keep this tab open while MagicLens prepares metadata and submits the X Layer transaction.'}
+          steps={progressSteps}
+          className="mb-6"
+        />
+      )}
+
       {/* Actions */}
       <div className="flex justify-between">
         <Button variant="ghost" onClick={onBack} className="text-white">
           <ArrowLeft className="h-4 w-4 mr-2" /> Adjust Overlays
         </Button>
-        <Button onClick={onMint} size="lg" disabled={isMinting} className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold disabled:opacity-50">
-          <Zap className="h-5 w-5 mr-2" /> {isMinting ? 'Minting...' : 'Mint Remix on X Layer'}
+        <Button
+          onClick={onMint}
+          size="lg"
+          loading={isMinting}
+          loadingText="Minting..."
+          className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold disabled:opacity-50"
+        >
+          <Zap className="h-5 w-5 mr-2" /> Mint Remix on X Layer
         </Button>
       </div>
     </div>

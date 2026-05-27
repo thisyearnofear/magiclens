@@ -6,13 +6,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StadiumBackdrop } from '@/components/StadiumBackdrop';
 import { Button } from '@/components/ui/button';
-import { Trophy, Medal, Zap, DollarSign, Sparkles, Loader2, ArrowRight, Clock, CheckCircle2, Database, Timer } from 'lucide-react';
+import { Trophy, Medal, Zap, DollarSign, Sparkles, ArrowRight, Clock, Database, Timer } from 'lucide-react';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { getUserRemixes } from '@/lib/remix-store';
 import { useIconicMoments } from '@/hooks/useIconicMoments';
 import { IconicMomentBadge } from '@/components/IconicMomentBadge';
 import { MobileNav } from '@/components/MobileNav';
 import { DemoBanner } from '@/components/DemoBanner';
+import { TransactionProgress, type TransactionStep, type TransactionStepStatus } from '@/components/TransactionProgress';
 import { toast } from 'sonner';
 import { DEMO_LEADERBOARD_ENTRIES } from '@/lib/demo-data';
 import { closeLeaderboardDay, seedDemoData } from '@/lib/crossvm-client';
@@ -20,6 +21,22 @@ import { measureUserAction } from '@/lib/action-observability';
 import type { CrossVMPromotion } from '@/types/crossvm';
 
 const DEMO_LEADERBOARD = DEMO_LEADERBOARD_ENTRIES;
+
+function cycleStepStatus(cycleStatus: 'open' | 'closed' | 'promoting' | 'completed', index: number): TransactionStepStatus {
+  const current = cycleStatus === 'open' ? 0 : cycleStatus === 'closed' ? 1 : cycleStatus === 'promoting' ? 2 : 3;
+  if (index < current) return 'complete';
+  if (index === current) return cycleStatus === 'completed' ? 'complete' : 'active';
+  return 'pending';
+}
+
+function leaderboardCycleSteps(cycleStatus: 'open' | 'closed' | 'promoting' | 'completed'): TransactionStep[] {
+  return [
+    { label: 'Collect votes', description: 'Leaderboard remains open for remix ranking.', status: cycleStepStatus(cycleStatus, 0) },
+    { label: 'Close day', description: 'Freeze the top 10 and queue rewards.', status: cycleStepStatus(cycleStatus, 1) },
+    { label: 'Promote top 3', description: 'Cross-VM scheduler mints Flow NFTs.', status: cycleStepStatus(cycleStatus, 2) },
+    { label: 'Complete', description: 'Iconic Moments are visible in the gallery.', status: cycleStepStatus(cycleStatus, 3) },
+  ];
+}
 
 interface LeaderboardEntry {
   rank: number;
@@ -315,34 +332,21 @@ export default function Leaderboard() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-4"
           >
-            <Card className={`border ${
-              cycleStatus === 'completed'
-                ? 'bg-green-500/10 border-green-400/30'
-                : 'bg-blue-500/10 border-blue-400/30'
-            }`}>
-              <CardContent className="p-3 flex items-center gap-3">
-                {cycleStatus === 'completed' ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-400 shrink-0" />
-                ) : (
-                  <Loader2 className="h-5 w-5 text-blue-400 animate-spin shrink-0" />
-                )}
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-white">
-                    {cycleStatus === 'closed' && 'Leaderboard closed — auto-promoting top-3 to Flow...'}
-                    {cycleStatus === 'promoting' && 'Promoting top-3 entries to Flow Iconic Moments...'}
-                    {cycleStatus === 'completed' && 'Day completed! Top-3 promoted to Flow Iconic Moments.'}
-                  </p>
-                  {promoteResults && (
-                    <p className="text-xs text-green-400 mt-0.5">
-                      {promoteResults.promoted} remixes promoted successfully
-                      {promoteResults.errors.length > 0 && (
-                        <span className="text-red-400"> — {promoteResults.errors.join(', ')}</span>
-                      )}
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <TransactionProgress
+              title={
+                cycleStatus === 'completed'
+                  ? 'Daily cycle completed'
+                  : cycleStatus === 'promoting'
+                    ? 'Promoting top remixes'
+                    : 'Leaderboard closed'
+              }
+              subtitle={
+                promoteResults
+                  ? `${promoteResults.promoted} remixes promoted successfully${promoteResults.errors.length > 0 ? `; ${promoteResults.errors.join(', ')}` : ''}`
+                  : 'Top-3 remixes are moving from X Layer leaderboard status into Flow Iconic Moments.'
+              }
+              steps={leaderboardCycleSteps(cycleStatus)}
+            />
           </motion.div>
         )}
 
@@ -352,12 +356,11 @@ export default function Leaderboard() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-4"
           >
-            <Card className="bg-blue-500/10 border-blue-400/30">
-              <CardContent className="p-3 flex items-center gap-3">
-                <Loader2 className="h-5 w-5 text-blue-400 animate-spin shrink-0" />
-                <p className="text-sm font-medium text-white">{actionStatus}</p>
-              </CardContent>
-            </Card>
+            <TransactionProgress
+              title="Updating leaderboard"
+              subtitle={actionStatus}
+              steps={leaderboardCycleSteps(cycleStatus)}
+            />
           </motion.div>
         )}
 

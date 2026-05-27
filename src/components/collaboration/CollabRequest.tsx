@@ -17,18 +17,19 @@ interface Creator {
 
 interface CollabRequestProps {
   creator: Creator;
-  onSendRequest: (creatorId: string) => Promise<void>;
+  onSendRequest: (creatorId: string, message?: string) => Promise<void>;
   onClose: () => void;
 }
 
 export function CollabRequest({ creator, onSendRequest, onClose }: CollabRequestProps) {
   const [sending, setSending] = React.useState(false);
   const [sent, setSent] = React.useState(false);
+  const [message, setMessage] = React.useState('');
 
   const handleSend = async () => {
     setSending(true);
     try {
-      await onSendRequest(creator.id);
+      await onSendRequest(creator.id, message || undefined);
       setSent(true);
       toast.success('Collaboration request sent!', {
         description: `${creator.username} will be notified.`,
@@ -112,6 +113,27 @@ export function CollabRequest({ creator, onSendRequest, onClose }: CollabRequest
                         <span className="text-yellow-400">${creator.earnings_total.toFixed(2)}</span>
                       </div>
                     )}
+                  </div>
+
+                  {/* Message input */}
+                  <div className="mb-4">
+                    <label className="block text-xs text-gray-400 mb-1.5" htmlFor="collab-message">
+                      Message <span className="text-gray-600">(optional)</span>
+                    </label>
+                    <textarea
+                      id="collab-message"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Hi! I'd love to collaborate on a remix project..."
+                      rows={3}
+                      maxLength={500}
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all"
+                    />
+                    <div className="flex justify-end mt-1">
+                      <span className={`text-[10px] ${message.length > 450 ? 'text-yellow-400' : 'text-gray-600'}`}>
+                        {message.length}/500
+                      </span>
+                    </div>
                   </div>
 
                   <Button

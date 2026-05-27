@@ -6,10 +6,11 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { StadiumBackdrop } from '@/components/StadiumBackdrop';
 import {
-  Users, User, Zap, Sparkles,
-  Loader2, AlertCircle, RefreshCw,
+  Users, User, Zap, Sparkles, Inbox,
+  AlertCircle, RefreshCw,
 } from 'lucide-react';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { CollabCard } from '@/components/collaboration/CollabCard';
@@ -22,6 +23,36 @@ import { STORAGE_KEYS } from '@/lib/constants';
 import { toast } from 'sonner';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+
+function CollabCardSkeleton() {
+  return (
+    <Card className="bg-white/5 border-white/10 overflow-hidden">
+      <Skeleton className="aspect-video rounded-none" />
+      <CardContent className="p-3 space-y-2">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-3 w-full" />
+        <div className="flex items-center justify-between pt-2 border-t border-white/5">
+          <Skeleton className="h-3 w-1/4" />
+          <Skeleton className="h-7 w-14 rounded" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CreatorCardSkeleton() {
+  return (
+    <Card className="bg-white/5 border-white/10">
+      <CardContent className="p-4 text-center space-y-3">
+        <Skeleton className="w-20 h-20 rounded-full mx-auto" />
+        <Skeleton className="h-4 w-1/2 mx-auto" />
+        <Skeleton className="h-3 w-1/3 mx-auto" />
+        <Skeleton className="h-3 w-3/4 mx-auto" />
+      </CardContent>
+    </Card>
+  );
+}
 
 interface Creator {
   id: string;
@@ -72,13 +103,25 @@ export default function DiscoverPage() {
       ]);
       const creatorsData = await creatorsRes.json();
       const collabsData = await collabsRes.json();
-      if (creatorsData.success) setCreators(creatorsData.creators);
-      if (collabsData.success) setCollabs(collabsData.open_collaborations);
+
+      // Surface API errors rather than silently showing empty state
+      if (!creatorsData.success) {
+        setError(`Failed to load creators: ${creatorsData.error || 'Unknown error'}`);
+      } else {
+        setCreators(creatorsData.creators);
+      }
+
+      if (!collabsData.success) {
+        setError(`Failed to load collaborations: ${collabsData.error || 'Unknown error'}`);
+      } else {
+        setCollabs(collabsData.open_collaborations);
+      }
     } catch (err) {
-      console.warn('Discover API unavailable — using demo data');
+      console.warn('Discover API unavailable — showing demo preview');
       setCreators(DEMO_CREATORS);
       setCollabs(DEMO_COLLABS);
       setUsingDemo(true);
+      setError('Backend unreachable — showing preview data. Connect the backend for live content.');
     } finally {
       setLoading(false);
     }
@@ -115,9 +158,23 @@ export default function DiscoverPage() {
     }
   }, [isAuthenticated, router]);
 
-  const handleSendRequest = useCallback(async (creatorId: string) => {
-    // For now, this is a placeholder — real implementation would send a notification
-    await new Promise(r => setTimeout(r, 1000));
+  const handleSendRequest = useCallback(async (creatorId: string, message?: string) => {
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+    if (!token) {
+      throw new Error('You must be logged in to send a request');
+    }
+    const res = await fetch(`${API_BASE}/api/discover/send_request`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ profile_id: creatorId, message: message || '' }),
+    });
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to send request');
+    }
   }, []);
 
   return (
@@ -177,12 +234,38 @@ export default function DiscoverPage() {
           </button>
         </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 text-indigo-400 animate-spin" />
-            <span className="ml-3 text-gray-300">Discovering collaborations...</span>
+        {/* Link to Requests Inbox */}
+        {isAuthenticated && (
+          <div className="mb-6">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/discover/requests')}
+              className="border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10"
+            >
+              <Inbox className="h-3.5 w-3.5 mr-1.5" />
+              View Requests
+            </Button>
           </div>
+        )}
+
+        {/* Loading skeletons */}
+        {loading && (
+          <>
+            {activeTab === 'collabs' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <CollabCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <CreatorCardSkeleton key={i} />
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Error */}
