@@ -41,9 +41,6 @@ next-env.d.ts
 # Dependencies
 node_modules/
 
-# Package manager lock files (Vercel uses npm)
-pnpm-lock.yaml
-
 # Solidity build artifacts
 contracts-solidity/artifacts/
 contracts-solidity/cache/
