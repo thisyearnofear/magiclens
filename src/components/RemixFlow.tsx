@@ -14,8 +14,7 @@ import { useMintRemix } from '@/hooks/useMintRemix';
 import { useReferrer } from '@/hooks/useReferrer';
 import { addRemix } from '@/lib/remix-store';
 import { claimReferral } from '@/lib/crossvm-client';
-import type { SelectedOverlay, OverlayDefinition } from '@/hooks/usePack';
-import type { Video } from '@/lib/sdk';
+import type { SelectedOverlay } from '@/hooks/usePack';
 
 const STEP_LABELS = ['Clip', 'AR Overlays', 'Preview', 'Done'];
 
@@ -42,7 +41,7 @@ export default function RemixFlow() {
   const { referrerAddress, clearReferrer } = useReferrer();
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [clip, setClip] = useState<{ title: string; id: string } | null>(null);
+  const [clip, setClip] = useState<{ title: string; id: string; videoUrl: string } | null>(null);
   const [selectedOverlays, setSelectedOverlays] = useState<SelectedOverlay[]>([]);
   const [mintTx, setMintTx] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(false);
@@ -157,7 +156,7 @@ export default function RemixFlow() {
             <ClipPicker
               recentClips={[]}
               onSelect={(v) => {
-                setClip({ title: v.title || 'Match Moment', id: v.id });
+                setClip({ title: v.title || 'Match Moment', id: v.id, videoUrl: v.file_path || '' });
                 goForward();
               }}
               onUploadNew={() => router.push('/upload-video')}
@@ -176,6 +175,7 @@ export default function RemixFlow() {
             ) : (
             <ARWorkspace
               clipTitle={clip.title}
+              clipVideoUrl={clip.videoUrl}
               onNext={(overlays) => {
                 setSelectedOverlays(overlays);
                 goForward();
@@ -203,7 +203,8 @@ export default function RemixFlow() {
               )}
               <RemixPreview
                 clipTitle={clip.title}
-                packNames={selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name)}
+                clipVideoUrl={clip.videoUrl}
+                selectedOverlays={selectedOverlays}
                 onBack={goBack}
                 onMint={handleMint}
                 isMinting={isMinting}

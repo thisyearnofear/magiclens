@@ -11,7 +11,7 @@ import {
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 
 interface LiveDemoViewProps {
-  selectedPackId: string | null;
+  selectedOverlayIds: string[];
 }
 
 // MediaPipe pose landmark indices we track
@@ -47,7 +47,7 @@ const STATUS_CFG: Record<string, { label: string; color: string; icon: React.Rea
   unavailable: { label: 'Tap Start to activate', color: 'text-gray-400', icon: <CameraOff className="h-4 w-4" /> },
 };
 
-export function LiveDemoView({ selectedPackId }: LiveDemoViewProps) {
+export function LiveDemoView({ selectedOverlayIds }: LiveDemoViewProps) {
   const { videoRef, canvasRef, status, error, currentPose, isActive, start, stop } = usePoseLandmarker();
 
   // Auto-start when component mounts
@@ -130,8 +130,8 @@ export function LiveDemoView({ selectedPackId }: LiveDemoViewProps) {
         {/* Pose-tracked AR overlays */}
         {status === 'ready' && overlayPositions && (
           <>
-            {/* Flag halo at head */}
-            {overlayPositions.head && (
+            {/* Flag halo at head — only if flag-halos is selected */}
+            {selectedOverlayIds.includes('flag-halos') && overlayPositions.head && (
               <motion.div
                 className="absolute pointer-events-none z-10"
                 style={{ left: `${overlayPositions.head.x - 28}px`, top: `${overlayPositions.head.y - 75}px` }}
@@ -149,8 +149,22 @@ export function LiveDemoView({ selectedPackId }: LiveDemoViewProps) {
               </motion.div>
             )}
 
+            {/* GOAL! banner at center — only if goal-lower-third is selected */}
+            {selectedOverlayIds.includes('goal-lower-third') && overlayPositions.head && (
+              <motion.div
+                className="absolute pointer-events-none z-10 left-1/2 -translate-x-1/2"
+                style={{ top: `${overlayPositions.head.y - 40}px` }}
+                initial={{ scale: 0, y: 50 }} animate={{ scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              >
+                <div className="px-6 py-2 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-lg shadow-2xl shadow-yellow-500/30">
+                  <span className="text-white font-black text-xl tracking-[0.15em]">GOAL!</span>
+                </div>
+              </motion.div>
+            )}
+
             {/* Commentary bubble at shoulder */}
-            {overlayPositions.leftShoulder && (
+            {selectedOverlayIds.includes('commentary-bubble') && overlayPositions.leftShoulder && (
               <motion.div
                 className="absolute pointer-events-none z-10"
                 style={{ left: `${overlayPositions.leftShoulder.x + 15}px`, top: `${overlayPositions.leftShoulder.y - 55}px` }}
@@ -160,15 +174,30 @@ export function LiveDemoView({ selectedPackId }: LiveDemoViewProps) {
                 <div className="bg-gray-900/85 backdrop-blur-md rounded-xl border border-blue-400/40 px-3 py-2 shadow-xl shadow-blue-500/10">
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="w-3.5 h-3.5 rounded-full bg-red-500 flex items-center justify-center text-[6px] text-white font-bold">LIVE</span>
-                    <span className="text-blue-400 text-[9px] font-bold">SHOULDER</span>
+                    <span className="text-blue-400 text-[9px] font-bold">COMMENTARY</span>
                   </div>
-                  <p className="text-white text-[11px] whitespace-nowrap">33-point pose tracking</p>
+                  <p className="text-white text-[11px] whitespace-nowrap">What a moment!</p>
                 </div>
               </motion.div>
             )}
 
-            {/* Wrist particles */}
-            {overlayPositions.leftWrist && overlayPositions.rightWrist && (
+            {/* Ref card at shoulder */}
+            {selectedOverlayIds.includes('ref-card') && overlayPositions.rightShoulder && (
+              <motion.div
+                className="absolute pointer-events-none z-10"
+                style={{ left: `${overlayPositions.rightShoulder.x - 55}px`, top: `${overlayPositions.rightShoulder.y - 20}px` }}
+                initial={{ scale: 0, rotate: -15 }} animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+              >
+                <div className="bg-gray-900/85 backdrop-blur-md rounded-lg border border-yellow-400/40 px-2 py-1.5 shadow-xl">
+                  <div className="w-6 h-4 bg-yellow-400 rounded-sm mx-auto" />
+                  <span className="text-[8px] text-white font-bold block text-center mt-0.5">REF</span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Wrist particles for celebration effects */}
+            {(selectedOverlayIds.includes('trophy-confetti') || selectedOverlayIds.includes('stadium-sparkles')) && overlayPositions.leftWrist && overlayPositions.rightWrist && (
               <>
                 <motion.div className="absolute w-2 h-2 rounded-full pointer-events-none z-10 bg-gradient-to-r from-yellow-400 to-orange-500 shadow-lg shadow-yellow-400/50"
                   style={{ left: `${overlayPositions.leftWrist.x}px`, top: `${overlayPositions.leftWrist.y}px` }}

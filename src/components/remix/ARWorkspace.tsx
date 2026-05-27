@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 
 interface ARWorkspaceProps {
   clipTitle: string;
+  clipVideoUrl: string;
   onNext: (selected: SelectedOverlay[]) => void;
   onBack: () => void;
 }
@@ -30,11 +31,9 @@ const SVG_MAP: Record<string, string> = {
   'ref-card': '/packs/world-cup-2026/thumb-ref-card.svg',
 };
 
-export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspaceProps) {
+export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }: ARWorkspaceProps) {
   const { manifest, loading } = usePack();
   const [selected, setSelected] = useState<SelectedOverlay[]>([]);
-  const [hoveredPack, setHoveredPack] = useState<string | null>(null);
-  const [showFlagSelector, setShowFlagSelector] = useState(false);
   const [mode, setMode] = useState<'preview' | 'live'>('preview');
 
   const toggleOverlay = (overlay: OverlayDefinition) => {
@@ -46,11 +45,6 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
       const chosenVariant = overlay.variants && overlay.variants.length > 0
         ? overlay.variants[0] : null;
 
-      // If it's flag halos, open the variant selector
-      if (overlay.id === 'flag-halos' && overlay.variants) {
-        setShowFlagSelector(true);
-      }
-
       return [...prev, { ...overlay, chosenVariant }];
     });
   };
@@ -59,7 +53,6 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
     setSelected(prev => prev.map(s =>
       s.id === overlayId ? { ...s, chosenVariant: variant } : s
     ));
-    setShowFlagSelector(false);
   };
 
   const container = {
@@ -184,42 +177,19 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
             layout
             className="aspect-video bg-gray-900 rounded-xl border border-white/10 overflow-hidden relative"
           >
-            {/* Stadium background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-green-900/20 to-green-900/40" />
-
-            {/* Field lines */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/3 border-t border-white/5">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full border border-white/5" />
-            </div>
-
-            {/* Centered play button */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0.5 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse' }}
-                className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm"
-              >
-                <div className="w-0 h-0 border-t-8 border-b-8 border-l-12 border-transparent border-l-white ml-1"
-                  style={{ borderLeftWidth: 12, borderTopWidth: 8, borderBottomWidth: 8 }} />
-              </motion.div>
-            </div>
-
-            {/* Score overlay (always visible) */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="absolute top-4 right-4 text-right"
-            >
-              <span className="inline-block px-3 py-1 bg-black/60 backdrop-blur-sm text-white text-xs rounded-lg border border-white/10">
-                BRA 2 — 1 ARG
-              </span>
-              <br />
-              <span className="inline-block mt-1 px-3 py-1 bg-black/40 backdrop-blur-sm text-yellow-400 text-xs rounded-lg">
-                89' Messi ⚽
-              </span>
-            </motion.div>
+            {/* Actual clip video as background */}
+            {clipVideoUrl ? (
+              <video
+                src={clipVideoUrl}
+                className="absolute inset-0 w-full h-full object-cover"
+                muted
+                loop
+                playsInline
+                autoPlay
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-green-900/20 to-green-900/40" />
+            )}
 
             {/* ═══ RENDERED OVERLAYS ═══ */}
             <AnimatePresence>
@@ -413,7 +383,7 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
             )}
           </motion.div>
           ) : (
-            <LiveDemoView selectedPackId={selected.length > 0 ? selected[0].id : null} />
+            <LiveDemoView selectedOverlayIds={selected.map(s => s.id)} />
           )}
         </div>
 
@@ -438,8 +408,6 @@ export default function ARWorkspace({ clipTitle, onNext, onBack }: ARWorkspacePr
               <motion.div
                 key={overlay.id}
                 variants={itemAnim}
-                onHoverStart={() => setHoveredPack(overlay.id)}
-                onHoverEnd={() => setHoveredPack(null)}
               >
                 <Card
                   className={`cursor-pointer transition-all overflow-hidden ${

@@ -2,17 +2,30 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Play, ArrowLeft, Zap } from 'lucide-react';
+import { ArrowLeft, Zap } from 'lucide-react';
+import type { SelectedOverlay } from '@/hooks/usePack';
 
 interface RemixPreviewProps {
   clipTitle: string;
-  packNames: string[];
+  clipVideoUrl: string;
+  selectedOverlays: SelectedOverlay[];
   onBack: () => void;
   onMint: () => void;
   isMinting?: boolean;
 }
 
-export function RemixPreview({ clipTitle, packNames, onBack, onMint, isMinting }: RemixPreviewProps) {
+const OVERLAY_NAMES: Record<string, string> = {
+  'flag-halos': 'Flag Halos',
+  'goal-lower-third': 'GOAL! Lower-Third',
+  'trophy-confetti': 'Trophy Confetti',
+  'commentary-bubble': 'Commentary Bubble',
+  'stadium-sparkles': 'Stadium Sparkles',
+  'ref-card': 'Ref-Card Overlay',
+};
+
+export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, onBack, onMint, isMinting }: RemixPreviewProps) {
+  const packNames = selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
@@ -22,28 +35,110 @@ export function RemixPreview({ clipTitle, packNames, onBack, onMint, isMinting }
 
       {/* Video preview with overlays */}
       <div className="aspect-video bg-gray-900 rounded-xl border border-white/10 overflow-hidden relative mb-6">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Button variant="ghost" className="text-white hover:bg-white/10">
-            <Play className="h-12 w-12" />
-          </Button>
-        </div>
+        {clipVideoUrl ? (
+          <video
+            src={clipVideoUrl}
+            className="absolute inset-0 w-full h-full object-cover"
+            muted
+            loop
+            playsInline
+            autoPlay
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-green-900/20 to-green-900/40" />
+        )}
 
-        {/* Mock overlays showing what it'll look like */}
-        <div className="absolute top-4 left-4">
-          <div className="w-12 h-12 rounded-full bg-green-500/40 border-2 border-green-400 flex items-center justify-center text-white text-xs font-bold animate-pulse">
-            🇧🇷
-          </div>
-        </div>
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
-          <div className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-red-500 rounded-lg shadow-2xl">
-            <span className="text-white font-black text-3xl tracking-widest">GOAL!</span>
-          </div>
-        </div>
-        <div className="absolute top-4 right-4 space-y-1 text-right">
-          <span className="inline-block px-2 py-0.5 bg-black/60 text-white text-xs rounded">BRA 2 — 1 ARG</span>
-          <br />
-          <span className="inline-block px-2 py-0.5 bg-black/60 text-yellow-400 text-xs rounded">89' Messi ⚽</span>
-        </div>
+        {/* Render selected overlays */}
+        {selectedOverlays.map(overlay => {
+          switch (overlay.id) {
+            case 'flag-halos':
+              return (
+                <div key="flag-halos" className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-full border-4 border-green-400/50 animate-spin-slow"
+                      style={{ animationDuration: '8s' }} />
+                    <div className="absolute inset-1 rounded-full border-2 border-yellow-400/30 animate-spin-slow"
+                      style={{ animationDuration: '12s', animationDirection: 'reverse' }} />
+                    {overlay.chosenVariant?.flagUrl ? (
+                      <img
+                        src={overlay.chosenVariant.flagUrl}
+                        alt={overlay.chosenVariant.name}
+                        className="absolute inset-3 w-[calc(100%-24px)] h-[calc(100%-24px)] rounded-full object-cover border-2 border-white/20 shadow-lg"
+                      />
+                    ) : (
+                      <div className="absolute inset-3 rounded-full bg-gradient-to-br from-green-500 to-yellow-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">WC</div>
+                    )}
+                  </div>
+                </div>
+              );
+            case 'goal-lower-third':
+              return (
+                <div key="goal-lower" className="absolute bottom-20 left-1/2 -translate-x-1/2">
+                  <div className="px-8 py-4 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-xl shadow-2xl shadow-yellow-500/30 border border-yellow-300/50">
+                    <span className="text-white font-black text-4xl tracking-[0.15em]">GOAL!</span>
+                  </div>
+                </div>
+              );
+            case 'trophy-confetti':
+              return (
+                <div key="confetti" className="absolute inset-0 overflow-hidden">
+                  {Array.from({ length: 20 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-2 h-2 rounded-full animate-fall"
+                      style={{
+                        left: `${Math.random() * 100}%`,
+                        background: ['#FFD700', '#FF4500', '#FF69B4', '#00FF88', '#00BFFF'][i % 5],
+                        animationDelay: `${Math.random() * 2}s`,
+                        animationDuration: `${2 + Math.random() * 2}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            case 'commentary-bubble':
+              return (
+                <div key="commentary" className="absolute top-4 left-4">
+                  <div className="bg-gray-900/80 backdrop-blur-md rounded-xl border border-yellow-400/30 p-3 shadow-xl max-w-[200px]">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="text-xs">🎙</span>
+                      <span className="text-yellow-400 text-xs font-bold">LIVE</span>
+                    </div>
+                    <p className="text-white text-sm leading-tight">What a moment!</p>
+                    <div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-gray-900/80 border-r border-b border-yellow-400/30 rotate-45" />
+                  </div>
+                </div>
+              );
+            case 'stadium-sparkles':
+              return (
+                <div key="sparkles" className="absolute inset-0">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 h-1 bg-yellow-300 rounded-full animate-pulse"
+                      style={{
+                        left: `${8 + (i * 8)}%`,
+                        top: `${10 + (i * 7)}%`,
+                        animationDelay: `${Math.random() * 2}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              );
+            case 'ref-card':
+              return (
+                <div key="ref-card" className="absolute top-20 right-4">
+                  <div className="bg-gray-900/80 backdrop-blur-md rounded-xl border border-yellow-400/40 p-3 shadow-xl">
+                    <div className="w-8 h-6 bg-yellow-400 rounded flex items-center justify-center">
+                      <span className="text-black text-xs font-bold">YELLOW</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            default:
+              return null;
+          }
+        })}
       </div>
 
       {/* Metadata summary */}
@@ -53,7 +148,9 @@ export function RemixPreview({ clipTitle, packNames, onBack, onMint, isMinting }
             <div>
               <h3 className="text-white font-semibold">{clipTitle}</h3>
               <p className="text-gray-400 text-sm mt-1">
-                Using {packNames.length} overlay pack{packNames.length > 1 ? 's' : ''}: {packNames.join(', ')}
+                {packNames.length > 0
+                  ? `Using ${packNames.length} overlay pack${packNames.length > 1 ? 's' : ''}: ${packNames.join(', ')}`
+                  : 'No overlays selected'}
               </p>
             </div>
             <Badge className="bg-purple-500">X Layer</Badge>
