@@ -162,14 +162,13 @@ magiclens/
 │   │   ├── crossvm_service.py   # Flow CLI subprocess orchestrator
 │   │   ├── leaderboard_service.py # Day state machine + auto-promote
 │   │   └── database.py          # PostgreSQL schema
-│   └── deploy.sh                # Backend deploy script
 ├── src/
 │   ├── app/                    # Next.js App Router pages
 │   ├── components/             # React components
 │   ├── hooks/                  # useMintRemix, useReferrer, etc.
 │   └── lib/                    # API client, remix-store, streak
 ├── deploy/
-│   ├── deploy.sh               # Rsync + PM2 deploy
+│   ├── deploy.sh               # Local wheel build + PM2 deploy
 │   └── ecosystem.config.js     # PM2 config with PATH for flow binary
 └── AGENTS.md                   # AI contributor guide
 ```

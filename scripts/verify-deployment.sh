@@ -1,59 +1,46 @@
 #!/bin/bash
-# MagicLens Deployment Verification Script
+# MagicLens PM2 deployment verification script
 
-echo "🔍 Verifying MagicLens Deployment Setup..."
+set -euo pipefail
 
-# Check if required files exist
-echo "Checking for required files..."
-if [ ! -f "docker-compose.yml" ]; then
-    echo "❌ docker-compose.yml not found"
-    exit 1
-else
-    echo "✅ docker-compose.yml found"
-fi
+echo "Verifying MagicLens PM2 deployment setup..."
 
-if [ ! -f "services/Dockerfile" ]; then
-    echo "❌ services/Dockerfile not found"
-    exit 1
-else
-    echo "✅ services/Dockerfile found"
-fi
+check_file() {
+    local path="$1"
+    if [ ! -f "$path" ]; then
+        echo "Missing required file: $path"
+        exit 1
+    fi
+    echo "Found $path"
+}
 
-if [ ! -f "services/pyproject.toml" ]; then
-    echo "❌ services/pyproject.toml not found"
-    exit 1
-else
-    echo "✅ services/pyproject.toml found"
-fi
+check_command() {
+    local command_name="$1"
+    if ! command -v "$command_name" >/dev/null 2>&1; then
+        echo "Missing required command: $command_name"
+        exit 1
+    fi
+    echo "Found $command_name"
+}
 
-# Check if Docker is installed
-echo "Checking Docker installation..."
-if ! command -v docker &> /dev/null; then
-    echo "❌ Docker not installed"
-    exit 1
-else
-    echo "✅ Docker installed"
-fi
+check_file "deploy/deploy.sh"
+check_file "deploy/ecosystem.config.js"
+check_file "deploy/README.md"
+check_file "services/pyproject.toml"
+check_file "services/alembic.ini"
 
-# Check if Docker Compose is available
-echo "Checking Docker Compose..."
-if ! docker compose version &> /dev/null; then
-    echo "❌ Docker Compose not available"
-    exit 1
-else
-    echo "✅ Docker Compose available"
-fi
+check_command "python3.11"
+check_command "uv"
+check_command "ssh"
+check_command "rsync"
 
-# Check Docker Compose configuration
-echo "Validating docker-compose.yml..."
-if docker-compose config &> /dev/null; then
-    echo "✅ docker-compose.yml is valid"
-else
-    echo "❌ docker-compose.yml validation failed"
-    exit 1
-fi
+bash -n deploy/deploy.sh
+echo "deploy/deploy.sh syntax OK"
 
-echo "✅ All checks passed! Ready for deployment."
+UV_CACHE_DIR="${TMPDIR:-/tmp}/magiclens-uv-cache" \
+    uv build --wheel --no-build-logs --no-build-isolation --out-dir "${TMPDIR:-/tmp}/magiclens-wheel-verify" services >/dev/null
+echo "Backend wheel build OK"
+
 echo ""
-echo "To deploy MagicLens, run:"
-echo "  docker-compose up -d --build"
+echo "Ready for PM2 backend deploy:"
+echo "  bash deploy/deploy.sh"

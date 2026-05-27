@@ -5,6 +5,12 @@ SERVER="snel-bot"
 REMOTE_DIR="/opt/magiclens"
 RELEASE_NAME="release-$(date +%Y%m%d-%H%M%S)"
 LOCAL_SERVICES="$(cd "$(dirname "$0")/../services" && pwd)"
+LOCAL_BUILD_DIR="$(mktemp -d "${TMPDIR:-/tmp}/magiclens-build.XXXXXX")"
+
+cleanup() {
+  rm -rf "$LOCAL_BUILD_DIR"
+}
+trap cleanup EXIT
 
 echo "=== MagicLens Backend Deploy ==="
 echo "  Server:     $SERVER"
@@ -12,20 +18,49 @@ echo "  Remote dir: $REMOTE_DIR"
 echo "  Release:    $RELEASE_NAME"
 echo ""
 
-echo "==> [1/5] Verifying package..."
-(cd "$LOCAL_SERVICES" && python -c "import ast; ast.parse(open('api/routes.py').read()); print('  ✓ Syntax OK')") || echo "  ⚠️  Syntax check skipped"
+echo "==> [1/6] Verifying package..."
+(cd "$LOCAL_SERVICES" && python3.11 - <<'PY'
+from pathlib import Path
 
-echo "==> [2/5] Staging release directory..."
+for path in [
+    "api/bootstrap.py",
+    "api/routes.py",
+    "core/database.py",
+    "alembic/env.py",
+]:
+    compile(Path(path).read_text(), path, "exec")
+
+print("  ✓ Syntax OK")
+PY
+) || echo "  ⚠️  Syntax check skipped"
+
+echo "==> [2/6] Building local wheel..."
+mkdir -p "$LOCAL_BUILD_DIR/dist"
+UV_CACHE_DIR="$LOCAL_BUILD_DIR/uv-cache" \
+  uv build --wheel --no-build-logs --no-build-isolation --out-dir "$LOCAL_BUILD_DIR/dist" "$LOCAL_SERVICES" >/dev/null
+WHEEL_FILE="$(find "$LOCAL_BUILD_DIR/dist" -maxdepth 1 -name '*.whl' | head -n 1)"
+if [ -z "$WHEEL_FILE" ]; then
+  echo "  ✗ Wheel build failed"
+  exit 1
+fi
+echo "  ✓ Built $(basename "$WHEEL_FILE")"
+
+echo "==> [3/6] Staging release directory..."
 ssh "$SERVER" "mkdir -p $REMOTE_DIR/releases/$RELEASE_NAME $REMOTE_DIR/logs"
 
-echo "==> [3/5] Rsyncing code..."
+echo "==> [4/6] Syncing runtime files..."
 rsync -az --delete \
   --exclude '__pycache__' --exclude '*.pyc' \
-  --exclude '.pytest_cache' --exclude '.ruff_cache' \
-  --exclude '.env' \
-  "$LOCAL_SERVICES/" "$SERVER:$REMOTE_DIR/releases/$RELEASE_NAME/"
+  "$LOCAL_SERVICES/alembic/" "$SERVER:$REMOTE_DIR/releases/$RELEASE_NAME/alembic/"
+rsync -az --delete \
+  "$LOCAL_SERVICES/alembic.ini" \
+  "$LOCAL_SERVICES/.env.example" \
+  "$SERVER:$REMOTE_DIR/releases/$RELEASE_NAME/"
+rsync -az --delete \
+  "$LOCAL_BUILD_DIR/dist/" \
+  "$SERVER:$REMOTE_DIR/releases/$RELEASE_NAME/dist/"
 
-echo "==> [4/5] Server environment setup..."
+echo "==> [5/6] Server environment setup..."
 ssh "$SERVER" "RD=$REMOTE_DIR RL=$REMOTE_DIR/releases/$RELEASE_NAME bash -s" << 'REMOTE_SETUP'
   set -eo pipefail
   if [ ! -f "$RD/.env" ]; then
@@ -38,13 +73,18 @@ ssh "$SERVER" "RD=$REMOTE_DIR RL=$REMOTE_DIR/releases/$RELEASE_NAME bash -s" << 
     python3.11 -m venv "$RD/venv"
   fi
   echo "  → Installing dependencies..."
-  "$RD/venv/bin/pip" install --no-cache-dir -e "$RL" --quiet
+  WHEEL_PATH="$(find "$RL/dist" -maxdepth 1 -name '*.whl' | head -n 1)"
+  if [ -z "$WHEEL_PATH" ]; then
+    echo "  ✗ Missing release wheel"
+    exit 1
+  fi
+  "$RD/venv/bin/pip" install --no-cache-dir --upgrade "$WHEEL_PATH" --quiet
   echo "  ✓ Deps installed"
   echo "  → Running migrations..."
   (cd "$RL" && "$RD/venv/bin/alembic" upgrade head 2>/dev/null && echo "  ✓ Migrations OK") || echo "  ⚠️  Migrations skipped (check DB)"
 REMOTE_SETUP
 
-echo "==> [5/5] Switching traffic and reloading..."
+echo "==> [6/6] Switching traffic and reloading..."
 ssh "$SERVER" "RD=$REMOTE_DIR RL=$REMOTE_DIR/releases/$RELEASE_NAME bash -s" << 'REMOTE_FINISH'
   set -eo pipefail
   ln -sfn "$RL" "$RD/current"

@@ -65,16 +65,20 @@ Required variables (at minimum):
 ./deploy/deploy.sh
 ```
 
+The deploy script builds a backend wheel on your machine, then syncs only the
+wheel plus Alembic files to the server. The remote box never needs the full
+source tree.
+
 ## Disk usage estimate
 
 | Item | Size |
 |---|---|
-| Python code | ~632K |
+| Release files | ~1-5MB |
 | Python venv (opencv, mediapipe, numpy) | ~300-500MB |
 | PostgreSQL data directory | ~100MB+ (grows with use) |
 | Redis data (RDB/AOF) | ~1-10MB |
 | Media uploads | Variable (local disk or S3) |
-| Old releases (3 kept) | ~2MB total |
+| Old releases (3 kept) | ~a few MB total |
 
 Total baseline: ~500MB-1GB before media uploads.
 
@@ -82,5 +86,5 @@ Total baseline: ~500MB-1GB before media uploads.
 
 - **Use S3-compatible storage** (Hetzner Object Storage) for media instead of local disk — set `MEDIA_ACCESS_KEY`/`MEDIA_SECRET_KEY`/`MEDIA_ENDPOINT_URL`/`MEDIA_BUCKET` in `.env`
 - **Set `LOCAL_MEDIA_DIR`** to /tmp if you have no S3 (tmpfs, lost on reboot)
-- **Disable unused services**: If pose analysis isn't needed, `pip install --no-deps` and comment out mediapipe/opencv
-- **Old releases are only ~2MB** of code — the venv is the heavy part and is shared
+- **Disable unused services**: If pose analysis isn't needed, trim the runtime dependency set before building the wheel
+- **Old releases are tiny** because the server only keeps wheel artifacts and migrations; the venv is the heavy part and is shared
