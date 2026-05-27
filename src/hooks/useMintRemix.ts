@@ -14,7 +14,7 @@ export function useMintRemix() {
     address: REMIX_NFT_ADDRESS as `0x${string}`,
     abi: REMIX_NFT_ABI,
     functionName: 'totalSupply',
-    chain: xLayerTestnet,
+    chainId: xLayerTestnet.id,
   })
 
   const mintRemix = async (
