@@ -13,6 +13,10 @@ function getAuthHeaders(): Record<string, string> {
   return headers;
 }
 
+function withIdempotencyKey(headers: Record<string, string>, idempotencyKey?: string): Record<string, string> {
+  return idempotencyKey ? { ...headers, 'X-Idempotency-Key': idempotencyKey } : headers;
+}
+
 async function safeFetch(input: RequestInfo | URL, init?: RequestInit & { timeoutMs?: number }): Promise<Response | null> {
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(() => controller.abort(), init?.timeoutMs ?? DEFAULT_TIMEOUT_MS);
@@ -55,10 +59,11 @@ export async function promoteToIconic(params: {
   day?: number;
   rank: number;
   promotedBy?: string;
+  idempotencyKey?: string;
 }): Promise<CrossVMPromotion> {
   const res = await safeFetch(`${API_BASE}/api/crossvm/promote`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: withIdempotencyKey(getAuthHeaders(), params.idempotencyKey),
     body: JSON.stringify({
       xlayer_token_id: params.xlayerTokenId,
       xlayer_tx_hash: params.xlayerTxHash,
@@ -117,20 +122,20 @@ interface LeaderboardEntryInput {
   xlayer_creator_address: string;
 }
 
-export async function closeLeaderboardDay(day: number, entries: LeaderboardEntryInput[]) {
+export async function closeLeaderboardDay(day: number, entries: LeaderboardEntryInput[], idempotencyKey?: string) {
   const res = await safeFetch(`${API_BASE}/api/leaderboard/close-day`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: withIdempotencyKey(getAuthHeaders(), idempotencyKey),
     body: JSON.stringify({ day, entries }),
     timeoutMs: 30_000,
   });
   return readJson(res, { success: false, error: 'Backend unavailable' });
 }
 
-export async function triggerAutoPromote(day: number) {
+export async function triggerAutoPromote(day: number, idempotencyKey?: string) {
   const res = await safeFetch(`${API_BASE}/api/leaderboard/process-day/${day}`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: withIdempotencyKey(getAuthHeaders(), idempotencyKey),
     timeoutMs: 120_000,
   });
   return readJson(res, { success: false, error: 'Backend unavailable' });
@@ -174,7 +179,7 @@ export async function getPendingPromoteDays() {
   return readJson(res, { success: false, pending_days: [] });
 }
 
-export async function seedDemoData(): Promise<{
+export async function seedDemoData(idempotencyKey?: string): Promise<{
   success: boolean;
   day?: number;
   promoted?: number;
@@ -184,7 +189,7 @@ export async function seedDemoData(): Promise<{
 }> {
   const res = await safeFetch(`${API_BASE}/api/demo/seed`, {
     method: 'POST',
-    headers: getAuthHeaders(),
+    headers: withIdempotencyKey(getAuthHeaders(), idempotencyKey),
     timeoutMs: 120_000,
   });
   return readJson(res, { success: false, error: 'Backend unavailable' });

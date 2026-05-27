@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +15,8 @@ import { MobileNav } from '@/components/MobileNav';
 import { DemoBanner } from '@/components/DemoBanner';
 import { toast } from 'sonner';
 import { DEMO_LEADERBOARD_ENTRIES } from '@/lib/demo-data';
-import { seedDemoData } from '@/lib/crossvm-client';
+import { closeLeaderboardDay, seedDemoData } from '@/lib/crossvm-client';
+import { measureUserAction } from '@/lib/action-observability';
 import type { CrossVMPromotion } from '@/types/crossvm';
 
 const DEMO_LEADERBOARD = DEMO_LEADERBOARD_ENTRIES;
@@ -33,15 +35,64 @@ interface LeaderboardEntry {
 
 export default function Leaderboard() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { isConnected, evmAddress, isGuest } = useAuthContext();
   const { moments, promote, isPromoting, loading: momentsLoading } = useIconicMoments({ day: 1 });
   const [entries, setEntries] = useState<LeaderboardEntry[]>(DEMO_LEADERBOARD);
-  const [closingDay, setClosingDay] = useState(false);
-  const [seedingDemo, setSeedingDemo] = useState(false);
   const [cycleStatus, setCycleStatus] = useState<'open' | 'closed' | 'promoting' | 'completed'>('open');
   const [promoteResults, setPromoteResults] = useState<{ promoted: number; errors: string[] } | null>(null);
   const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [countdown, setCountdown] = useState('');
+
+  const closeDayMutation = useMutation({
+    mutationFn: (top10: Parameters<typeof closeLeaderboardDay>[1]) => {
+      setActionStatus('Closing the leaderboard and queueing top-3 Flow promotions...');
+      return measureUserAction(
+        'close_leaderboard_day',
+        (actionId) => closeLeaderboardDay(1, top10, actionId),
+        { day: 1, entries: top10.length }
+      );
+    },
+    onSuccess: (result) => {
+      if (result.success) {
+        setCycleStatus('closed');
+        setActionStatus('Leaderboard closed. Waiting for the auto-promote scheduler...');
+        toast.success(isGuest ? 'Leaderboard closed (guest mode)! Auto-promote scheduled.' : 'Leaderboard closed! Auto-promote scheduled.', {
+          description: 'Top-3 entries will be promoted to Flow Iconic Moments shortly.',
+        });
+      } else {
+        setActionStatus(null);
+        toast.error(result.error || 'Failed to close day');
+      }
+    },
+    onError: () => {
+      setActionStatus(null);
+      toast.error('Failed to close leaderboard day');
+    },
+  });
+
+  const seedDemoMutation = useMutation({
+    mutationFn: () => {
+      setActionStatus('Seeding demo leaderboard entries and minting top remixes on Flow...');
+      return measureUserAction('seed_leaderboard_demo', (actionId) => seedDemoData(actionId), { day: 1 });
+    },
+    onSuccess: async (result) => {
+      if (result.success) {
+        setCycleStatus('completed');
+        setPromoteResults({ promoted: result.promoted || 0, errors: result.errors || [] });
+        setActionStatus(null);
+        await queryClient.invalidateQueries({ queryKey: ['iconic-moments'] });
+        toast.success(`Demo data created! Day ${result.day}: ${result.promoted} iconic moments minted.`);
+      } else {
+        setActionStatus(null);
+        toast.error(result.error || 'Seed failed');
+      }
+    },
+    onError: () => {
+      setActionStatus(null);
+      toast.error('Could not reach backend');
+    },
+  });
 
   // Countdown timer to day end (23:59 UTC)
   useEffect(() => {
@@ -110,64 +161,26 @@ export default function Leaderboard() {
   }, [cycleStatus]);
 
   const handleCloseDay = async () => {
-    setClosingDay(true);
-    setActionStatus('Closing the leaderboard and queueing top-3 Flow promotions...');
-    try {
-      const { closeLeaderboardDay } = await import('@/lib/crossvm-client');
-      const GUEST_ADDR = '0x00000000000000000000000000000000000d3m0';
-      const userRemixes = getUserRemixes();
-      const referredTxHashes = new Set(
-        userRemixes.filter(r => r.referredBy).map(r => r.txHash)
-      );
-      const top10 = entries.slice(0, 10).map(e => ({
-        rank: e.rank,
-        title: e.title,
-        creator: e.creator,
-        votes: referredTxHashes.has(e.txHash) ? e.votes + 200 : e.votes,
-        reward: e.reward,
-        xlayer_token_id: e.tokenId,
-        xlayer_tx_hash: e.txHash,
-        xlayer_creator_address: evmAddress || GUEST_ADDR,
-      }));
-      const result = await closeLeaderboardDay(1, top10);
-      if (result.success) {
-        setCycleStatus('closed');
-        setActionStatus('Leaderboard closed. Waiting for the auto-promote scheduler...');
-        toast.success(isGuest ? 'Leaderboard closed (guest mode)! Auto-promote scheduled.' : 'Leaderboard closed! Auto-promote scheduled.', {
-          description: 'Top-3 entries will be promoted to Flow Iconic Moments shortly.',
-        });
-      } else {
-        setActionStatus(null);
-        toast.error(result.error || 'Failed to close day');
-      }
-    } catch (err) {
-      setActionStatus(null);
-      toast.error('Failed to close leaderboard day');
-    } finally {
-      setClosingDay(false);
-    }
+    const GUEST_ADDR = '0x00000000000000000000000000000000000d3m0';
+    const userRemixes = getUserRemixes();
+    const referredTxHashes = new Set(
+      userRemixes.filter(r => r.referredBy).map(r => r.txHash)
+    );
+    const top10 = entries.slice(0, 10).map(e => ({
+      rank: e.rank,
+      title: e.title,
+      creator: e.creator,
+      votes: referredTxHashes.has(e.txHash) ? e.votes + 200 : e.votes,
+      reward: e.reward,
+      xlayer_token_id: e.tokenId,
+      xlayer_tx_hash: e.txHash,
+      xlayer_creator_address: evmAddress || GUEST_ADDR,
+    }));
+    closeDayMutation.mutate(top10);
   };
 
   const handleSeedDemo = async () => {
-    setSeedingDemo(true);
-    setActionStatus('Seeding demo leaderboard entries and minting top remixes on Flow...');
-    try {
-      const result = await seedDemoData();
-      if (result.success) {
-        setCycleStatus('completed');
-        setPromoteResults({ promoted: result.promoted || 0, errors: result.errors || [] });
-        setActionStatus(null);
-        toast.success(`Demo data created! Day ${result.day}: ${result.promoted} iconic moments minted.`);
-      } else {
-        setActionStatus(null);
-        toast.error(result.error || 'Seed failed');
-      }
-    } catch {
-      setActionStatus(null);
-      toast.error('Could not reach backend');
-    } finally {
-      setSeedingDemo(false);
-    }
+    seedDemoMutation.mutate();
   };
 
   const handlePromote = async (entry: LeaderboardEntry) => {
@@ -228,9 +241,9 @@ export default function Leaderboard() {
                     <div className="flex items-center gap-2">
                       <Button
                         onClick={handleSeedDemo}
-                        loading={seedingDemo}
+                        loading={seedDemoMutation.isPending}
                         loadingText="Seeding..."
-                        disabled={closingDay}
+                        disabled={closeDayMutation.isPending}
                         size="sm"
                         variant="outline"
                         className="h-7 text-[10px] border-purple-400/30 text-purple-300 hover:bg-purple-400/10 px-2"
@@ -240,9 +253,9 @@ export default function Leaderboard() {
                       </Button>
                       <Button
                         onClick={handleCloseDay}
-                        loading={closingDay}
+                        loading={closeDayMutation.isPending}
                         loadingText="Closing..."
-                        disabled={seedingDemo}
+                        disabled={seedDemoMutation.isPending}
                         size="sm"
                         className="h-7 text-[10px] bg-yellow-400 text-black hover:bg-yellow-500 border-0 px-2"
                       >

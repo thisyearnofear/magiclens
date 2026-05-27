@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -9,6 +10,7 @@ import { Skeleton } from './ui/skeleton';
 import { Sparkles, ExternalLink, RefreshCw, Trophy, Medal } from 'lucide-react';
 import type { CrossVMPromotion } from '@/types/crossvm';
 import { getIconicMoments, seedDemoData } from '@/lib/crossvm-client';
+import { measureUserAction } from '@/lib/action-observability';
 import { useToast } from '@/hooks/use-toast';
 
 const RANK_ICONS: Record<number, typeof Trophy> = {
@@ -135,53 +137,32 @@ function MomentSkeleton() {
 }
 
 export function IconicMomentsGallery() {
-  const [moments, setMoments] = useState<CrossVMPromotion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [seeding, setSeeding] = useState(false);
+  const queryClient = useQueryClient();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const hasLoadedRef = useRef(false);
   const { toast } = useToast();
 
-  const fetchMoments = useCallback(async () => {
-    const isInitialLoad = !hasLoadedRef.current;
-    setLoading(isInitialLoad);
-    setRefreshing(!isInitialLoad);
-    try {
-      const data = await getIconicMoments();
-      setMoments(data);
-    } catch {
-      if (isInitialLoad) setMoments([]);
-      toast({
-        title: 'Refresh Failed',
-        description: 'Could not reach the backend. Showing the last loaded moments.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-      hasLoadedRef.current = true;
-    }
-  }, [toast]);
+  const momentsQuery = useQuery({
+    queryKey: ['iconic-moments', 'all'],
+    queryFn: () => getIconicMoments(),
+    staleTime: 15_000,
+    retry: 1,
+  });
 
-  useEffect(() => {
-    fetchMoments();
-  }, [fetchMoments]);
-
-  const handleSeed = async () => {
-    setSeeding(true);
-    setStatusMessage('Creating leaderboard entries and minting top remixes on Flow. This can take up to a minute.');
-    try {
-      const result = await seedDemoData();
+  const seedMutation = useMutation({
+    mutationFn: () => measureUserAction('seed_demo_data', (actionId) => seedDemoData(actionId)),
+    onMutate: () => {
+      setStatusMessage('Creating leaderboard entries and minting top remixes on Flow. This can take up to a minute.');
+    },
+    onSuccess: async (result) => {
       if (result.success) {
         if (result.iconic_moments?.length) {
-          setMoments(result.iconic_moments);
+          queryClient.setQueryData(['iconic-moments', 'all'], result.iconic_moments);
         }
         toast({
           title: 'Demo Data Created',
           description: `Day ${result.day}: ${result.promoted} iconic moments minted on Flow!`,
         });
-        await fetchMoments();
+        await queryClient.invalidateQueries({ queryKey: ['iconic-moments'] });
       } else {
         toast({
           title: 'Seed Failed',
@@ -189,18 +170,39 @@ export function IconicMomentsGallery() {
           variant: 'destructive',
         });
       }
-    } catch {
+    },
+    onError: () => {
       toast({
         title: 'Seed Failed',
         description: 'Could not reach backend',
         variant: 'destructive',
       });
-    } finally {
-      setSeeding(false);
+    },
+    onSettled: () => {
       setStatusMessage(null);
+    },
+  });
+
+  const fetchMoments = async () => {
+    try {
+      await measureUserAction('refresh_iconic_moments', () => momentsQuery.refetch().then((result) => {
+        if (result.error) throw result.error;
+        return result.data;
+      }));
+    } catch {
+      toast({
+        title: 'Refresh Failed',
+        description: 'Could not reach the backend. Showing the last loaded moments.',
+        variant: 'destructive',
+      });
     }
   };
 
+  const handleSeed = () => seedMutation.mutate();
+  const moments = momentsQuery.data ?? [];
+  const loading = momentsQuery.isLoading;
+  const refreshing = momentsQuery.isRefetching && !momentsQuery.isLoading;
+  const seeding = seedMutation.isPending;
   const mintedCount = moments.filter((m) => m.status === 'minted').length;
   const pendingCount = moments.filter((m) => m.status === 'pending').length;
 
