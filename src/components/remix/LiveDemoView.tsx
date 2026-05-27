@@ -12,6 +12,7 @@ import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 
 interface LiveDemoViewProps {
   selectedOverlayIds: string[];
+  onPoseUpdate?: (positions: { head: { x: number; y: number } | null; leftShoulder: { x: number; y: number } | null; rightShoulder: { x: number; y: number } | null; leftWrist: { x: number; y: number } | null; rightWrist: { x: number; y: number } | null }) => void;
 }
 
 // MediaPipe pose landmark indices we track
@@ -47,7 +48,7 @@ const STATUS_CFG: Record<string, { label: string; color: string; icon: React.Rea
   unavailable: { label: 'Tap Start to activate', color: 'text-gray-400', icon: <CameraOff className="h-4 w-4" /> },
 };
 
-export function LiveDemoView({ selectedOverlayIds }: LiveDemoViewProps) {
+export function LiveDemoView({ selectedOverlayIds, onPoseUpdate }: LiveDemoViewProps) {
   const { videoRef, canvasRef, status, error, currentPose, isActive, start, stop } = usePoseLandmarker();
 
   // Auto-start when component mounts
@@ -70,6 +71,16 @@ export function LiveDemoView({ selectedOverlayIds }: LiveDemoViewProps) {
       rightWrist: landmarkPosition(l, LANDMARK.RIGHT_WRIST, 640, 480),
     };
   }, [currentPose]);
+
+  // Bridge pose data back to editor
+  useEffect(() => {
+    if (onPoseUpdate && overlayPositions) {
+      onPoseUpdate(overlayPositions);
+    }
+  }, [overlayPositions, onPoseUpdate]);
+
+  // Determine which AR overlays to render based on pose data (used for bridge to editor)
+  // Note: overlay rendering below uses selectedOverlayIds directly with pose positions
 
   return (
     <div className="space-y-3">

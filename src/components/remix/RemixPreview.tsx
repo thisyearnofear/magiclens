@@ -4,11 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Zap } from 'lucide-react';
 import type { SelectedOverlay } from '@/hooks/usePack';
+import type { OverlayStyle } from '@/components/remix/EditorOverlay';
 
 interface RemixPreviewProps {
   clipTitle: string;
   clipVideoUrl: string;
   selectedOverlays: SelectedOverlay[];
+  overlayStyles?: Record<string, OverlayStyle>;
   onBack: () => void;
   onMint: () => void;
   isMinting?: boolean;
@@ -23,7 +25,7 @@ const OVERLAY_NAMES: Record<string, string> = {
   'ref-card': 'Ref-Card Overlay',
 };
 
-export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, onBack, onMint, isMinting }: RemixPreviewProps) {
+export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, overlayStyles = {}, onBack, onMint, isMinting }: RemixPreviewProps) {
   const packNames = selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name);
 
   return (
@@ -48,17 +50,22 @@ export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, onBack
           <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-green-900/20 to-green-900/40" />
         )}
 
-        {/* Render selected overlays */}
+        {/* Render selected overlays with user's styles */}
         {selectedOverlays.map(overlay => {
+          const st = overlayStyles[overlay.id];
+          const transform = st
+            ? `translate(${st.x}px, ${st.y}px) rotate(${st.rotation}deg) scale(${st.scale})`
+            : '';
+
           switch (overlay.id) {
             case 'flag-halos':
               return (
-                <div key="flag-halos" className="absolute inset-0 flex items-center justify-center">
+                <div key="flag-halos" className="absolute" style={{ transform, opacity: st?.opacity ?? 1, transformOrigin: '0 0' }}>
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-full border-4 border-green-400/50 animate-spin-slow"
-                      style={{ animationDuration: '8s' }} />
-                    <div className="absolute inset-1 rounded-full border-2 border-yellow-400/30 animate-spin-slow"
-                      style={{ animationDuration: '12s', animationDirection: 'reverse' }} />
+                    <div className="w-20 h-20 rounded-full border-4 border-green-400/50"
+                      style={{ animation: 'spin 8s linear infinite' }} />
+                    <div className="absolute inset-1 rounded-full border-2 border-yellow-400/30"
+                      style={{ animation: 'spin 12s linear infinite', animationDirection: 'reverse' }} />
                     {overlay.chosenVariant?.flagUrl ? (
                       <img
                         src={overlay.chosenVariant.flagUrl}
@@ -73,24 +80,23 @@ export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, onBack
               );
             case 'goal-lower-third':
               return (
-                <div key="goal-lower" className="absolute bottom-20 left-1/2 -translate-x-1/2">
+                <div key="goal-lower" className="absolute" style={{ transform, opacity: st?.opacity ?? 1, transformOrigin: '0 0' }}>
                   <div className="px-8 py-4 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-xl shadow-2xl shadow-yellow-500/30 border border-yellow-300/50">
-                    <span className="text-white font-black text-4xl tracking-[0.15em]">GOAL!</span>
+                    <span className="text-white font-black text-4xl tracking-[0.15em] whitespace-nowrap">GOAL!</span>
                   </div>
                 </div>
               );
             case 'trophy-confetti':
               return (
-                <div key="confetti" className="absolute inset-0 overflow-hidden">
+                <div key="confetti" className="absolute inset-0 overflow-hidden pointer-events-none">
                   {Array.from({ length: 20 }).map((_, i) => (
                     <div
                       key={i}
-                      className="absolute w-2 h-2 rounded-full animate-fall"
+                      className="absolute w-2 h-2 rounded-full"
                       style={{
                         left: `${Math.random() * 100}%`,
                         background: ['#FFD700', '#FF4500', '#FF69B4', '#00FF88', '#00BFFF'][i % 5],
-                        animationDelay: `${Math.random() * 2}s`,
-                        animationDuration: `${2 + Math.random() * 2}s`,
+                        animation: `fall ${2 + Math.random() * 2}s ${Math.random() * 2}s infinite`,
                       }}
                     />
                   ))}
@@ -98,28 +104,28 @@ export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, onBack
               );
             case 'commentary-bubble':
               return (
-                <div key="commentary" className="absolute top-4 left-4">
+                <div key="commentary" className="absolute" style={{ transform, opacity: st?.opacity ?? 1, transformOrigin: '0 0' }}>
                   <div className="bg-gray-900/80 backdrop-blur-md rounded-xl border border-yellow-400/30 p-3 shadow-xl max-w-[200px]">
                     <div className="flex items-center gap-1.5 mb-1">
                       <span className="text-xs">🎙</span>
                       <span className="text-yellow-400 text-xs font-bold">LIVE</span>
                     </div>
-                    <p className="text-white text-sm leading-tight">What a moment!</p>
+                    <p className="text-white text-sm leading-tight">{st?.text || 'What a moment!'}</p>
                     <div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-gray-900/80 border-r border-b border-yellow-400/30 rotate-45" />
                   </div>
                 </div>
               );
             case 'stadium-sparkles':
               return (
-                <div key="sparkles" className="absolute inset-0">
+                <div key="sparkles" className="absolute inset-0 pointer-events-none">
                   {Array.from({ length: 12 }).map((_, i) => (
                     <div
                       key={i}
-                      className="absolute w-1 h-1 bg-yellow-300 rounded-full animate-pulse"
+                      className="absolute w-1 h-1 bg-yellow-300 rounded-full"
                       style={{
                         left: `${8 + (i * 8)}%`,
                         top: `${10 + (i * 7)}%`,
-                        animationDelay: `${Math.random() * 2}s`,
+                        animation: `pulse 1.5s ${Math.random() * 2}s infinite`,
                       }}
                     />
                   ))}
@@ -127,10 +133,14 @@ export function RemixPreview({ clipTitle, clipVideoUrl, selectedOverlays, onBack
               );
             case 'ref-card':
               return (
-                <div key="ref-card" className="absolute top-20 right-4">
-                  <div className="bg-gray-900/80 backdrop-blur-md rounded-xl border border-yellow-400/40 p-3 shadow-xl">
-                    <div className="w-8 h-6 bg-yellow-400 rounded flex items-center justify-center">
-                      <span className="text-black text-xs font-bold">YELLOW</span>
+                <div key="ref-card" className="absolute" style={{ transform, opacity: st?.opacity ?? 1, transformOrigin: '0 0' }}>
+                  <div className={`backdrop-blur-md rounded-xl border p-3 shadow-xl ${
+                    st?.cardColor === 'red' ? 'bg-red-900/70 border-red-400/40' : 'bg-gray-900/80 border-yellow-400/40'
+                  }`}>
+                    <div className={`w-8 h-6 rounded flex items-center justify-center ${
+                      st?.cardColor === 'red' ? 'bg-red-500' : 'bg-yellow-400'
+                    }`}>
+                      <span className="text-black text-xs font-bold">{st?.cardColor === 'red' ? 'RED' : 'YLW'}</span>
                     </div>
                   </div>
                 </div>

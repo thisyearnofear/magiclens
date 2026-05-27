@@ -23,10 +23,10 @@ export function EventCard({
   const router = useRouter();
 
   return (
-    <Card className={`bg-gradient-to-r ${
+    <Card className={`${
       isActive
-        ? 'from-yellow-400/20 to-purple-400/20 border-yellow-400/40'
-        : 'from-gray-500/10 to-gray-600/10 border-white/10'
+        ? 'bg-white/5 border-yellow-400/40'
+        : 'bg-white/5 border-white/10'
     } mb-6`}>
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -38,12 +38,12 @@ export function EventCard({
                 {name}
               </h2>
               {isActive && (
-                <Badge className="bg-green-500/20 text-green-300 text-xs border border-green-500/30">
+                <Badge className="bg-green-500/30 text-green-200 text-xs border border-green-400/40 font-medium">
                   Live Event
                 </Badge>
               )}
             </div>
-            <p className="text-gray-300 text-sm">{dateRange}</p>
+            <p className="text-gray-200 text-sm">{dateRange}</p>
 
             {/* Stats */}
             <div className="flex flex-wrap gap-4 mt-3">
