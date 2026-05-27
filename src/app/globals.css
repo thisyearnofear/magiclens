@@ -140,28 +140,22 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
   
-  /* Disable button outlines globally */
-  button:focus,
-  .btn:focus,
-  [role="button"]:focus,
-  a[href]:focus,
-  input:focus,
-  select:focus,
-  textarea:focus {
-    outline: none !important;
-    box-shadow: none !important;
-  }
-  
+  /* Accessible focus styles — yellow ring matching MagicLens brand */
   button:focus-visible,
   .btn:focus-visible,
   [role="button"]:focus-visible,
-  a[href]:focus-visible,
+  a[href]:focus-visible {
+    outline: 2px solid #facc15;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3);
+  }
+
   input:focus-visible,
   select:focus-visible,
   textarea:focus-visible {
-    outline: none !important;
-    box-shadow: none !important;
-    border-color: transparent !important;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.4);
+    border-color: #facc15;
   }
   
   /* Fix for radius variables */
@@ -173,12 +167,7 @@ button:focus-visible {
     --radius-xl: 0.7rem;
   }
   
-  /* Override all borders in dark mode to be the specific #2c2c2c color */
-  .dark * {
-    --border-color: #2c2c2c !important;
-    border-color: #2c2c2c !important;
-  }
-  
+
   :root {
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;

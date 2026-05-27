@@ -6,6 +6,7 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { StadiumBackdrop } from '@/components/StadiumBackdrop';
 import {
   Users, User, Zap, Sparkles,
   Loader2, AlertCircle, RefreshCw,
@@ -120,7 +121,9 @@ export default function DiscoverPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen relative overflow-hidden">
+      <StadiumBackdrop />
+      <div className="relative z-[3]">
       {/* Header */}
       {usingDemo && <DemoBanner />}
       <header className="border-b border-white/10 bg-black/20">
@@ -308,6 +311,7 @@ export default function DiscoverPage() {
           onClose={() => setSelectedCreator(null)}
         />
       )}
+      </div>
     </div>
   );
 }

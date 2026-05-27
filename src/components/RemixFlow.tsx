@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { StadiumBackdrop } from '@/components/StadiumBackdrop';
 import { StepProgress } from '@/components/remix/StepProgress';
 import { ClipPicker } from '@/components/remix/ClipPicker';
 import ARWorkspace from '@/components/remix/ARWorkspace';
-import { QuickRemix } from '@/components/remix/QuickRemix';
+import MobileARWorkspace from '@/components/remix/MobileARWorkspace';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { RemixPreview } from '@/components/remix/RemixPreview';
 import { MintConfirmation } from '@/components/remix/MintConfirmation';
@@ -15,6 +16,7 @@ import { useReferrer } from '@/hooks/useReferrer';
 import { addRemix } from '@/lib/remix-store';
 import { claimReferral } from '@/lib/crossvm-client';
 import type { SelectedOverlay } from '@/hooks/usePack';
+import type { OverlayStyle } from '@/components/remix/EditorOverlay';
 
 const STEP_LABELS = ['Clip', 'AR Overlays', 'Preview', 'Done'];
 
@@ -43,9 +45,10 @@ export default function RemixFlow() {
   const [direction, setDirection] = useState(1);
   const [clip, setClip] = useState<{ title: string; id: string; videoUrl: string } | null>(null);
   const [selectedOverlays, setSelectedOverlays] = useState<SelectedOverlay[]>([]);
+  const [overlayStyles, setOverlayStyles] = useState<Record<string, OverlayStyle>>({});
   const [mintTx, setMintTx] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(false);
-  const [leaderboardRank] = useState<number | null>(3);
+  const [leaderboardRank] = useState<number | null>(null);
   const isMobile = useIsMobile();
 
   const goForward = () => { setDirection(1); setStep(s => s + 1); };
@@ -107,7 +110,9 @@ export default function RemixFlow() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen relative overflow-hidden">
+      <StadiumBackdrop />
+      <div className="relative z-[3]">
       {/* Header */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
@@ -165,9 +170,12 @@ export default function RemixFlow() {
 
           {step === 1 && clip && (
             isMobile ? (
-              <QuickRemix
-                onNext={(packIds) => {
-                  setSelectedOverlays(packIds.map(id => ({ id, name: id, type: 'overlay', description: '', previewColor: '', thumbnail: '', icon: '' } as SelectedOverlay)));
+              <MobileARWorkspace
+                clipTitle={clip.title}
+                clipVideoUrl={clip.videoUrl}
+                onNext={(overlays, styles) => {
+                  setSelectedOverlays(overlays);
+                  setOverlayStyles(styles);
                   goForward();
                 }}
                 onBack={goBack}
@@ -176,8 +184,9 @@ export default function RemixFlow() {
             <ARWorkspace
               clipTitle={clip.title}
               clipVideoUrl={clip.videoUrl}
-              onNext={(overlays) => {
+              onNext={(overlays, styles) => {
                 setSelectedOverlays(overlays);
+                setOverlayStyles(styles);
                 goForward();
               }}
               onBack={goBack}
@@ -205,6 +214,7 @@ export default function RemixFlow() {
                 clipTitle={clip.title}
                 clipVideoUrl={clip.videoUrl}
                 selectedOverlays={selectedOverlays}
+                overlayStyles={overlayStyles}
                 onBack={goBack}
                 onMint={handleMint}
                 isMinting={isMinting}
@@ -230,6 +240,7 @@ export default function RemixFlow() {
                   setStep(0);
                   setClip(null);
                   setSelectedOverlays([]);
+                  setOverlayStyles({});
                   setMintTx(null);
                   setIsDemo(false);
                 }}
@@ -238,6 +249,7 @@ export default function RemixFlow() {
           )}
         </motion.div>
       </AnimatePresence>
+      </div>
     </div>
   );
 }

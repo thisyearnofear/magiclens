@@ -12,7 +12,10 @@ const activityItems = [
 export function ActivityFeed() {
   return (
     <div className="lg:col-span-1 order-3 lg:order-1">
-      <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-4">Platform Activity</h3>
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white">Platform Activity</h3>
+        <span className="px-2 py-0.5 text-[10px] bg-white/10 text-gray-400 rounded-full border border-white/10">Preview</span>
+      </div>
       <div className="space-y-4">
         {activityItems.map((item, i) => (
           <Card key={i} className="bg-white/5 border-white/10">

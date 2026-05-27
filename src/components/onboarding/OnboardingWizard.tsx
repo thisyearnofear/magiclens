@@ -261,7 +261,7 @@ function ReadyStep({ prefs, onFinish }: { prefs: { vibes: string[]; sports: stri
 
   const handleFinish = () => {
     onFinish();
-    router.push('/dashboard?onboarded=true');
+    router.push('/?onboarded=true');
   };
 
   return (

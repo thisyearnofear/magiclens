@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { StadiumBackdrop } from '@/components/StadiumBackdrop';
 import { Button } from '@/components/ui/button';
 import { Trophy, Medal, Zap, DollarSign, Sparkles, Loader2, ArrowRight, Clock, CheckCircle2, Database, Timer } from 'lucide-react';
 import { useAuthContext } from '@/auth/AuthProvider';
@@ -182,7 +183,9 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen relative overflow-hidden">
+      <StadiumBackdrop />
+      <div className="relative z-[3]">
       <DemoBanner message="Preview data — real leaderboard appears when users mint and vote." />
       <header className="border-b border-white/10 bg-black/20">
         <div className="container mx-auto px-4 py-4">
@@ -201,8 +204,8 @@ export default function Leaderboard() {
               </div>
               <div className="text-right flex flex-col items-end gap-2">
                 <div>
-                  <div className="text-2xl font-bold text-yellow-400">$100</div>
-                  <div className="text-gray-400 text-xs">Prize Pool</div>
+                  <div className="text-2xl font-bold text-yellow-400">8</div>
+                  <div className="text-gray-400 text-xs">Iconic Moments</div>
                 </div>
                 {cycleStatus === 'open' && (
                   <>
@@ -543,6 +546,7 @@ export default function Leaderboard() {
             <Zap className="h-5 w-5" /> Create Your Remix
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

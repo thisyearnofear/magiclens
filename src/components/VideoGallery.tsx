@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { videoServiceGetVideos, videoServiceSearchVideos, videoServiceGetVideoCategories, collaborationServiceStartCollaboration } from '@/lib/sdk';
 import { Video } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
+import { StadiumBackdrop } from '@/components/StadiumBackdrop';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -101,7 +102,9 @@ export default function VideoGallery() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen relative overflow-hidden">
+      <StadiumBackdrop />
+      <div className="relative z-[3]">
       {/* Header */}
       {usingDemo && <DemoBanner />}
       <header className="border-b border-white/10 bg-black/20">
@@ -136,7 +139,7 @@ export default function VideoGallery() {
                   placeholder="Search videos..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
                 />
               </div>
@@ -273,6 +276,7 @@ export default function VideoGallery() {
             </Button>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

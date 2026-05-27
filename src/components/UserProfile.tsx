@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useAuthContext } from '@/auth/AuthProvider';
+import { StadiumBackdrop } from '@/components/StadiumBackdrop';
 import { userServiceGetUserProfile, userServiceGetPublicProfile, userServiceUpdateUserProfile } from '@/lib/sdk';
 import { UserProfile as UserProfileType } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
@@ -141,7 +142,9 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="min-h-screen relative overflow-hidden">
+        <StadiumBackdrop />
+        <div className="relative z-[3]">
         <header className="border-b border-white/10 bg-black/20">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center space-x-4">
@@ -170,12 +173,13 @@ export default function UserProfile() {
           </div>
         </div>
       </div>
+      </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
         <Card className="bg-white/10 border-white/20 max-w-md text-center">
           <CardContent className="p-8">
             <User className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -191,7 +195,9 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen relative overflow-hidden">
+      <StadiumBackdrop />
+      <div className="relative z-[3]">
       {/* Header */}
       <header className="border-b border-white/10 bg-black/20">
         <div className="container mx-auto px-4 py-4">
@@ -512,6 +518,7 @@ export default function UserProfile() {
             </div>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );
