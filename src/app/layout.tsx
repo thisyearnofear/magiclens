@@ -22,6 +22,8 @@ export const metadata: Metadata = {
     title: 'MagicLens — AR Remix Layer',
     description: 'Turn every iconic sports moment into a mintable, remixable, ownable piece of fan culture.',
     images: ['https://magiclens.app/og-image.png'],
+    creator: '@magiclensx',
+    site: '@magiclensx',
   },
   appleWebApp: {
     capable: true,

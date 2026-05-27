@@ -44,7 +44,7 @@
 - [x] **Demo storyboard** — 8-scene breakdown mapping UI routes to 2-min video (docs/DEMO_STORYBOARD.md)
 - [ ] **World Cup overlay pack** — 10–20 curated AR assets (32 country flag halos, "GOAL!" lower-thirds, trophy confetti, ref-card overlays)
 - [ ] **Cross-VM mint flow** — daily top-3 remixes from X Layer auto-minted as Flow "Iconic Moment" NFTs
-- [ ] **@MagicLensAR on X** — daily progress posts, tagging @XLayerOfficial + @flow_blockchain
+- [ ] **@magiclensx on X** — daily progress posts, tagging @XLayerOfficial + @flow_blockchain
 - [ ] **2-min demo video** ending on the multi-sport roadmap teaser
 - [ ] **Submission** via Google Form before May 28, 23:59 UTC
 
@@ -121,7 +121,7 @@
 ### Hackathon
 - Submitted on X Layer by May 28
 - Demo video published
-- 7+ days of @MagicLensAR posts tagging @XLayerOfficial
+- 7+ days of @magiclensx posts tagging @XLayerOfficial
 - One full cross-VM mint flow demoable (X Layer remix → Flow Iconic Moment)
 
 ### Phase 1 (3 months)

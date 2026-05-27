@@ -178,7 +178,7 @@ Launch Event: **FIFA World Cup 2026**.
 - **Cross-VM mint flow**: top-3 daily X Layer remixes auto-mint as Flow "Iconic Moment" NFTs
 - **OKX Wallet integration** via wagmi + FCL RainbowKit adapter — one connect button
 - **World Cup overlay pack** — 10–20 curated AR assets (32 country flag halos, "GOAL!" lower-thirds, trophy confetti, ref cards)
-- **2-min demo video** + daily @MagicLensAR social posts tagging @XLayerOfficial + @flow_blockchain
+- **2-min demo video** + daily @magiclensx social posts tagging @XLayerOfficial + @flow_blockchain
 
 See [HACKATHON_STRATEGY.md](./HACKATHON_STRATEGY.md) for the full plan.
 
@@ -232,7 +232,7 @@ See [HACKATHON_STRATEGY.md](./HACKATHON_STRATEGY.md) for the full plan.
 ### Hackathon
 - Submitted on X Layer by May 28, 23:59 UTC
 - One demonstrable cross-VM mint flow (X Layer remix → Flow Iconic Moment)
-- 7+ days of @MagicLensAR posts tagging @XLayerOfficial
+- 7+ days of @magiclensx posts tagging @XLayerOfficial
 
 ### Phase 1 (3 months)
 - 5,000+ remix NFTs minted on X Layer

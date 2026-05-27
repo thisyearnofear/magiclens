@@ -90,7 +90,7 @@ Flow's Crescendo upgrade (Sept 2024) and Forte made it a dual-VM chain (native C
 5. **World Cup overlay pack** — 10–20 assets: 32 country flag halos, "GOAL!" lower-thirds, trophy confetti, ref-card overlays, commentator-style overlays.
 6. **Demo flow:**
    - Match clip → drop flag + confetti overlay → one-click mint on X Layer → appears on leaderboard → top-3 of the day auto-minted as a Flow "Iconic Moment" NFT (cross-VM payoff shot).
-7. **Social presence** — @MagicLensAR on X, tag @XLayerOfficial + @flow_blockchain, post daily progress (hackathon hard requirement).
+7. **Social presence** — @magiclensx on X, tag @XLayerOfficial + @flow_blockchain, post daily progress (hackathon hard requirement).
 8. **2-minute demo video** ending on: *"Today: World Cup. Next: Wimbledon, NBA Finals, F1. The AR remix layer for every sport."*
 
 ## 5. Judging Alignment

@@ -226,7 +226,7 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
                 onClick={() => {
                   if (txHash) {
                     window.open(
-                      `https://twitter.com/intent/tweet?text=I+just+remixed+a+World+Cup+2026+moment+on+MagicLens!+Check+it+out+→&url=https://magiclens.app/remix/${txHash}&via=MagicLensAR`,
+                      `https://twitter.com/intent/tweet?text=I+just+remixed+a+World+Cup+2026+moment+on+MagicLens!+Check+it+out+→&url=https://magiclens.app/remix/${txHash}&via=magiclensx`,
                       '_blank',
                       'noopener,noreferrer'
                     );

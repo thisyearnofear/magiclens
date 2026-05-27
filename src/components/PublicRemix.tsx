@@ -15,7 +15,7 @@ export default function PublicRemix() {
 
   const handleTweet = () => {
     window.open(
-      `https://twitter.com/intent/tweet?text=I+just+remixed+a+World+Cup+2026+moment+on+MagicLens!+Check+it+out+→&url=${encodeURIComponent(shareUrl)}&via=MagicLensAR&hashtags=AR,WorldCup2026,NFT`,
+      `https://twitter.com/intent/tweet?text=I+just+remixed+a+World+Cup+2026+moment+on+MagicLens!+Check+it+out+→&url=${encodeURIComponent(shareUrl)}&via=magiclensx&hashtags=AR,WorldCup2026,NFT`,
       '_blank',
       'noopener,noreferrer'
     );
