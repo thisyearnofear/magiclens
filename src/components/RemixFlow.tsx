@@ -64,6 +64,7 @@ export default function RemixFlow() {
         const result = await mintRemix(
           clipTitle,
           selectedOverlays.map(o => o.id),
+          selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name),
           referrerAddress,
         );
         if (result) {
