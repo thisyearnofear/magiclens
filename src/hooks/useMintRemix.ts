@@ -4,6 +4,7 @@ import { REMIX_NFT_ABI, REMIX_NFT_ADDRESS } from '@/lib/web3/contracts'
 import { uploadMetadataToGrove } from '@/lib/grove'
 import { getApiBaseUrl } from '@/lib/api-base'
 import { toast } from 'sonner'
+import { consumePendingThumbnail } from '@/lib/capture-thumbnail'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
 const API_BASE = getApiBaseUrl()
@@ -43,7 +44,8 @@ export function useMintRemix() {
 
     const metadataName = `MagicLens Remix #${nextTokenId}`
     const metadataDescription = `AR-enhanced sports remix: "${clipTitle}" with overlays: ${overlayNames.join(', ')}. Minted on X Layer via MagicLens.`
-    const metadataImage = 'https://magiclens.app/og-image.png'
+    const customImageUrl = await consumePendingThumbnail()
+    const metadataImage = customImageUrl || 'https://magiclens.app/og-image.png'
     const metadataExternalUrl = `https://magiclens.vercel.app/remix/${nextTokenId}`
     const metadataAttributes = [
       { trait_type: 'Clip', value: clipTitle },

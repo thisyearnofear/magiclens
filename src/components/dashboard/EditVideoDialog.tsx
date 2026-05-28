@@ -42,7 +42,7 @@ export function EditVideoDialog({ open, video, onClose, onSave }: EditVideoDialo
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
-      <DialogContent className="bg-gray-900 border-gray-700 text-white">
+      <DialogContent className="bg-white/5 border-white/10 text-white backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Edit Video Title</DialogTitle>
         </DialogHeader>
@@ -56,7 +56,7 @@ export function EditVideoDialog({ open, video, onClose, onSave }: EditVideoDialo
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Enter video title..."
-              className="bg-gray-800 border-gray-600 text-white placeholder-gray-400 focus:border-yellow-400"
+              className="bg-white/5 border-white/10 text-white placeholder-gray-400 focus:border-yellow-400"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleSave();
@@ -69,7 +69,7 @@ export function EditVideoDialog({ open, video, onClose, onSave }: EditVideoDialo
           <Button
             variant="outline"
             onClick={onClose}
-            className="border-gray-600 text-gray-300 hover:bg-gray-800"
+            className="border-white/10 text-gray-300 hover:bg-white/10"
           >
             Cancel
           </Button>

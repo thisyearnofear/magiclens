@@ -7,7 +7,7 @@ access(all) contract ARAssetNFT: NonFungibleToken {
     access(all) event ContractInitialized()
     access(all) event Withdraw(id: UInt64)
     access(all) event Deposit(id: UInt64)
-    access(all) event Minted(id: UInt64, creator: Address)
+    access(all) event Minted(id: UInt64, creator: Address, mediaURI: String)
 
     access(all) let CollectionStoragePath: StoragePath
     access(all) let CollectionPublicPath: PublicPath
@@ -20,12 +20,14 @@ access(all) contract ARAssetNFT: NonFungibleToken {
         access(all) let name: String
         access(all) let description: String
         access(all) let creator: Address
+        access(all) let mediaURI: String
 
-        init(id: UInt64, name: String, description: String, creator: Address) {
+        init(id: UInt64, name: String, description: String, creator: Address, mediaURI: String) {
             self.id = id
             self.name = name
             self.description = description
             self.creator = creator
+            self.mediaURI = mediaURI
         }
 
         access(all) view fun getViews(): [Type] {
@@ -38,7 +40,7 @@ access(all) contract ARAssetNFT: NonFungibleToken {
                     return MetadataViews.Display(
                         name: self.name,
                         description: self.description,
-                        thumbnail: MetadataViews.HTTPFile(url: "https://magiclens.app/logo.png")
+                        thumbnail: MetadataViews.HTTPFile(url: self.mediaURI)
                     )
             }
             return nil
@@ -120,17 +122,19 @@ access(all) contract ARAssetNFT: NonFungibleToken {
             recipient: &{NonFungibleToken.Receiver},
             name: String,
             description: String,
-            creator: Address
+            creator: Address,
+            mediaURI: String
         ): UInt64 {
             let newNFT <- create NFT(
                 id: ARAssetNFT.totalSupply,
                 name: name,
                 description: description,
-                creator: creator
+                creator: creator,
+                mediaURI: mediaURI
             )
 
             let id = newNFT.id
-            emit Minted(id: id, creator: creator)
+            emit Minted(id: id, creator: creator, mediaURI: mediaURI)
 
             recipient.deposit(token: <-newNFT)
             ARAssetNFT.totalSupply = ARAssetNFT.totalSupply + 1

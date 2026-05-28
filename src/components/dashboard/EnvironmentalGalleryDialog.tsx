@@ -15,7 +15,7 @@ interface EnvironmentalGalleryDialogProps {
 export function EnvironmentalGalleryDialog({ open, onClose }: EnvironmentalGalleryDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden bg-gray-900 border-gray-700">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden bg-white/5 border-white/10 backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="text-white">Environmental Footage Inspiration</DialogTitle>
         </DialogHeader>

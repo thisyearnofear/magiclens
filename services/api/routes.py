@@ -1674,6 +1674,7 @@ class PromoteToIconicRequest(BaseModel):
     day: int = 1
     rank: int
     promoted_by: str = "system"
+    media_uri: str = ""
 
 
 @app.post("/api/crossvm/promote")
@@ -1684,8 +1685,19 @@ async def promote_to_iconic(body: PromoteToIconicRequest):
     Flow Cadence NFTs. This endpoint triggers the cross-VM mint.
     """
     from core.crossvm_service import crossvm_service, CrossVMMintRequest
+    from core.database import execute_query
 
     try:
+        # Look up mediaURI from stored token metadata if not provided
+        media_uri = body.media_uri
+        if not media_uri:
+            row = execute_query(
+                "SELECT image FROM token_metadata WHERE contract_address = %s AND token_id = %s",
+                (CONTRACT_ADDRESS, body.xlayer_token_id),
+            )
+            if row and row[0].get("image"):
+                media_uri = row[0]["image"]
+
         request = CrossVMMintRequest(
             xlayer_token_id=body.xlayer_token_id,
             xlayer_tx_hash=body.xlayer_tx_hash,
@@ -1695,6 +1707,7 @@ async def promote_to_iconic(body: PromoteToIconicRequest):
             day=body.day,
             rank=body.rank,
             promoted_by=body.promoted_by,
+            media_uri=media_uri,
         )
 
         result = await crossvm_service.promote_to_iconic(request)

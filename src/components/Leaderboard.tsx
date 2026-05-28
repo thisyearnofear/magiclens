@@ -259,7 +259,7 @@ export default function Leaderboard() {
         {/* Prize pool + Cross-VM banner */}
         <div className="grid md:grid-cols-3 gap-4 mb-6">
           <Card className="bg-gradient-to-r from-yellow-400/20 to-purple-400/20 border-yellow-400/30 md:col-span-2">
-            <CardContent className="p-6 flex items-center justify-between">
+            <CardContent className="p-6 flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-white">World Cup 2026 — Day 1</h2>
                 <p className="text-gray-300 text-sm mt-1">Top 10 remixes win USDT rewards. Top 3 become Flow Iconic Moments.</p>

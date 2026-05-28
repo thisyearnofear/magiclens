@@ -374,7 +374,7 @@ export default function UserProfile() {
 
           <CardContent>
             {/* Stats */}
-            <div className="grid md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">

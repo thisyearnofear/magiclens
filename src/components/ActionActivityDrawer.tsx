@@ -78,7 +78,7 @@ export function ActionActivityDrawer() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] max-w-sm">
-      <div className="overflow-hidden rounded-lg border border-white/10 bg-zinc-950/95 shadow-2xl shadow-black/40 backdrop-blur">
+      <div className="overflow-hidden rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm shadow-2xl shadow-black/40">
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}

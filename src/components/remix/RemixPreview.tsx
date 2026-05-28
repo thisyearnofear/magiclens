@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import type { SelectedOverlay } from '@/hooks/usePack';
 import type { OverlayStyle } from '@/components/remix/EditorOverlay';
+import { captureRemixFrame, uploadThumbnailToGrove, setPendingThumbnail } from '@/lib/capture-thumbnail';
 
 interface RemixPreviewProps {
   clipTitle: string;
@@ -49,6 +50,14 @@ export function RemixPreview({
 }: RemixPreviewProps) {
   const packNames = selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name);
   const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleMintClick = async () => {
+    const blob = await captureRemixFrame(videoRef.current, selectedOverlays, clipTitle)
+    const urlPromise = uploadThumbnailToGrove(blob).catch(() => null)
+    setPendingThumbnail(urlPromise)
+    onMint()
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -123,6 +132,7 @@ export function RemixPreview({
 
         {clipVideoUrl ? (
           <video
+            ref={videoRef}
             src={clipVideoUrl}
             className="absolute inset-0 w-full h-full object-cover"
             muted
@@ -267,7 +277,7 @@ export function RemixPreview({
           <ArrowLeft className="h-4 w-4 mr-2" /> Adjust Overlays
         </Button>
         <Button
-          onClick={onMint}
+          onClick={handleMintClick}
           size="lg"
           loading={isMinting}
           loadingText={mintLoadingText}

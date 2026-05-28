@@ -61,6 +61,7 @@ class CrossVMMintRequest:
         day: int,
         rank: int,
         promoted_by: str,
+        media_uri: str = "",
     ):
         self.id = uuid4()
         self.xlayer_token_id = xlayer_token_id
@@ -71,6 +72,7 @@ class CrossVMMintRequest:
         self.day = day
         self.rank = rank
         self.promoted_by = promoted_by
+        self.media_uri = media_uri
         self.status = "pending"
         self.created_at = datetime.utcnow()
 
@@ -89,6 +91,7 @@ class CrossVMMintRequest:
             "flow_tx_hash": None,
             "flow_minted_at": None,
             "promoted_by": self.promoted_by,
+            "media_uri": self.media_uri,
             "created_at": self.created_at.isoformat(),
         }
 
@@ -188,7 +191,7 @@ class CrossVMService:
             import ARAssetNFT from {self.flow_contract_address}
             import NonFungibleToken from {self.nft_address}
 
-            transaction(name: String, description: String, creator: Address) {{
+            transaction(name: String, description: String, creator: Address, mediaURI: String) {{
                 let minterRef: &ARAssetNFT.NFTMinter
                 let recipientRef: &{{NonFungibleToken.Receiver}}
 
@@ -209,7 +212,8 @@ class CrossVMService:
                         recipient: self.recipientRef,
                         name: name,
                         description: description,
-                        creator: creator
+                        creator: creator,
+                        mediaURI: mediaURI
                     )
                 }}
             }}
@@ -230,6 +234,10 @@ class CrossVMService:
             {
                 "type": "Address",
                 "value": self.flow_contract_address,
+            },
+            {
+                "type": "String",
+                "value": request.media_uri or "https://magiclens.app/logo.png",
             },
         ]
 

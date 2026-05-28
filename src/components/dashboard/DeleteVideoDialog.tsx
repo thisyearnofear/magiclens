@@ -20,7 +20,7 @@ interface DeleteVideoDialogProps {
 export function DeleteVideoDialog({ open, video, loading, onClose, onConfirm }: DeleteVideoDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
-      <DialogContent className="bg-gray-900 border-red-500/30 text-white max-w-md">
+      <DialogContent className="bg-white/5 border-red-500/30 text-white max-w-md backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-red-400 flex items-center space-x-2">
             <Trash2 className="h-5 w-5" />
@@ -48,7 +48,7 @@ export function DeleteVideoDialog({ open, video, loading, onClose, onConfirm }: 
             variant="outline"
             onClick={onClose}
             disabled={loading}
-            className="border-gray-600 text-gray-300 hover:bg-gray-800"
+            className="border-white/10 text-gray-300 hover:bg-white/10"
           >
             Cancel
           </Button>

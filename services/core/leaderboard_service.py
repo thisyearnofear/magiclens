@@ -193,6 +193,15 @@ class LeaderboardService:
                 continue
 
             try:
+                # Look up mediaURI from stored token metadata
+                media_uri = ""
+                row = execute_query(
+                    "SELECT image FROM token_metadata WHERE contract_address = %s AND token_id = %s",
+                    ("0x910d4383313814CC47db6ffeD56aC2F2CBE764Cf", entry["xlayer_token_id"]),
+                )
+                if row and row[0].get("image"):
+                    media_uri = row[0]["image"]
+
                 request = CrossVMMintRequest(
                     xlayer_token_id=entry["xlayer_token_id"],
                     xlayer_tx_hash=entry["xlayer_tx_hash"],
@@ -202,6 +211,7 @@ class LeaderboardService:
                     day=day,
                     rank=entry["rank"],
                     promoted_by="auto-scheduler",
+                    media_uri=media_uri,
                 )
                 result = await crossvm_service.promote_to_iconic(request)
                 if result.get("flow_mint", {}).get("success"):
