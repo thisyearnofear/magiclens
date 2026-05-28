@@ -1,14 +1,13 @@
-import { ArrowLeft, Save, X, User, Camera, Palette, Zap, Pencil, Copy, Link2, Flame, Award, Gift, TrendingUp } from "lucide-react";
-import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Save, X, User, Camera, Palette, Zap, Pencil, Copy, Link2, Flame, Award, Gift, TrendingUp, Wallet } from "lucide-react";
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { StadiumBackdrop } from '@/components/StadiumBackdrop';
-import { userServiceGetUserProfile, userServiceGetPublicProfile, userServiceUpdateUserProfile } from '@/lib/sdk';
+import { userServiceGetUserProfile, userServiceGetPublicProfile, userServiceUpdateUserProfile, userServiceCreateUserProfile } from '@/lib/sdk';
 import { UserProfile as UserProfileType } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DEMO_PROFILE } from '@/lib/demo-data';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +19,7 @@ import { getUserRemixes } from '@/lib/remix-store';
 import { computeStreak, getStreakBadge } from '@/lib/streak';
 import { useWeb3Profile } from '@/hooks/useWeb3Profile';
 import { Web3Identities } from '@/components/Web3Identities';
+import { getShortDisplayName } from '@/hooks/useWeb3Profile';
 
 
 export default function UserProfile() {
@@ -74,7 +74,6 @@ export default function UserProfile() {
 
   const loadProfile = async () => {
     setLoading(true);
-    let found = false;
     try {
       if (isOwnProfile) {
         const response = await userServiceGetUserProfile();
@@ -85,7 +84,6 @@ export default function UserProfile() {
             bio: response.data.bio || '',
             avatar: null
           });
-          found = true;
         }
       } else {
         const response = await userServiceGetPublicProfile({
@@ -93,50 +91,72 @@ export default function UserProfile() {
         });
         if (response.data) {
           setProfile(response.data);
-          found = true;
         }
       }
     } catch (error) {
-      console.warn('Profile API threw — using demo profile');
-    }
-    if (!found && isOwnProfile) {
-      setProfile(DEMO_PROFILE as any);
-      setEditForm({ username: DEMO_PROFILE.username, bio: DEMO_PROFILE.bio || '', avatar: null });
+      console.warn('Profile API threw');
     }
     setLoading(false);
   };
 
+  // For own profile without a backend profile, render from Web3 identity data
+  const effectiveProfile = useMemo(() => {
+    if (profile) return profile;
+    if (!isOwnProfile) return null;
+    return {
+      id: 'web3-fallback' as const,
+      user_id: user || '',
+      username: web3.displayName || getShortDisplayName(identityAddress) || 'Player',
+      user_type: 'videographer' as const,
+      avatar_url: web3.avatarUrl || '',
+      bio: web3.bio || '',
+      earnings_total: 0,
+      is_verified: false,
+      created_at: new Date().toISOString(),
+      last_updated: new Date().toISOString(),
+      portfolio_data: {} as Record<string, unknown>,
+    };
+  }, [profile, isOwnProfile, user, web3.displayName, web3.avatarUrl, web3.bio, identityAddress]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await userServiceUpdateUserProfile({
-        body: {
-          username: editForm.username || null,
-          bio: editForm.bio || null,
-          avatar: editForm.avatar
-        }
-      });
+      const isNew = !profile;
+      const response = isNew
+        ? await userServiceCreateUserProfile({
+            body: {
+              username: editForm.username || 'Player',
+              bio: editForm.bio || null,
+              user_type: 'videographer',
+            }
+          })
+        : await userServiceUpdateUserProfile({
+            body: {
+              username: editForm.username || null,
+              bio: editForm.bio || null,
+              avatar: editForm.avatar
+            }
+          });
 
       if (response.data) {
         setProfile(response.data);
         setEditing(false);
+        if (isNew) toast.success('Profile created!');
       }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Profile update failed', { description: 'Please try again in a moment.' });
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save profile', { description: 'Please try again in a moment.' });
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
-    if (profile) {
-      setEditForm({
-        username: profile.username,
-        bio: profile.bio || '',
-        avatar: null
-      });
-    }
+    setEditForm({
+      username: effectiveProfile.username,
+      bio: effectiveProfile.bio || '',
+      avatar: null
+    });
     setEditing(false);
   };
 
@@ -184,7 +204,7 @@ export default function UserProfile() {
     );
   }
 
-  if (!profile) {
+  if (!effectiveProfile) {
     return (
       <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
         <StadiumBackdrop />
@@ -195,7 +215,6 @@ export default function UserProfile() {
             <h2 className="text-xl font-bold text-white mb-2">Profile Not Found</h2>
             <p className="text-gray-300 mb-4">This user profile doesn't exist or isn't public.</p>
 
-            {/* Show Web3 identity as a rich fallback */}
             {!web3.loading && web3.displayName && (
               <div className="mb-4">
                 <Web3Identities web3={web3} walletAddress={identityAddress} layout="full" />
@@ -267,9 +286,9 @@ export default function UserProfile() {
               {/* Avatar */}
               <div className="relative">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={profile.avatar_url || undefined} />
+                  <AvatarImage src={effectiveProfile.avatar_url || undefined} />
                   <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white text-2xl">
-                    {profile.username.charAt(0).toUpperCase()}
+                    {effectiveProfile.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
 
@@ -316,19 +335,19 @@ export default function UserProfile() {
                 ) : (
                   <>
                     <CardTitle className="text-3xl font-bold text-white mb-2">
-                      {profile.username}
+                      {effectiveProfile.username}
                     </CardTitle>
 
                     <div className="flex items-center space-x-2 mb-2">
-                      <Badge className={`${profile.user_type === 'artist' ? 'bg-purple-500' :
-                          profile.user_type === 'videographer' ? 'bg-blue-500' :
+                      <Badge className={`${effectiveProfile.user_type === 'artist' ? 'bg-purple-500' :
+                          effectiveProfile.user_type === 'videographer' ? 'bg-blue-500' :
                             'bg-gradient-to-r from-purple-500 to-blue-500'
                         }`}>
-                        {profile.user_type === 'both' ? 'Artist & Videographer' :
-                          profile.user_type.charAt(0).toUpperCase() + profile.user_type.slice(1)}
+                        {effectiveProfile.user_type === 'both' ? 'Artist & Videographer' :
+                          effectiveProfile.user_type.charAt(0).toUpperCase() + effectiveProfile.user_type.slice(1)}
                       </Badge>
 
-                      {profile.is_verified && (
+                      {effectiveProfile.is_verified && (
                         <Badge className="bg-yellow-500 text-black">
                           Verified
                         </Badge>
@@ -342,9 +361,9 @@ export default function UserProfile() {
                       </div>
                     )}
 
-                    {profile.bio && (
+                    {effectiveProfile.bio && (
                       <CardDescription className="text-gray-300 text-base">
-                        {profile.bio}
+                        {effectiveProfile.bio}
                       </CardDescription>
                     )}
                   </>
@@ -381,7 +400,7 @@ export default function UserProfile() {
               <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">
-                    ${profile.earnings_total?.toFixed(2) || '0.00'}
+                    ${effectiveProfile.earnings_total?.toFixed(2) || '0.00'}
                   </div>
                   <p className="text-gray-400 text-xs">Earnings</p>
                 </CardContent>
@@ -525,7 +544,7 @@ export default function UserProfile() {
 
             {/* User Type Info */}
             <div className="space-y-4">
-              {(profile.user_type === 'videographer' || profile.user_type === 'both') && (
+              {(effectiveProfile.user_type === 'videographer' || effectiveProfile.user_type === 'both') && (
                 <Card className="bg-blue-500/20 border-blue-500/30">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
@@ -539,7 +558,7 @@ export default function UserProfile() {
                 </Card>
               )}
 
-              {(profile.user_type === 'artist' || profile.user_type === 'both') && (
+              {(effectiveProfile.user_type === 'artist' || effectiveProfile.user_type === 'both') && (
                 <Card className="bg-purple-500/20 border-purple-500/30">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
