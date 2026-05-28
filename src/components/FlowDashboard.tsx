@@ -47,7 +47,7 @@ export function FlowDashboard() {
             <FlowWalletConnect />
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
+              <Card className="bg-white/5 border-white/10">
                 <CardHeader>
                   <CardTitle className="text-lg">Flow Network</CardTitle>
                   <CardDescription>Current blockchain network</CardDescription>
@@ -57,7 +57,7 @@ export function FlowDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white/5 border-white/10">
                 <CardHeader>
                   <CardTitle className="text-lg">Smart Contracts</CardTitle>
                   <CardDescription>Deployed contracts</CardDescription>
@@ -71,7 +71,7 @@ export function FlowDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white/5 border-white/10">
                 <CardHeader>
                   <CardTitle className="text-lg">Features</CardTitle>
                   <CardDescription>Available capabilities</CardDescription>
@@ -96,7 +96,7 @@ export function FlowDashboard() {
           </TabsContent>
 
           <TabsContent value="collaborations">
-            <Card>
+            <Card className="bg-white/5 border-white/10">
               <CardHeader>
                 <CardTitle>Collaboration Projects</CardTitle>
                 <CardDescription>

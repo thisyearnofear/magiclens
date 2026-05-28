@@ -50,7 +50,7 @@ export function CollabPreview({ collab, onJoin, onClose, isAuthenticated }: Coll
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-2xl"
       >
-        <Card className="bg-gray-900 border-white/10 overflow-hidden shadow-2xl">
+        <Card className="bg-white/5 border-white/10 overflow-hidden shadow-2xl">
           {/* Thumbnail */}
           <div className="relative aspect-video bg-gradient-to-br from-gray-800 to-gray-900">
             {collab.thumbnail_url ? (

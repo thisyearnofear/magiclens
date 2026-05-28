@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
 import { Sparkles, ExternalLink, RefreshCw, Trophy, Medal } from 'lucide-react';
 import type { CrossVMPromotion } from '@/types/crossvm';
-import { getIconicMoments, seedDemoData } from '@/lib/crossvm-client';
+import { getIconicMoments, seedDemoData, closeLeaderboardDay, triggerAutoPromote } from '@/lib/crossvm-client';
 import { measureUserAction } from '@/lib/action-observability';
 import { TransactionProgress, type TransactionStep } from '@/components/TransactionProgress';
 import { ProductJourneyHeader } from '@/components/ProductJourneyHeader';
@@ -205,6 +205,45 @@ export function IconicMomentsGallery() {
     },
   });
 
+  const closeDayMutation = useMutation({
+    mutationFn: async () => {
+      setStatusMessage('Closing leaderboard day and promoting top entries to Flow...');
+      const close = await measureUserAction('close_day_from_gallery', (actionId) =>
+        closeLeaderboardDay(1, [], actionId)
+      );
+      if (close.success) {
+        const promote = await triggerAutoPromote(1);
+        return promote;
+      }
+      return close;
+    },
+    onSuccess: async (result) => {
+      if (result.success) {
+        toast({
+          title: 'Day Closed & Promoted!',
+          description: `Top entries minted as Flow Iconic Moments.`,
+        });
+        await queryClient.invalidateQueries({ queryKey: ['iconic-moments'] });
+      } else {
+        toast({
+          title: 'Close Failed',
+          description: result.error || 'Could not close leaderboard day',
+          variant: 'destructive',
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: 'Close Failed',
+        description: 'Could not reach backend',
+        variant: 'destructive',
+      });
+    },
+    onSettled: () => {
+      setStatusMessage(null);
+    },
+  });
+
   const fetchMoments = async () => {
     try {
       await measureUserAction('refresh_iconic_moments', () => momentsQuery.refetch().then((result) => {
@@ -221,10 +260,12 @@ export function IconicMomentsGallery() {
   };
 
   const handleSeed = () => seedMutation.mutate();
+  const handleCloseDay = () => closeDayMutation.mutate();
   const moments = momentsQuery.data ?? [];
   const loading = momentsQuery.isLoading;
   const refreshing = momentsQuery.isRefetching && !momentsQuery.isLoading;
   const seeding = seedMutation.isPending;
+  const closing = closeDayMutation.isPending;
   const mintedCount = moments.filter((m) => m.status === 'minted').length;
   const pendingCount = moments.filter((m) => m.status === 'pending').length;
 
@@ -256,9 +297,14 @@ export function IconicMomentsGallery() {
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
 
-          <Button onClick={handleSeed} loading={seeding} loadingText="Minting on Flow..." disabled={refreshing}>
+          <Button onClick={handleSeed} loading={seeding} loadingText="Minting on Flow..." disabled={refreshing || closing}>
             <Sparkles className="h-4 w-4 mr-1" />
             Seed Demo Data
+          </Button>
+
+          <Button onClick={handleCloseDay} loading={closing} loadingText="Closing..." disabled={refreshing || seeding} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Close Day & Promote
           </Button>
         </div>
       </div>

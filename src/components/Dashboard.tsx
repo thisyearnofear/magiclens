@@ -131,7 +131,7 @@ export default function Dashboard() {
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 subscribed
                   ? 'bg-green-600/20 text-green-400 border border-green-500/30 hover:bg-green-600/30'
-                  : 'bg-gray-800/50 text-gray-300 border border-gray-700 hover:bg-gray-700/50 hover:text-white'
+                  : 'bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 hover:text-white'
               }`}
             >
               🔔 {subscribed ? 'Notifications on ✓' : 'Get notified when leaderboard resets'}

@@ -233,7 +233,7 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {recommendations.map((rec, index) => (
-                                        <Card key={index} className="bg-gray-800 border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors"
+                                        <Card key={index} className="bg-white/5 border-white/10 cursor-pointer hover:bg-white/10 transition-colors"
                                             onClick={() => onSelectOverlay(rec)}>
                                             <CardContent className="p-4">
                                                 <div className="flex items-center gap-3 mb-2">
@@ -267,7 +267,7 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
                             <select
                                 value={gifSource}
                                 onChange={(e) => setGifSource(e.target.value as 'tenor' | 'giphy' | 'all')}
-                                className="px-3 py-1 bg-gray-800 border border-gray-600 rounded text-white text-sm focus:border-blue-500 outline-none"
+                                className="px-3 py-1 bg-white/5 border border-white/10 rounded text-white text-sm focus:border-blue-500 outline-none"
                             >
                                 <option value="all">All Sources</option>
                                 <option value="tenor">Tenor</option>
@@ -282,7 +282,7 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
                                 placeholder="Search for GIF overlays..."
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 outline-none"
+                                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 outline-none"
                             />
                         </div>
 
@@ -318,7 +318,7 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {assets.map((asset) => (
-                                <Card key={asset.asset.id} className="bg-gray-800 border-gray-700 cursor-pointer hover:bg-gray-750 transition-colors"
+                                <Card key={asset.asset.id} className="bg-white/5 border-white/10 cursor-pointer hover:bg-white/10 transition-colors"
                                     onClick={() => onSelectOverlay(asset)}>
                                     <CardContent className="p-4">
                                         <div className="flex items-center gap-3 mb-2">
@@ -355,7 +355,7 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
     };
 
     return (
-        <Card className="bg-gray-900 border-gray-700">
+        <Card className="bg-white/5 border-white/10">
             <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
                     <Layers size={20} />
@@ -408,7 +408,7 @@ export const OverlaySelector: React.FC<OverlaySelectorProps> = ({
                 {renderTabContent()}
 
                 {/* Help Text */}
-                <div className="mt-4 pt-4 border-t border-gray-700">
+                <div className="mt-4 pt-4 border-t border-white/10">
                     <div className="text-center">
                         <p className="text-gray-400 text-sm mb-2">
                             💡 <strong>Pro Tip:</strong> Add multiple overlays for richer content

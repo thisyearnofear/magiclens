@@ -144,6 +144,21 @@ def create_tables():
                 CREATE INDEX IF NOT EXISTS idx_referral_day ON referral_claims(day);
             """)
 
+            # Create token_metadata table (ERC-721 per-token metadata)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS token_metadata (
+                    contract_address VARCHAR(42) NOT NULL,
+                    token_id INTEGER NOT NULL,
+                    name VARCHAR(200) NOT NULL,
+                    description TEXT,
+                    image TEXT,
+                    external_url TEXT,
+                    attributes JSONB,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (contract_address, token_id)
+                )
+            """)
+
             # Create collaboration_requests table
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS collaboration_requests (

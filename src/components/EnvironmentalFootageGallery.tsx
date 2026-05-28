@@ -126,7 +126,7 @@ export const EnvironmentalFootageGallery: React.FC<EnvironmentalFootageGalleryPr
                         }}
                         className={`px-4 py-2 rounded-lg text-sm transition-colors ${!selectedCategory
                             ? 'bg-blue-500 text-white'
-                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-white/5 text-gray-300 hover:bg-white/10'
                             }`}
                     >
                         All Categories
@@ -137,7 +137,7 @@ export const EnvironmentalFootageGallery: React.FC<EnvironmentalFootageGalleryPr
                             onClick={() => handleCategorySelect(category.name)}
                             className={`px-4 py-2 rounded-lg text-sm transition-colors ${selectedCategory === category.name
                                 ? 'bg-blue-500 text-white'
-                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                : 'bg-white/5 text-gray-300 hover:bg-white/10'
                                 }`}
                             title={category.description}
                         >
@@ -167,7 +167,7 @@ export const EnvironmentalFootageGallery: React.FC<EnvironmentalFootageGalleryPr
                 {videos.map((video) => (
                     <div
                         key={video.id}
-                        className="bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-750 transition-colors cursor-pointer group"
+                        className="bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:bg-white/10 transition-colors cursor-pointer group"
                         onClick={() => handleVideoSelect(video)}
                     >
                         <div className="relative aspect-video">

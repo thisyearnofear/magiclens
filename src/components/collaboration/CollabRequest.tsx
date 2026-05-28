@@ -57,7 +57,7 @@ export function CollabRequest({ creator, onSendRequest, onClose }: CollabRequest
           animate={{ y: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Card className="bg-gray-900 border-white/10 w-full max-w-sm shadow-2xl">
+          <Card className="bg-white/5 border-white/10 w-full max-w-sm shadow-2xl">
             <CardContent className="p-6">
               {/* Close button */}
               <button

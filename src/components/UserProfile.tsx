@@ -258,7 +258,7 @@ export default function UserProfile() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Card className="bg-gray-900/70 backdrop-blur-sm border-white/20 shadow-xl">
+        <Card className="bg-white/5 border-white/10 shadow-xl">
           <CardHeader className="pb-6">
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
               {/* Avatar */}
@@ -375,7 +375,7 @@ export default function UserProfile() {
           <CardContent>
             {/* Stats */}
             <div className="grid md:grid-cols-4 gap-4 mb-8">
-              <Card className="bg-gray-800/60 border-white/10">
+              <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">
                     ${profile.earnings_total?.toFixed(2) || '0.00'}
@@ -384,7 +384,7 @@ export default function UserProfile() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-800/60 border-white/10">
+              <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">
                     {streak.current}
@@ -401,7 +401,7 @@ export default function UserProfile() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-800/60 border-white/10">
+              <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-xl font-bold text-white mb-1">
                     {streak.longest}
@@ -413,7 +413,7 @@ export default function UserProfile() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-800/60 border-white/10">
+              <Card className="bg-white/5 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">
                     {getUserRemixes().length}

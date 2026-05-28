@@ -17,7 +17,7 @@ import { TransactionProgress, type TransactionStep, type TransactionStepStatus }
 import { ProductJourneyHeader } from '@/components/ProductJourneyHeader';
 import { toast } from 'sonner';
 import { DEMO_LEADERBOARD_ENTRIES } from '@/lib/demo-data';
-import { closeLeaderboardDay, seedDemoData } from '@/lib/crossvm-client';
+import { closeLeaderboardDay, triggerAutoPromote, seedDemoData } from '@/lib/crossvm-client';
 import { measureUserAction } from '@/lib/action-observability';
 import type { CrossVMPromotion } from '@/types/crossvm';
 
@@ -63,20 +63,30 @@ export default function Leaderboard() {
   const [countdown, setCountdown] = useState('');
 
   const closeDayMutation = useMutation({
-    mutationFn: (top10: Parameters<typeof closeLeaderboardDay>[1]) => {
-      setActionStatus('Closing the leaderboard and queueing top-3 Flow promotions...');
-      return measureUserAction(
+    mutationFn: async (top10: Parameters<typeof closeLeaderboardDay>[1]) => {
+      setActionStatus('Closing the leaderboard and promoting top-3 to Flow...');
+      const close = await measureUserAction(
         'close_leaderboard_day',
         (actionId) => closeLeaderboardDay(1, top10, actionId),
         { day: 1, entries: top10.length }
       );
+      if (close.success) {
+        setActionStatus('Closing complete. Triggering cross-VM mint...');
+        const promote = await triggerAutoPromote(1);
+        if (promote.success) {
+          return { ...close, promoted: promote.promoted ?? 0, errors: promote.errors ?? [] };
+        }
+      }
+      return close;
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       if (result.success) {
-        setCycleStatus('closed');
-        setActionStatus('Leaderboard closed. Waiting for the auto-promote scheduler...');
-        toast.success(isGuest ? 'Leaderboard closed (guest mode)! Auto-promote scheduled.' : 'Leaderboard closed! Auto-promote scheduled.', {
-          description: 'Top-3 entries will be promoted to Flow Iconic Moments shortly.',
+        setCycleStatus('completed');
+        setPromoteResults({ promoted: result.promoted || 3, errors: result.errors || [] });
+        setActionStatus(null);
+        await queryClient.invalidateQueries({ queryKey: ['iconic-moments'] });
+        toast.success('Day closed & promoted!', {
+          description: `Top-3 entries minted as Flow Iconic Moments.`,
         });
       } else {
         setActionStatus(null);
@@ -273,18 +283,18 @@ export default function Leaderboard() {
                         disabled={closeDayMutation.isPending}
                         size="sm"
                         variant="outline"
-                        className="h-7 text-[10px] border-purple-400/30 text-purple-300 hover:bg-purple-400/10 px-2"
+                        className="h-9 text-xs border-purple-400/30 text-purple-300 hover:bg-purple-400/10 px-3"
                       >
-                        <Database className="h-3 w-3 mr-1" />
+                        <Database className="h-3.5 w-3.5 mr-1.5" />
                         Seed Demo
                       </Button>
                       <Button
                         onClick={handleCloseDay}
                         loading={closeDayMutation.isPending}
-                        loadingText="Closing..."
+                        loadingText={isGuest ? 'Closing...' : 'Closing...'}
                         disabled={seedDemoMutation.isPending}
                         size="sm"
-                        className="h-7 text-[10px] bg-yellow-400 text-black hover:bg-yellow-500 border-0 px-2"
+                        className="h-9 text-xs bg-yellow-400 text-black hover:bg-yellow-500 border-0 px-3 font-semibold"
                       >
                         <Clock className="h-3 w-3 mr-1" />
                         {isGuest ? 'Close Day (Demo)' : 'Close Day'}
@@ -297,9 +307,9 @@ export default function Leaderboard() {
                     onClick={() => router.push('/iconic-moments')}
                     size="sm"
                     variant="outline"
-                    className="h-7 text-[10px] border-blue-400/30 text-blue-300 hover:bg-blue-400/10 px-2"
+                    className="h-9 text-xs border-blue-400/30 text-blue-300 hover:bg-blue-400/10 px-3"
                   >
-                    <Sparkles className="h-3 w-3 mr-1" />
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5" />
                     View Iconic Moments
                   </Button>
                 )}

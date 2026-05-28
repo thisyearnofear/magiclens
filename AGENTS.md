@@ -42,5 +42,13 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
 - `deploy/ecosystem.config.js`: PM2 config with PATH env for flow binary
 
 ## Next Steps
-1. Fix metadata URIs — replace `ipfs://demo/...` with API metadata endpoint
-2. Add leaderboard close-day UI on frontend (currently only via curl or seed button)
+1. ~~Fix metadata URIs — replace `ipfs://demo/...` with API metadata endpoint~~ ✅ Done
+   - Added `token_metadata` DB table + `POST /api/metadata/RemixNFT/{token_id}` endpoint
+   - `GET /api/metadata/RemixNFT/{token_id}` now returns stored per-token metadata with personalized name, description, image, attributes
+   - `useMintRemix.ts` POSTs metadata to backend after each successful mint
+2. ~~Add leaderboard close-day UI on frontend~~ ✅ Done
+   - "Close Day" button in `Leaderboard.tsx` increased from `h-7 text-[10px]` to `h-9 text-xs font-semibold`
+   - After closing, immediately triggers `triggerAutoPromote()` — no more 60s wait
+   - Added "Close Day & Promote" button to `/iconic-moments` gallery
+3. Aligned card backgrounds across all pages to `bg-white/5 border-white/10` glass morphism
+   - Fixed: CollabPreview, CollabRequest, OverlaySelector, EnvironmentalFootageGallery, FlowDashboard, Dashboard notification button, UserProfile

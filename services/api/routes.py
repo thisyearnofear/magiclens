@@ -1814,6 +1814,44 @@ async def get_pending_leaderboard_days():
 # Metadata — ERC-721 token metadata for RemixNFT
 # ═══════════════════════════════════════════════════════════════
 
+from pydantic import BaseModel
+
+CONTRACT_ADDRESS = "0x910d4383313814CC47db6ffeD56aC2F2CBE764Cf"
+
+class TokenMetadataBody(BaseModel):
+    name: str
+    description: str | None = None
+    image: str | None = None
+    external_url: str | None = None
+    attributes: list[dict] | None = None
+
+
+@app.post("/api/metadata/RemixNFT/{token_id}")
+async def store_remix_metadata(token_id: int, body: TokenMetadataBody):
+    """Store per-token metadata for a RemixNFT token."""
+    from core.database import execute_update
+
+    try:
+        execute_update(
+            """INSERT INTO token_metadata (contract_address, token_id, name, description, image, external_url, attributes)
+               VALUES (%s, %s, %s, %s, %s, %s, %s)
+               ON CONFLICT (contract_address, token_id) DO UPDATE SET
+                   name = EXCLUDED.name,
+                   description = EXCLUDED.description,
+                   image = EXCLUDED.image,
+                   external_url = EXCLUDED.external_url,
+                   attributes = EXCLUDED.attributes,
+                   updated_at = CURRENT_TIMESTAMP""",
+            (CONTRACT_ADDRESS, token_id, body.name, body.description,
+             body.image, body.external_url,
+             json.dumps(body.attributes) if body.attributes else None),
+        )
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Failed to store metadata for token {token_id}: {e}")
+        return {"success": False, "error": str(e)}
+
+
 @app.get("/api/metadata/RemixNFT/{token_id}")
 async def remix_metadata(token_id: str):
     """Return ERC-721 metadata JSON for a RemixNFT token."""
@@ -1824,8 +1862,35 @@ async def remix_metadata(token_id: str):
             "image": "https://magiclens.app/og-image.png",
             "external_link": "https://magiclens.vercel.app",
             "seller_fee_basis_points": 500,
-            "fee_recipient": "0x910d4383313814CC47db6ffeD56aC2F2CBE764Cf",
+            "fee_recipient": CONTRACT_ADDRESS,
         }
+
+    from core.database import execute_query
+
+    row = execute_query(
+        "SELECT name, description, image, external_url, attributes "
+        "FROM token_metadata WHERE contract_address = %s AND token_id = %s",
+        (CONTRACT_ADDRESS, int(token_id)),
+    )
+
+    if row:
+        r = row[0]
+        attrs = r.get("attributes")
+        if isinstance(attrs, str):
+            attrs = json.loads(attrs)
+        if not attrs:
+            attrs = [
+                {"trait_type": "Platform", "value": "X Layer"},
+                {"trait_type": "Token Standard", "value": "ERC-721"},
+            ]
+        return {
+            "name": r["name"],
+            "description": r["description"] or "An AR-enhanced sports remix created on MagicLens.",
+            "image": r["image"] or "https://magiclens.app/og-image.png",
+            "external_url": r["external_url"] or "https://magiclens.vercel.app",
+            "attributes": attrs,
+        }
+
     return {
         "name": f"MagicLens Remix #{token_id}",
         "description": "An AR-enhanced sports remix created on MagicLens. "
@@ -1836,15 +1901,6 @@ async def remix_metadata(token_id: str):
             {"trait_type": "Platform", "value": "X Layer"},
             {"trait_type": "Token Standard", "value": "ERC-721"},
         ],
-    }
-    """Return ERC-721 contract-level metadata."""
-    return {
-        "name": "MagicLens Remixes",
-        "description": "AR sports remixes — turn every iconic moment into a mintable NFT.",
-        "image": "https://magiclens.app/og-image.png",
-        "external_link": "https://magiclens.vercel.app",
-        "seller_fee_basis_points": 500,
-        "fee_recipient": "0x910d4383313814CC47db6ffeD56aC2F2CBE764Cf",
     }
 
 
