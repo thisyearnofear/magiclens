@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
+import { useFullscreen } from '@/hooks/use-fullscreen';
 import {
   Flag, Sparkles, Image, MessageCircle, AlertTriangle,
-  Check, Eye, Trophy
+  Check, Eye, Trophy, Maximize2, Minimize
 } from 'lucide-react';
 
 interface MobileARWorkspaceProps {
@@ -33,6 +34,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
   const [selected, setSelected] = useState<SelectedOverlay[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [refCardColor, setRefCardColor] = useState<'yellow' | 'red'>('yellow');
+  const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
 
   const toggleOverlay = (overlay: OverlayDefinition) => {
     setSelected(prev => {
@@ -76,19 +78,100 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
           <h2 className="text-sm font-bold text-white">AR Overlays</h2>
           <p className="text-gray-300 text-[10px]">{clipTitle}</p>
         </div>
-        <Button
-          onClick={() => onNext(selected, {})}
-          disabled={selected.length === 0}
-          size="sm"
-          className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs h-8"
-        >
-          <Eye className="h-3 w-3 mr-1" /> Preview
-        </Button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggle}
+            className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-colors text-gray-300 active:bg-white/20"
+            title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F)'}
+          >
+            {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+          </button>
+          <Button
+            onClick={() => onNext(selected, {})}
+            disabled={selected.length === 0}
+            size="sm"
+            className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs h-8"
+          >
+            <Eye className="h-3 w-3 mr-1" /> Preview
+          </Button>
+        </div>
       </div>
 
       {/* Video preview */}
       <div className="px-3 pb-2 shrink-0">
-        <div className="aspect-video bg-gray-900 rounded-xl border border-white/10 overflow-hidden relative">
+        <div ref={elementRef} className="aspect-video bg-gray-900 rounded-xl border border-white/10 overflow-hidden relative">
+          {/* Tap target — hold to reveal, release to hide */}
+          {isFullscreen && (
+            <div
+              onPointerDown={() => setControlsVisible(true)}
+              onPointerUp={() => setControlsVisible(false)}
+              className="absolute inset-0 z-10 cursor-default"
+            />
+          )}
+
+          {/* Dark overlay transition — visible only when controls are shown */}
+          <AnimatePresence>
+            {controlsVisible && (
+              <motion.div
+                key="fullscreen-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className="absolute inset-0 z-20 bg-black/60 pointer-events-none"
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Fullscreen floating toolbar — visible only when controls are shown */}
+          <AnimatePresence>
+            {controlsVisible && (
+              <motion.div
+                key="fullscreen-toolbar"
+                initial={{ y: -24, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -24, opacity: 0 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="absolute top-0 left-0 right-0 z-50 flex items-center gap-2 px-3 py-2.5 bg-gradient-to-b from-black/80 via-black/40 to-transparent"
+              >
+                <div>
+                  <button
+                    onClick={toggle}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white text-xs font-medium backdrop-blur-sm active:bg-white/30"
+                  >
+                    <Minimize className="h-3.5 w-3.5" />
+                    Exit <span className="text-white/40 ml-1">Esc</span>
+                  </button>
+                </div>
+                <div className="flex-1" />
+                <div>
+                  <span className="text-xs text-white/60 bg-black/40 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
+                    {selected.length} overlay{selected.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div>
+                  <button
+                    onClick={() => onNext(selected, {})}
+                    disabled={selected.length === 0}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs transition-colors disabled:opacity-50 active:scale-95"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    Preview
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Fullscreen toggle button on video (always visible, shown as a subtle overlay) */}
+          <button
+            onClick={(e) => { e.stopPropagation(); toggle(); }}
+            className="absolute bottom-2 right-2 z-30 p-1.5 rounded-lg bg-black/60 backdrop-blur-sm transition-colors text-white/70 active:bg-black/80"
+            title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F)'}
+          >
+            {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+          </button>
+
           {clipVideoUrl ? (
             <video src={clipVideoUrl} className="absolute inset-0 w-full h-full object-cover" muted loop playsInline autoPlay />
           ) : (
@@ -96,12 +179,21 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
               <Trophy className="h-8 w-8 text-gray-600" />
             </div>
           )}
-          {/* Show selected overlay count */}
-          {selected.length > 0 && (
-            <div className="absolute top-2 right-2 bg-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full">
-              {selected.length}
-            </div>
-          )}
+          {/* Show selected overlay count (animated hide during fullscreen) */}
+          <AnimatePresence>
+            {selected.length > 0 && !isFullscreen && (
+              <motion.div
+                key="overlay-count"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-2 left-2 bg-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full"
+              >
+                {selected.length}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

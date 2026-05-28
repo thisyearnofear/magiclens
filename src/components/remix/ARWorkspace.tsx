@@ -5,11 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Flag, Sparkles, Image, MessageCircle, AlertTriangle,
-  Check, Eye, Trophy, ChevronRight, Undo2, Redo2, Sun
+  Check, Eye, Trophy, ChevronRight, Undo2, Redo2, Sun,
+  Maximize2, Minimize
 } from 'lucide-react';
 import { LiveDemoView } from './LiveDemoView';
 import { EditorOverlay, InlineTextEditor, OverlayStyle } from './EditorOverlay';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
+import { useFullscreen } from '@/hooks/use-fullscreen';
 
 const DEFAULT_STYLES: Record<string, OverlayStyle> = {
   'flag-halos': { x: 240, y: 120, scale: 1, rotation: 0, opacity: 1 },
@@ -113,6 +115,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   );
 
   const { push, undo, redo, canUndo, canRedo } = useUndoStack(styles, setStyles);
+  const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
 
   const handleStyleChange = useCallback(
     (id: string, partial: Partial<OverlayStyle>) => {
@@ -285,6 +288,14 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 <span className={`w-2 h-2 rounded-full ${mode === 'live' ? 'bg-green-400 animate-pulse' : 'bg-gray-600'}`} />
                 Live Demo
               </button>
+              {/* Fullscreen toggle */}
+              <button
+                onClick={toggle}
+                className="px-2 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 text-gray-300 hover:bg-white/10"
+                title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F)'}
+              >
+                {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              </button>
             </div>
 
             {/* Opacity slider for selected overlay */}
@@ -309,9 +320,115 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
 
           {mode === 'preview' ? (
             <motion.div
+              ref={elementRef}
               layout
               className="aspect-video bg-gray-900 rounded-xl border border-white/10 overflow-hidden relative group"
             >
+              {/* Tap target — hold to reveal, release to hide */}
+              {isFullscreen && (
+                <div
+                  onPointerDown={() => setControlsVisible(true)}
+                  onPointerUp={() => setControlsVisible(false)}
+                  className="absolute inset-0 z-10 cursor-default"
+                />
+              )}
+
+              {/* Dark overlay transition — visible only when controls are shown */}
+              <AnimatePresence>
+                {controlsVisible && (
+                  <motion.div
+                    key="fullscreen-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="absolute inset-0 z-20 bg-black/60 pointer-events-none"
+                  />
+                )}
+              </AnimatePresence>
+
+              {/* Floating toolbar — visible only when controls are shown */}
+              <AnimatePresence>
+                {controlsVisible && (
+                  <motion.div
+                    key="fullscreen-toolbar"
+                    initial={{ y: -24, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -24, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="absolute top-0 left-0 right-0 z-50 flex items-center gap-3 px-4 py-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent"
+                  >
+                    <div>
+                      <button
+                        onClick={toggle}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white text-xs font-medium backdrop-blur-sm"
+                      >
+                        <Minimize className="h-3.5 w-3.5" />
+                        Exit <span className="text-white/40 ml-1">Esc</span>
+                      </button>
+                    </div>
+
+                    <div className="flex-1" />
+
+                    {selectedOverlayId && selectedStyle && (
+                      <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-lg px-3 py-1.5">
+                        <Sun className="h-3 w-3 text-yellow-400" />
+                        <input
+                          type="range"
+                          min={0.1}
+                          max={1}
+                          step={0.05}
+                          value={selectedStyle.opacity}
+                          onChange={(e) => handleOpacityChange(selectedOverlayId, parseFloat(e.target.value))}
+                          className="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-yellow-400"
+                        />
+                        <span className="text-[10px] text-white/80 w-8 text-right font-mono">
+                          {Math.round(selectedStyle.opacity * 100)}%
+                        </span>
+                      </div>
+                    )}
+
+                    <div>
+                      <span className="text-xs text-white/60 bg-black/40 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
+                        {selected.length} overlay{selected.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+
+                    <div>
+                      <button
+                        onClick={() => onNext(selected, styles)}
+                        disabled={selected.length === 0}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs transition-colors disabled:opacity-50"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        Preview
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {clipVideoUrl ? (
+                  <motion.video
+                    key="video"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    src={clipVideoUrl}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    muted loop playsInline autoPlay
+                  />
+                ) : (
+                  <motion.div
+                    key="fallback"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="absolute inset-0 bg-gradient-to-b from-gray-900 via-green-900/20 to-green-900/40"
+                  />
+                )}
+              </AnimatePresence>
+
               {clipVideoUrl ? (
                 <video
                   src={clipVideoUrl}
@@ -462,7 +579,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
               </AnimatePresence>
 
               {/* Status bar */}
-              {selected.length > 0 && (
+              {selected.length > 0 && !isFullscreen && (
                 <>
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute bottom-3 left-3 z-30">
                     <Badge className="bg-yellow-400 text-black font-medium">
@@ -490,7 +607,15 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
               )}
             </motion.div>
           ) : (
-            <LiveDemoView selectedOverlayIds={selected.map(s => s.id)} onPoseUpdate={handlePoseUpdate} />
+            <LiveDemoView
+              selectedOverlayIds={selected.map(s => s.id)}
+              onPoseUpdate={handlePoseUpdate}
+              fullscreenRef={elementRef}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={toggle}
+              controlsVisible={controlsVisible}
+              onSetControlsVisible={setControlsVisible}
+            />
           )}
         </div>
 

@@ -1,18 +1,23 @@
 import React, { useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usePoseLandmarker } from '@/hooks/usePoseLandmarker';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Camera, CameraOff, Loader2, RefreshCw, AlertTriangle,
-  Target, Move, Sparkles
+  Target, Move, Sparkles, Maximize2, Minimize
 } from 'lucide-react';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 
 interface LiveDemoViewProps {
   selectedOverlayIds: string[];
   onPoseUpdate?: (positions: { head: { x: number; y: number } | null; leftShoulder: { x: number; y: number } | null; rightShoulder: { x: number; y: number } | null; leftWrist: { x: number; y: number } | null; rightWrist: { x: number; y: number } | null }) => void;
+  fullscreenRef?: React.RefObject<HTMLDivElement | null>;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
+  controlsVisible?: boolean;
+  onSetControlsVisible?: (visible: boolean) => void;
 }
 
 // MediaPipe pose landmark indices we track
@@ -48,7 +53,7 @@ const STATUS_CFG: Record<string, { label: string; color: string; icon: React.Rea
   unavailable: { label: 'Tap Start to activate', color: 'text-gray-400', icon: <CameraOff className="h-4 w-4" /> },
 };
 
-export function LiveDemoView({ selectedOverlayIds, onPoseUpdate }: LiveDemoViewProps) {
+export function LiveDemoView({ selectedOverlayIds, onPoseUpdate, fullscreenRef, isFullscreen, onToggleFullscreen, controlsVisible, onSetControlsVisible }: LiveDemoViewProps) {
   const { videoRef, canvasRef, status, error, currentPose, isActive, start, stop } = usePoseLandmarker();
 
   // Auto-start when component mounts
@@ -134,7 +139,7 @@ export function LiveDemoView({ selectedOverlayIds, onPoseUpdate }: LiveDemoViewP
       )}
 
       {/* Video + Canvas + AR overlay container */}
-      <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-white/10">
+      <div ref={fullscreenRef} className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-white/10">
         <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover scale-x-[-1]" playsInline muted />
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full scale-x-[-1]" />
 
@@ -225,17 +230,79 @@ export function LiveDemoView({ selectedOverlayIds, onPoseUpdate }: LiveDemoViewP
           </>
         )}
 
-        {/* Pose guide — shown when tracking is active */}
-        {status === 'ready' && (
-          <div className="absolute bottom-3 left-3 right-3 flex gap-2 justify-center pointer-events-none">
-            {TRACKING_INFO.map(t => (
-              <div key={t.label} className="px-2 py-1 bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 flex items-center gap-1.5">
-                <span className="text-xs">{t.icon}</span>
-                <span className="text-[10px] text-gray-300 font-medium">{t.part}</span>
-              </div>
-            ))}
-          </div>
+        {/* Tap target — hold to reveal, release to hide */}
+        {isFullscreen && (
+          <div
+            onPointerDown={() => onSetControlsVisible?.(true)}
+            onPointerUp={() => onSetControlsVisible?.(false)}
+            className="absolute inset-0 z-10 cursor-default"
+          />
         )}
+
+        {/* Dark overlay transition — visible only when controls are shown */}
+        <AnimatePresence>
+          {controlsVisible && (
+            <motion.div
+              key="fullscreen-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="absolute inset-0 z-20 bg-black/60 pointer-events-none"
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Fullscreen floating toolbar — visible only when controls are shown */}
+        <AnimatePresence>
+          {controlsVisible && (
+            <motion.div
+              key="fullscreen-toolbar"
+              initial={{ y: -24, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -24, opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="absolute top-0 left-0 right-0 z-50 flex items-center gap-3 px-4 py-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent"
+            >
+              <div>
+                <button
+                  onClick={onToggleFullscreen}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white text-xs font-medium backdrop-blur-sm"
+                >
+                  <Minimize className="h-3.5 w-3.5" />
+                  Exit <span className="text-white/40 ml-1">Esc</span>
+                </button>
+              </div>
+              <div className="flex-1" />
+              <div>
+                <span className="text-xs text-white/60 bg-black/40 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
+                  {selectedOverlayIds.length} overlay{selectedOverlayIds.length !== 1 ? 's' : ''} · Pose Tracking
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Pose guide — shown when tracking is active */}
+        <AnimatePresence>
+          {status === 'ready' && !isFullscreen && (
+            <motion.div
+              key="pose-guide"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.18 }}
+              className="absolute bottom-3 left-3 right-3 flex gap-2 justify-center pointer-events-none"
+            >
+              {TRACKING_INFO.map(t => (
+                <div key={t.label} className="px-2 py-1 bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 flex items-center gap-1.5">
+                  <span className="text-xs">{t.icon}</span>
+                  <span className="text-[10px] text-gray-300 font-medium">{t.part}</span>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Idle state */}
         {status === 'unavailable' && !isActive && (
