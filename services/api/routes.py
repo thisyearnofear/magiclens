@@ -1643,22 +1643,15 @@ async def get_environmental_inspiration(body: Dict = Body(...)):
         return {"success": False, "error": str(e), "results": []}
 
 
-@app.post("/api/pexels_service/get_environmental_categories")
-async def get_environmental_categories():
-    """Get available environmental footage categories."""
-    from core.pexels_service import pexels_service
-    
+@app.get("/api/pexels/search")
+async def pexels_search(q: str = "soccer goal celebration", limit: int = 12):
+    """Search Pexels sports videos for the clip picker."""
+    from core.pexels_service import search_videos, SUGGESTED_QUERIES
     try:
-        categories = pexels_service.get_environmental_categories()
-        
-        return {
-            "success": True,
-            "categories": categories,
-            "count": len(categories)
-        }
-        
+        results = search_videos(q, limit)
+        return {"success": True, "results": results, "suggested": SUGGESTED_QUERIES}
     except Exception as e:
-        return {"success": False, "error": str(e), "categories": []}
+        return {"success": False, "error": str(e), "results": [], "suggested": SUGGESTED_QUERIES}
 
 
 # ═══════════════════════════════════════════════════════════════

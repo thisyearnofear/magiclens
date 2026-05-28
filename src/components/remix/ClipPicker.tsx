@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, Play, Trophy, Flag } from 'lucide-react';
+import { Upload, Play, Trophy, Flag, Search, Clock, User } from 'lucide-react';
+import { getApiBaseUrl } from '@/lib/api-base';
 import type { Video } from '@/lib/sdk';
 
 interface ClipPickerProps {
@@ -34,7 +35,56 @@ const DEMO_CLIPS: { id: string; title: string; description: string; icon: React.
   },
 ];
 
+const SUGGESTED = [
+  { label: 'Goal Celebrations', query: 'soccer goal celebration football' },
+  { label: 'Stadium Crowds', query: 'football stadium crowd fans cheering' },
+  { label: 'Match Action', query: 'soccer match football game playing' },
+  { label: 'Trophy Moments', query: 'trophy celebration sports champion' },
+  { label: 'Fan Culture', query: 'football fans crowd waving flags' },
+];
+
+interface PexelsVideo {
+  id: number;
+  title: string;
+  video_url: string;
+  preview_url: string;
+  duration: number;
+  photographer: string;
+  photographer_url: string;
+}
+
 export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<PexelsVideo[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const doSearch = useCallback(async (query: string) => {
+    if (!query.trim()) return;
+    setIsSearching(true);
+    setHasSearched(true);
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/api/pexels/search?q=${encodeURIComponent(query)}&limit=9`);
+      const data = await res.json();
+      setSearchResults(data.success ? data.results : []);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  const selectPexelsClip = (v: PexelsVideo) => {
+    onSelect({
+      id: `pexels-${v.id}`,
+      title: v.title,
+      file_path: v.video_url,
+      category: 'sports',
+      duration: v.duration,
+      uploader_id: 'pexels',
+    } as unknown as Video);
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
@@ -42,7 +92,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
         <p className="text-gray-300">Pick a World Cup clip to remix with AR overlays</p>
       </div>
 
-      {/* Demo clips for hackathon */}
+      {/* Demo clips */}
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-white mb-4">Featured Match Moments</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -108,6 +158,112 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
           </div>
         </div>
       )}
+
+      {/* Stock footage search */}
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold text-white mb-3">Find Sports Clips</h3>
+        <p className="text-gray-400 text-sm mb-4">Search free stock footage from Pexels — royalty-free, no upload needed</p>
+
+        <div className="flex gap-2 mb-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && doSearch(searchQuery)}
+              placeholder="soccer goal, stadium crowd, trophy lift…"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-yellow-400/50"
+            />
+          </div>
+          <Button
+            onClick={() => doSearch(searchQuery)}
+            loading={isSearching}
+            className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold"
+          >
+            Search
+          </Button>
+        </div>
+
+        {/* Suggested queries */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {SUGGESTED.map((s) => (
+            <button
+              key={s.label}
+              onClick={() => { setSearchQuery(s.label); doSearch(s.query); }}
+              className="px-3 py-1 rounded-full text-xs bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Search results */}
+        {isSearching && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-video rounded-lg bg-white/5 animate-pulse" />
+            ))}
+          </div>
+        )}
+
+        {!isSearching && hasSearched && searchResults.length === 0 && (
+          <p className="text-gray-500 text-sm text-center py-6">No clips found. Try a different search.</p>
+        )}
+
+        {!isSearching && searchResults.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {searchResults.map((v) => (
+              <Card
+                key={v.id}
+                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-yellow-400/50 transition-all cursor-pointer group overflow-hidden"
+                onClick={() => selectPexelsClip(v)}
+                onMouseEnter={(e) => {
+                  const video = e.currentTarget.querySelector('video') as HTMLVideoElement | null;
+                  if (video) { video.currentTime = 0; video.play().catch(() => {}); }
+                }}
+                onMouseLeave={(e) => {
+                  const video = e.currentTarget.querySelector('video') as HTMLVideoElement | null;
+                  if (video) { video.pause(); video.currentTime = 0; }
+                }}
+              >
+                <CardContent className="p-0">
+                  <div className="aspect-video bg-gray-900 relative">
+                    <video
+                      src={v.video_url}
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-colors">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 group-hover:scale-110 transition-transform">
+                        <Play className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded px-1.5 py-0.5 text-[10px] text-white flex items-center gap-1">
+                      <Clock className="h-3 w-3" /> {v.duration}s
+                    </div>
+                  </div>
+                  <div className="p-3">
+                    <h4 className="text-white text-sm font-medium truncate">{v.title}</h4>
+                    <a
+                      href={v.photographer_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 text-xs flex items-center gap-1 mt-1 hover:text-yellow-400"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <User className="h-3 w-3" /> {v.photographer} / Pexels
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Upload new */}
       <div className="text-center">
