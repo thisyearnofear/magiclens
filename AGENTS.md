@@ -50,5 +50,12 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
    - "Close Day" button in `Leaderboard.tsx` increased from `h-7 text-[10px]` to `h-9 text-xs font-semibold`
    - After closing, immediately triggers `triggerAutoPromote()` — no more 60s wait
    - Added "Close Day & Promote" button to `/iconic-moments` gallery
-3. Aligned card backgrounds across all pages to `bg-white/5 border-white/10` glass morphism
+3. ~~Aligned card backgrounds across all pages to `bg-white/5 border-white/10` glass morphism~~ ✅ Done
    - Fixed: CollabPreview, CollabRequest, OverlaySelector, EnvironmentalFootageGallery, FlowDashboard, Dashboard notification button, UserProfile
+4. ~~Flow NFT mediaURI (resolveView dynamic URL)~~ ✅ Done
+   - Cadence 1.0 blocks adding fields during contract updates
+   - `resolveView` now returns `https://magiclens.thisyearnofear.com/api/metadata/IconicMoment/{self.id}` dynamically
+   - `ARAssetNFT.cdc` deployed (unchanged field layout, only `resolveView` body changed)
+   - `MintIconicMoment.cdc` uses 3 params (no mediaURI)
+   - `crossvm_service.py` sends 3 args (no media_uri)
+   - New `GET /api/metadata/IconicMoment/{token_id}` endpoint on backend

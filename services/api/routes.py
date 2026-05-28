@@ -1674,7 +1674,6 @@ class PromoteToIconicRequest(BaseModel):
     day: int = 1
     rank: int
     promoted_by: str = "system"
-    media_uri: str = ""
 
 
 @app.post("/api/crossvm/promote")
@@ -1685,19 +1684,8 @@ async def promote_to_iconic(body: PromoteToIconicRequest):
     Flow Cadence NFTs. This endpoint triggers the cross-VM mint.
     """
     from core.crossvm_service import crossvm_service, CrossVMMintRequest
-    from core.database import execute_query
 
     try:
-        # Look up mediaURI from stored token metadata if not provided
-        media_uri = body.media_uri
-        if not media_uri:
-            row = execute_query(
-                "SELECT image FROM token_metadata WHERE contract_address = %s AND token_id = %s",
-                (CONTRACT_ADDRESS, body.xlayer_token_id),
-            )
-            if row and row[0].get("image"):
-                media_uri = row[0]["image"]
-
         request = CrossVMMintRequest(
             xlayer_token_id=body.xlayer_token_id,
             xlayer_tx_hash=body.xlayer_tx_hash,
@@ -1707,7 +1695,6 @@ async def promote_to_iconic(body: PromoteToIconicRequest):
             day=body.day,
             rank=body.rank,
             promoted_by=body.promoted_by,
-            media_uri=media_uri,
         )
 
         result = await crossvm_service.promote_to_iconic(request)
@@ -1913,6 +1900,49 @@ async def remix_metadata(token_id: str):
         "attributes": [
             {"trait_type": "Platform", "value": "X Layer"},
             {"trait_type": "Token Standard", "value": "ERC-721"},
+        ],
+    }
+
+
+# ═══════════════════════════════════════════════════════════════
+# Metadata — Flow Iconic Moment metadata (resolveView target)
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/metadata/IconicMoment/{token_id}")
+async def iconic_metadata(token_id: str):
+    """Return metadata JSON for a Flow Iconic Moment NFT (used by resolveView)."""
+    from core.database import execute_query
+
+    row = execute_query(
+        "SELECT title, day, rank FROM leaderboard_entries le "
+        "JOIN iconic_moments im ON le.xlayer_token_id = im.xlayer_token_id AND le.day = im.day "
+        "WHERE im.flow_nft_id = %s",
+        (int(token_id),),
+    )
+
+    if row:
+        r = row[0]
+        return {
+            "name": r["title"],
+            "description": f"Iconic Moment — Day {r['day']}, Rank #{r['rank']}",
+            "image": "https://magiclens.app/logo.png",
+            "external_url": "https://magiclens.vercel.app",
+            "attributes": [
+                {"trait_type": "Day", "value": r["day"]},
+                {"trait_type": "Rank", "value": f"#{r['rank']}"},
+                {"trait_type": "Chain", "value": "Flow"},
+                {"trait_type": "Token Standard", "value": "Cadence NFT"},
+            ],
+        }
+
+    return {
+        "name": f"MagicLens Iconic Moment #{token_id}",
+        "description": "A premium AR sports moment minted on Flow blockchain via MagicLens.",
+        "image": "https://magiclens.app/logo.png",
+        "external_url": "https://magiclens.vercel.app",
+        "attributes": [
+            {"trait_type": "Chain", "value": "Flow"},
+            {"trait_type": "Token Standard", "value": "Cadence NFT"},
         ],
     }
 
