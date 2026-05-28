@@ -187,6 +187,8 @@ export default function UserProfile() {
   if (!profile) {
     return (
       <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+        <StadiumBackdrop />
+        <div className="relative z-[3]">
         <Card className="bg-white/10 border-white/20 max-w-md text-center">
           <CardContent className="p-8">
             <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -217,6 +219,7 @@ export default function UserProfile() {
             </Button>
           </CardContent>
         </Card>
+        </div>
       </div>
     );
   }
