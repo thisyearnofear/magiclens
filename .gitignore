@@ -56,7 +56,8 @@ contracts-solidity/.env
 tsconfig.tsbuildinfo
 .vercel
 
-# Editframe artifacts
-editframe-teaser/*.mp4
-editframe-teaser/.editframe
-editframe-teaser/src/assets/.cache/
+# Editframe (standalone project, not part of Next.js app)
+editframe-teaser/
+
+# Rendered videos
+videos/

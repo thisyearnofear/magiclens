@@ -38,6 +38,8 @@
   ],
   "exclude": [
     "node_modules",
-    "contracts-solidity"
+    "contracts-solidity",
+    "editframe-teaser",
+    "videos"
   ]
 }
