@@ -78,7 +78,7 @@ ssh "$SERVER" "RD=$REMOTE_DIR RL=$REMOTE_DIR/releases/$RELEASE_NAME bash -s" << 
     echo "  ✗ Missing release wheel"
     exit 1
   fi
-  "$RD/venv/bin/pip" install --no-cache-dir --upgrade "$WHEEL_PATH" --quiet
+  "$RD/venv/bin/pip" install --no-cache-dir --force-reinstall --no-deps "$WHEEL_PATH" --quiet
   echo "  ✓ Deps installed"
   echo "  → Running migrations..."
   (cd "$RL" && "$RD/venv/bin/alembic" upgrade head 2>/dev/null && echo "  ✓ Migrations OK") || echo "  ⚠️  Migrations skipped (check DB)"
