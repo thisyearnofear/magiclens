@@ -380,7 +380,7 @@ export default function RemixFlow() {
                           <p className="text-red-200/80 text-xs">{mintError || 'The transaction did not complete successfully.'}</p>
                           {mintTx && (
                             <a
-                              href={`https://www.oklink.com/xlayer-testnet/tx/${mintTx}`}
+                              href={`https://www.oklink.com/x-layer-testnet/tx/${mintTx}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-yellow-400 text-xs font-mono hover:underline inline-flex items-center gap-1"

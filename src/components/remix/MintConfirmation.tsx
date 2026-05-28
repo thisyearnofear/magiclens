@@ -99,7 +99,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
               >
                 <span className="text-gray-300 text-sm">Transaction</span>
                 <a
-                  href={`https://www.oklink.com/xlayer-testnet/tx/${txHash}`}
+                  href={`https://www.oklink.com/x-layer-testnet/tx/${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-yellow-400 text-sm font-mono hover:underline flex items-center gap-1"

@@ -125,7 +125,7 @@ function MomentCard({ moment }: { moment: CrossVMPromotion }) {
           {moment.xlayer_token_id > 0 && (
             <div className="pt-2 border-t border-white/10">
               <a
-                href={`https://www.oklink.com/xlayer-testnet/token/${moment.xlayer_token_id}`}
+                href={`https://www.oklink.com/x-layer-testnet/token/${moment.xlayer_token_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"

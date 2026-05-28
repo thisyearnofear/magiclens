@@ -116,7 +116,7 @@ export default function PublicRemix() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-300">Transaction</span>
                   <a
-                    href={`https://www.oklink.com/xlayer-testnet/tx/${txHash}`}
+                    href={`https://www.oklink.com/x-layer-testnet/tx/${txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-yellow-400 font-mono text-xs hover:underline flex items-center gap-1"
