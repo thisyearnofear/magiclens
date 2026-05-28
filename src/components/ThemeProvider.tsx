@@ -79,7 +79,7 @@ function getEffectiveMode(baseTheme: BaseTheme): "light" | "dark" {
 
 export function ThemeProvider({ 
   children, 
-  defaultTheme = { base: "dark", color: "default" }
+  defaultTheme = { base: "system", color: "default" }
 }: ThemeProviderProps) {
   // Initialize theme state from localStorage or defaults
   const [settings, setThemeSettings] = useState<ThemeSettings>(() => {
