@@ -55,3 +55,8 @@ contracts-solidity/.env
 # TypeScript
 tsconfig.tsbuildinfo
 .vercel
+
+# Editframe artifacts
+editframe-teaser/*.mp4
+editframe-teaser/.editframe
+editframe-teaser/src/assets/.cache/

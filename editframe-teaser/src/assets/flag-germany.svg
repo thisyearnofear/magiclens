@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#4ade80" stroke-width="3" opacity="0.3"/>
+  <clipPath id="flag-clip"><circle cx="100" cy="100" r="55"/></clipPath>
+  <!-- Germany flag -->
+  <rect x="45" y="45" width="110" height="36" fill="#000000" clip-path="url(#flag-clip)"/>
+  <rect x="45" y="81" width="110" height="38" fill="#DD0000" clip-path="url(#flag-clip)"/>
+  <rect x="45" y="119" width="110" height="36" fill="#FFCE00" clip-path="url(#flag-clip)"/>
+  <circle cx="100" cy="100" r="55" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+</svg>

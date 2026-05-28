@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="30%" stop-color="#FFA500"/>
+      <stop offset="70%" stop-color="#FF4500"/>
+      <stop offset="100%" stop-color="#DC143C"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
+      <stop offset="50%" stop-color="rgba(255,255,255,0)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.2)"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(255,69,0,0.4)"/>
+    </filter>
+  </defs>
+  <!-- Main banner body -->
+  <rect x="40" y="30" width="720" height="140" rx="16" fill="url(#g1)" filter="url(#shadow)"/>
+  <!-- Top highlight -->
+  <rect x="40" y="30" width="720" height="50" rx="16" fill="url(#g2)"/>
+  <!-- Left accent stripes -->
+  <rect x="40" y="30" width="8" height="140" rx="0" fill="rgba(255,255,255,0.15)"/>
+  <rect x="52" y="30" width="3" height="140" fill="rgba(255,255,255,0.08)"/>
+  <!-- Right accent -->
+  <rect x="749" y="30" width="3" height="140" rx="0" fill="rgba(255,255,255,0.2)"/>
+  <!-- Star decorations -->
+  <text x="100" y="115" font-size="36" fill="rgba(255,255,255,0.3)" font-family="sans-serif">★</text>
+  <text x="700" y="115" font-size="36" fill="rgba(255,255,255,0.3)" font-family="sans-serif">★</text>
+  <!-- Main GOAL! text -->
+  <text x="400" y="118" text-anchor="middle" font-size="80" font-weight="900"
+        font-family="'Impact','Arial Black',sans-serif"
+        fill="#FFFFFF" stroke="#1a1a2e" stroke-width="2"
+        letter-spacing="8" filter="url(#glow)">GOAL!</text>
+  <!-- Subtitle -->
+  <text x="400" y="152" text-anchor="middle" font-size="16" font-weight="700"
+        font-family="sans-serif" fill="rgba(0,0,0,0.6)" letter-spacing="4">
+    FIFA WORLD CUP 2026
+  </text>
+  <!-- Corner accents -->
+  <path d="M40 30 L80 30 L40 70 Z" fill="rgba(255,255,255,0.1)"/>
+  <path d="M760 30 L720 30 L760 70 Z" fill="rgba(255,255,255,0.1)"/>
+  <path d="M40 170 L80 170 L40 130 Z" fill="rgba(0,0,0,0.1)"/>
+  <path d="M760 170 L720 170 L760 130 Z" fill="rgba(0,0,0,0.1)"/>
+</svg>
