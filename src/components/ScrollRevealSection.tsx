@@ -24,7 +24,7 @@ const steps = [
   {
     icon: Trophy,
     title: 'Mint & Climb the Ranks',
-    description: 'One-click mint on X Layer. Top-10 earn USDT daily. Top-3 become Flow Iconic Moments — premium NFTs with NBA Top Shot lineage.',
+    description: 'One-click mint on X Layer. Top-10 earn rewards daily. Top-3 become Flow Iconic Moments — premium NFTs with NBA Top Shot lineage.',
     color: 'from-green-500/20 to-green-700/20',
     border: 'border-green-500/30',
     accent: 'text-green-400',

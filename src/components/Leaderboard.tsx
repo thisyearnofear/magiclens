@@ -262,7 +262,7 @@ export default function Leaderboard() {
             <CardContent className="p-6 flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-white">World Cup 2026 — Day 1</h2>
-                <p className="text-gray-300 text-sm mt-1">Top 10 remixes win USDT rewards. Top 3 become Flow Iconic Moments.</p>
+                <p className="text-gray-300 text-sm mt-1">Top 10 remixes win daily rewards. Top 3 become Flow Iconic Moments.</p>
               </div>
               <div className="text-right flex flex-col items-end gap-2">
                 <div>

@@ -200,7 +200,7 @@ function TourStep({ onNext }: { onNext: () => void }) {
     },
     {
       title: 'Mint & Earn',
-      desc: 'One-click mint on X Layer. Top remixes earn USDT rewards and become Flow Iconic Moments.',
+      desc: 'One-click mint on X Layer. Top remixes earn daily rewards and become Flow Iconic Moments.',
       gradient: 'from-green-500 to-green-700',
     },
   ];

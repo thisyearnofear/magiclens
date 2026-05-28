@@ -1952,11 +1952,11 @@ async def iconic_metadata(token_id: str):
 # ═══════════════════════════════════════════════════════════════
 
 DEMO_ENTRIES_TEMPLATE = [
-    {"rank": 1, "title": "[Demo] Goal King Remix", "votes": 150, "reward": "100 USDT"},
-    {"rank": 2, "title": "[Demo] Hat-trick Hero", "votes": 120, "reward": "50 USDT"},
-    {"rank": 3, "title": "[Demo] Speed Run Strike", "votes": 95, "reward": "25 USDT"},
-    {"rank": 4, "title": "[Demo] Bicycle Kick Moment", "votes": 70, "reward": "10 USDT"},
-    {"rank": 5, "title": "[Demo] Top Corner Curler", "votes": 50, "reward": "5 USDT"},
+    {"rank": 1, "title": "[Demo] Goal King Remix", "votes": 150, "reward": "100 pts"},
+    {"rank": 2, "title": "[Demo] Hat-trick Hero", "votes": 120, "reward": "50 pts"},
+    {"rank": 3, "title": "[Demo] Speed Run Strike", "votes": 95, "reward": "25 pts"},
+    {"rank": 4, "title": "[Demo] Bicycle Kick Moment", "votes": 70, "reward": "10 pts"},
+    {"rank": 5, "title": "[Demo] Top Corner Curler", "votes": 50, "reward": "5 pts"},
 ]
 
 DUMMY_ADDRESS = "0xCAfEcAfeCAfECaFeCaFecaFecaFECafECafeCaFe"

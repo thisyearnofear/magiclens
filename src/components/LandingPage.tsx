@@ -88,7 +88,7 @@ export default function LandingPage() {
           The <span className="text-yellow-400">AR Remix Layer</span> for Live Sports
         </h2>
         <p className="text-lg sm:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
-          Drop pose-aware AR overlays on match clips. Mint as NFTs on X Layer. Earn USDT. Top remixes become Flow Iconic Moments.
+          Drop pose-aware AR overlays on match clips. Mint as NFTs on X Layer. Earn daily rewards. Top remixes become Flow Iconic Moments.
         </p>
         <div className="flex gap-4 justify-center flex-wrap mb-12">
           <ConnectWallet />
@@ -133,7 +133,7 @@ export default function LandingPage() {
             <CardContent>
               <CardDescription className="text-gray-300">
                 Mint your AR remix as an NFT on X Layer. Climb the daily leaderboard.
-                Top-10 earn USDT rewards. Top-3 become Flow "Iconic Moment" NFTs.
+                Top-10 earn daily rewards. Top-3 become Flow "Iconic Moment" NFTs.
               </CardDescription>
             </CardContent>
           </Card>
@@ -147,7 +147,7 @@ export default function LandingPage() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-gray-300">
-                Volume remixes on X Layer (low fees, USDT/OKB liquidity).
+                Volume remixes on X Layer (low fees, deep liquidity).
                 Premium collectibles on Flow Cadence (NBA Top Shot lineage).
                 One app, two chains, seamless UX.
               </CardDescription>
@@ -162,7 +162,7 @@ export default function LandingPage() {
               <h5 className="text-lg font-semibold text-yellow-400 mb-3">OKX / EVM Wallet</h5>
               <ul className="text-gray-300 text-left space-y-2">
                 <li className="flex items-start"><Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />Mint remix NFTs on X Layer</li>
-                <li className="flex items-start"><Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />Claim USDT rewards</li>
+                <li className="flex items-start"><Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />Leaderboard & daily rewards</li>
                 <li className="flex items-start"><Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />Leaderboard & daily prizes</li>
               </ul>
             </div>

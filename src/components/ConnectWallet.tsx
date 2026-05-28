@@ -205,7 +205,7 @@ export function ConnectWallet() {
               icon={<Zap className="h-4 w-4 text-yellow-400" />}
               label="EVM Wallet"
               description="OKX, MetaMask, WalletConnect"
-              hint="Mint remixes on X Layer, earn USDT rewards, climb the leaderboard"
+              hint="Mint remixes on X Layer, earn daily rewards, climb the leaderboard"
               onClick={() => { handleEVMConnect(); setOpen(false) }}
             />
             <WalletOption

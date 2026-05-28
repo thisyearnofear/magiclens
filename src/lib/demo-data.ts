@@ -41,9 +41,9 @@ export const DEMO_ICONIC_MOMENTS = [
 ]
 
 export const DEMO_LEADERBOARD_ENTRIES = [
-  { rank: 1, title: DEMO_PREFIX + 'Sample Remix 1', creator: '@demo_user_1', votes: 100, reward: '$30 USDT (example)', color: 'text-yellow-400', tokenId: 1001, txHash: '0x' + 'a'.repeat(64) },
-  { rank: 2, title: DEMO_PREFIX + 'Sample Remix 2', creator: '@demo_user_2', votes: 80, reward: '$20 USDT (example)', color: 'text-gray-300', tokenId: 1002, txHash: '0x' + 'b'.repeat(64) },
-  { rank: 3, title: DEMO_PREFIX + 'Sample Remix 3', creator: '@demo_user_3', votes: 60, reward: '$12 USDT (example)', color: 'text-amber-600', tokenId: 1003, txHash: '0x' + 'c'.repeat(64) },
-  { rank: 4, title: DEMO_PREFIX + 'Sample Remix 4', creator: '@demo_user_4', votes: 40, reward: '$8 USDT (example)', color: 'text-gray-400', tokenId: 1004, txHash: '0x' + 'd'.repeat(64) },
-  { rank: 5, title: DEMO_PREFIX + 'Sample Remix 5', creator: '@demo_user_5', votes: 20, reward: '$7 USDT (example)', color: 'text-gray-400', tokenId: 1005, txHash: '0x' + 'e'.repeat(64) },
+  { rank: 1, title: DEMO_PREFIX + 'Sample Remix 1', creator: '@demo_user_1', votes: 100, reward: 'Top 1 reward', color: 'text-yellow-400', tokenId: 1001, txHash: '0x' + 'a'.repeat(64) },
+  { rank: 2, title: DEMO_PREFIX + 'Sample Remix 2', creator: '@demo_user_2', votes: 80, reward: 'Top 3 reward', color: 'text-gray-300', tokenId: 1002, txHash: '0x' + 'b'.repeat(64) },
+  { rank: 3, title: DEMO_PREFIX + 'Sample Remix 3', creator: '@demo_user_3', votes: 60, reward: 'Top 5 reward', color: 'text-amber-600', tokenId: 1003, txHash: '0x' + 'c'.repeat(64) },
+  { rank: 4, title: DEMO_PREFIX + 'Sample Remix 4', creator: '@demo_user_4', votes: 40, reward: 'Top 10 reward', color: 'text-gray-400', tokenId: 1004, txHash: '0x' + 'd'.repeat(64) },
+  { rank: 5, title: DEMO_PREFIX + 'Sample Remix 5', creator: '@demo_user_5', votes: 20, reward: 'Top 10 reward', color: 'text-gray-400', tokenId: 1005, txHash: '0x' + 'e'.repeat(64) },
 ]
