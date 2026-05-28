@@ -74,9 +74,9 @@ export default function UserProfile() {
 
   const loadProfile = async () => {
     setLoading(true);
+    let found = false;
     try {
       if (isOwnProfile) {
-        // Load current user's profile
         const response = await userServiceGetUserProfile();
         if (response.data) {
           setProfile(response.data);
@@ -85,25 +85,25 @@ export default function UserProfile() {
             bio: response.data.bio || '',
             avatar: null
           });
+          found = true;
         }
       } else {
-        // Load public profile
         const response = await userServiceGetPublicProfile({
           body: { user_id: id as string }
         });
         if (response.data) {
           setProfile(response.data);
+          found = true;
         }
       }
     } catch (error) {
-      console.warn('Profile API unavailable — using demo profile');
-      if (isOwnProfile) {
-        setProfile(DEMO_PROFILE as any);
-        setEditForm({ username: DEMO_PROFILE.username, bio: DEMO_PROFILE.bio || '', avatar: null });
-      }
-    } finally {
-      setLoading(false);
+      console.warn('Profile API threw — using demo profile');
     }
+    if (!found && isOwnProfile) {
+      setProfile(DEMO_PROFILE as any);
+      setEditForm({ username: DEMO_PROFILE.username, bio: DEMO_PROFILE.bio || '', avatar: null });
+    }
+    setLoading(false);
   };
 
   const handleSave = async () => {
