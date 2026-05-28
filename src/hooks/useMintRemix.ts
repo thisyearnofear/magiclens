@@ -65,6 +65,7 @@ export function useMintRemix() {
     let hash: string
     try {
       options?.onStage?.('wallet')
+      console.info('[MagicLens:mint] calling writeContractAsync…')
       hash = await writeContractAsync({
         address: REMIX_NFT_ADDRESS as `0x${string}`,
         abi: REMIX_NFT_ABI,
@@ -73,50 +74,60 @@ export function useMintRemix() {
         chain: xLayerTestnet,
         account: address,
       })
+      console.info('[MagicLens:mint] tx submitted, hash:', hash)
       options?.onStage?.('submitted')
     } catch (err: any) {
       const msg = err?.shortMessage || err?.message || 'Transaction rejected'
+      console.error('[MagicLens:mint] writeContractAsync failed:', err)
       toast.error('Mint failed', { description: msg })
       return { ok: false, error: msg }
     }
 
-    // Wait for on-chain confirmation — this is the critical step
-    // that was previously missing. The tx can revert after submission.
+    // Wait for on-chain confirmation
     options?.onStage?.('confirming')
     try {
       if (!publicClient) {
+        console.error('[MagicLens:mint] publicClient is null — wagmi config may not have X Layer testnet')
         throw new Error('No public client available for the target network')
       }
+      console.info('[MagicLens:mint] waiting for receipt…', { chainId: xLayerTestnet.id, hash })
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: hash as `0x${string}`,
         timeout: 120_000,
       })
+      console.info('[MagicLens:mint] receipt received:', { status: receipt.status, blockNumber: receipt.blockNumber, logsCount: receipt.logs.length })
 
       if (receipt.status === 'reverted') {
+        console.error('[MagicLens:mint] TX REVERTED on-chain')
         toast.error('Mint reverted on-chain', {
           description: 'The transaction was mined but failed. No NFT was minted. You can try again.',
         })
         return { ok: false, hash, error: 'Transaction reverted on-chain' }
       }
 
-      // Extract the actual tokenId from the Transfer event (mint emits Transfer(0x0 → to, tokenId))
+      // Extract tokenId from Transfer event
       let tokenId = -1
       try {
+        console.info('[MagicLens:mint] parsing', receipt.logs.length, 'logs for Transfer event…')
         const transferLogs = parseEventLogs({
           abi: REMIX_NFT_ABI,
           logs: receipt.logs as any,
           eventName: 'Transfer',
         })
+        console.info('[MagicLens:mint] found', transferLogs.length, 'Transfer events:', transferLogs)
         for (const log of transferLogs) {
           const args = log.args as { from: string; to: string; tokenId: bigint }
           if (args.from === ZERO_ADDRESS) {
             tokenId = Number(args.tokenId)
+            console.info('[MagicLens:mint] mint Transfer found, tokenId:', tokenId)
             break
           }
         }
-      } catch {
-        // parseEventLogs may fail if ABI doesn't include Transfer event;
-        // fall through with tokenId = -1
+      } catch (parseErr) {
+        console.error('[MagicLens:mint] parseEventLogs failed:', parseErr)
+      }
+      if (tokenId === -1) {
+        console.warn('[MagicLens:mint] could not extract tokenId from logs, receipt.logs:', receipt.logs)
       }
 
       // Store metadata with the real tokenId now that the mint is confirmed
