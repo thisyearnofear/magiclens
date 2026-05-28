@@ -10,12 +10,13 @@ import { computeStreak, getStreakBadge } from '@/lib/streak';
 
 interface MintConfirmationProps {
   txHash: string | null;
+  tokenId?: number;
   leaderboardRank: number | null;
   onViewLeaderboard: () => void;
   onCreateAnother: () => void;
 }
 
-export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, onCreateAnother }: MintConfirmationProps) {
+export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeaderboard, onCreateAnother }: MintConfirmationProps) {
   const [streak, setStreak] = useState(0);
   const [countdown, setCountdown] = useState('');
 
@@ -114,6 +115,16 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
                 </a>
               </motion.div>
             )}
+            {tokenId !== undefined && tokenId >= 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-gray-300 text-sm">Token ID</span>
+                <span className="text-white text-sm font-mono">#{tokenId}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-gray-300 text-sm">Status</span>
+              <Badge className="bg-green-600/80">Confirmed on-chain</Badge>
+            </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-300 text-sm">Network</span>
               <Badge className="bg-purple-500/80">X Layer Testnet</Badge>
@@ -151,7 +162,7 @@ export function MintConfirmation({ txHash, leaderboardRank, onViewLeaderboard, o
             </motion.div>
             <p className="text-gray-300 text-sm mb-3">
               {leaderboardRank && leaderboardRank <= 3
-                ? `Your remix is ranked #${leaderboardRank} today! Top 3 earn USDT rewards AND get promoted to premium Iconic Moment NFTs on Flow Cadence — with gasless transactions and NBA Top Shot lineage.`
+                ? `Your remix is ranked #${leaderboardRank} today! Top 3 get promoted to premium Iconic Moment NFTs on Flow Cadence — with gasless transactions and NBA Top Shot lineage.`
                 : `Your remix has been submitted to today's leaderboard. Top 3 remixes are automatically promoted to Flow Iconic Moment NFTs.`}
             </p>
             <div className="flex items-center gap-2 text-xs text-gray-300 mb-3">

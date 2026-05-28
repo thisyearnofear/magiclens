@@ -15,7 +15,7 @@ export function addRemix(remix: { title: string; txHash: string; creator: string
   const existing = getUserRemixes();
   const newRemix: Remix = {
     ...remix,
-    votes: Math.floor(Math.random() * 1501) + 500, // 500-2000
+    votes: 0,
     createdAt: Date.now(),
   };
   existing.push(newRemix);

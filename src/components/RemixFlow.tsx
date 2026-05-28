@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 import { StadiumBackdrop } from '@/components/StadiumBackdrop';
 import { StepProgress } from '@/components/remix/StepProgress';
 import { ProductJourneyHeader } from '@/components/ProductJourneyHeader';
@@ -10,7 +11,7 @@ import MobileARWorkspace from '@/components/remix/MobileARWorkspace';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { RemixPreview } from '@/components/remix/RemixPreview';
 import { MintConfirmation } from '@/components/remix/MintConfirmation';
-import { CheckCircle2, Sparkles, Trophy, Wand2, Zap } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Sparkles, Trophy, Wand2, Zap } from 'lucide-react';
 import { useAuthContext } from '@/auth';
 import { useMintRemix } from '@/hooks/useMintRemix';
 import { useReferrer } from '@/hooks/useReferrer';
@@ -39,12 +40,12 @@ const OVERLAY_NAMES: Record<string, string> = {
   'ref-card': 'Ref-Card Overlay',
 };
 
-type MintStage = 'idle' | 'metadata' | 'wallet' | 'submitted' | 'complete' | 'error';
+type MintStage = 'idle' | 'metadata' | 'wallet' | 'submitted' | 'confirming' | 'complete' | 'error';
 
 function statusFor(stage: MintStage, index: number): TransactionStepStatus {
-  const order: MintStage[] = ['metadata', 'wallet', 'submitted', 'complete'];
+  const order: MintStage[] = ['metadata', 'wallet', 'submitted', 'confirming', 'complete'];
   const current = order.indexOf(stage);
-  if (stage === 'error') return index === 3 ? 'error' : index < 3 ? 'complete' : 'pending';
+  if (stage === 'error') return index <= current ? 'complete' : 'error';
   if (current === -1) return 'pending';
   if (index < current) return 'complete';
   if (index === current) return stage === 'complete' ? 'complete' : 'active';
@@ -70,9 +71,14 @@ function mintProgressSteps(stage: MintStage): TransactionStep[] | undefined {
       status: statusFor(stage, 2),
     },
     {
-      label: 'Ready',
-      description: 'Your remix can now compete on the leaderboard.',
+      label: 'Confirming on-chain',
+      description: 'Waiting for the blockchain to confirm your mint.',
       status: statusFor(stage, 3),
+    },
+    {
+      label: 'Ready',
+      description: 'Your remix is confirmed and can compete on the leaderboard.',
+      status: statusFor(stage, 4),
     },
   ];
 }
@@ -148,7 +154,9 @@ export default function RemixFlow() {
   const [selectedOverlays, setSelectedOverlays] = useState<SelectedOverlay[]>([]);
   const [overlayStyles, setOverlayStyles] = useState<Record<string, OverlayStyle>>({});
   const [mintTx, setMintTx] = useState<string | null>(null);
+  const [mintTokenId, setMintTokenId] = useState<number | undefined>(undefined);
   const [mintStage, setMintStage] = useState<MintStage>('idle');
+  const [mintError, setMintError] = useState<string | null>(null);
   const [resumeMintAfterConnect, setResumeMintAfterConnect] = useState(false);
   const [isConnectingWallet, setIsConnectingWallet] = useState(false);
   const [leaderboardRank] = useState<number | null>(null);
@@ -159,79 +167,88 @@ export default function RemixFlow() {
   const goBack = () => { setDirection(-1); setStep(s => s - 1); };
 
   const handleMint = async () => {
-    try {
-      const clipTitle = clip?.title || 'Match Moment';
+    const clipTitle = clip?.title || 'Match Moment';
+
+    if (!evmAddress || chain !== 'evm') {
+      const { toast } = await import('sonner');
+      setResumeMintAfterConnect(true);
+      setIsConnectingWallet(true);
+      toast.info('Connect an EVM wallet to mint this remix', {
+        description: 'Your clip and overlays will stay here. MagicLens will continue minting after connection.',
+      });
+      connectEVM();
+      window.setTimeout(() => setIsConnectingWallet(false), 1500);
+      return;
+    }
+
+    if (isWrongNetwork) {
+      const { toast } = await import('sonner');
+      setResumeMintAfterConnect(true);
+      toast.info('Switch to X Layer testnet to mint', {
+        description: 'After the network switch, MagicLens will continue with this remix.',
+      });
+      switchToTargetNetwork();
+      return;
+    }
+
+    setResumeMintAfterConnect(false);
+    setIsConnectingWallet(false);
+    setMintError(null);
+    setMintStage('metadata');
+
+    const result = await measureUserAction(
+      'mint_remix_xlayer',
+      () => mintRemix(
+        clipTitle,
+        selectedOverlays.map(o => o.id),
+        selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name),
+        referrerAddress,
+        { onStage: setMintStage }
+      ),
+      { overlays: selectedOverlays.length, demo: false }
+    );
+
+    if (result.ok) {
+      const { hash, tokenId } = result;
       const addr = evmAddress || '';
       const creator = addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '@you';
+      setMintTx(hash);
+      setMintTokenId(tokenId);
+      addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
+      setMintStage('complete');
+      goForward();
 
-      if (!evmAddress || chain !== 'evm') {
-        const { toast } = await import('sonner');
-        setResumeMintAfterConnect(true);
-        setIsConnectingWallet(true);
-        toast.info('Connect an EVM wallet to mint this remix', {
-          description: 'Your clip and overlays will stay here. MagicLens will continue minting after connection.',
-        });
-        connectEVM();
-        window.setTimeout(() => setIsConnectingWallet(false), 1500);
-        return;
-      }
-
-      if (isWrongNetwork) {
-        const { toast } = await import('sonner');
-        setResumeMintAfterConnect(true);
-        toast.info('Switch to X Layer testnet to mint', {
-          description: 'After the network switch, MagicLens will continue with this remix.',
-        });
-        switchToTargetNetwork();
-        return;
-      }
-
-      setResumeMintAfterConnect(false);
-      setIsConnectingWallet(false);
-      setMintStage('metadata');
-      const result = await measureUserAction(
-        'mint_remix_xlayer',
-        () => mintRemix(
-          clipTitle,
-          selectedOverlays.map(o => o.id),
-          selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name),
+      // Claim referral reward on backend
+      if (referrerAddress && evmAddress && referrerAddress.toLowerCase() !== evmAddress.toLowerCase()) {
+        claimReferral({
           referrerAddress,
-          { onStage: setMintStage }
-        ),
-        { overlays: selectedOverlays.length, demo: false }
-      );
-      if (result) {
-        const { hash, nextTokenId } = result;
-        setMintTx(hash);
-        addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
-        setMintStage('complete');
-        goForward();
-
-        // Claim referral reward on backend
-        if (referrerAddress && evmAddress && referrerAddress.toLowerCase() !== evmAddress.toLowerCase()) {
-          claimReferral({
-            referrerAddress,
-            refereeAddress: evmAddress,
-            day: 1,
-            xlayerTokenId: nextTokenId,
-            xlayerTxHash: hash,
-          }).then(res => {
-            if (res.success && res.total_referrals !== undefined) {
-              import('sonner').then(({ toast }) =>
-                toast.success(`Referrer gets +${res.bonus_votes} leaderboard votes! (${res.total_referrals} total)`)
-              );
-            }
-          });
-          clearReferrer();
-        }
+          refereeAddress: evmAddress,
+          day: 1,
+          xlayerTokenId: tokenId,
+          xlayerTxHash: hash,
+        }).then(res => {
+          if (res.success && res.total_referrals !== undefined) {
+            import('sonner').then(({ toast }) =>
+              toast.success(`Referrer gets +${res.bonus_votes} leaderboard votes! (${res.total_referrals} total)`)
+            );
+          }
+        });
+        clearReferrer();
       }
-    } catch (err) {
+    } else {
+      const fail = result as { ok: false; hash?: string; error: string }
+      // Mint failed or reverted — show error UI with retry option
       setMintStage('error');
-      setResumeMintAfterConnect(false);
-      setIsConnectingWallet(false);
-      const { toast } = await import('sonner');
-      toast.error('Mint failed', { description: err instanceof Error ? err.message : 'Could not complete the mint' });
+      setMintError(fail.error);
+      if (fail.hash) setMintTx(fail.hash);
     }
+  };
+
+  const handleRetryMint = () => {
+    setMintStage('idle');
+    setMintError(null);
+    setMintTx(null);
+    setMintTokenId(undefined);
   };
 
   useEffect(() => {
@@ -354,6 +371,33 @@ export default function RemixFlow() {
                         </div>
                       </div>
                     )}
+                    {mintStage === 'error' && (
+                      <div className="max-w-4xl mx-auto px-4 pt-4">
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-center space-y-3">
+                          <p className="text-red-300 text-sm font-semibold">Mint failed</p>
+                          <p className="text-red-200/80 text-xs">{mintError || 'The transaction did not complete successfully.'}</p>
+                          {mintTx && (
+                            <a
+                              href={`https://www.oklink.com/xlayer-testnet/tx/${mintTx}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-yellow-400 text-xs font-mono hover:underline inline-flex items-center gap-1"
+                            >
+                              View transaction on explorer <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                          <div>
+                            <Button
+                              onClick={handleRetryMint}
+                              size="sm"
+                              className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold mt-1"
+                            >
+                              Try Again
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <RemixPreview
                       clipTitle={clip.title}
                       clipVideoUrl={clip.videoUrl}
@@ -375,6 +419,7 @@ export default function RemixFlow() {
                   <div>
                     <MintConfirmation
                       txHash={mintTx}
+                      tokenId={mintTokenId}
                       leaderboardRank={leaderboardRank}
                       onViewLeaderboard={() => router.push('/leaderboard')}
                       onCreateAnother={() => {
@@ -384,7 +429,9 @@ export default function RemixFlow() {
                         setSelectedOverlays([]);
                         setOverlayStyles({});
                         setMintTx(null);
+                        setMintTokenId(undefined);
                         setMintStage('idle');
+                        setMintError(null);
                       }}
                     />
                   </div>
