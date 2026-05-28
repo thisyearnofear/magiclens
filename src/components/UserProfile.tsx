@@ -258,7 +258,7 @@ export default function UserProfile() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Card className="bg-white/10 border-white/20">
+        <Card className="bg-gray-900/70 backdrop-blur-sm border-white/20 shadow-xl">
           <CardHeader className="pb-6">
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
               {/* Avatar */}
@@ -375,21 +375,21 @@ export default function UserProfile() {
           <CardContent>
             {/* Stats */}
             <div className="grid md:grid-cols-4 gap-4 mb-8">
-              <Card className="bg-white/5 border-white/10">
+              <Card className="bg-gray-800/60 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">
                     ${profile.earnings_total?.toFixed(2) || '0.00'}
                   </div>
-                  <p className="text-gray-300 text-xs">Earnings</p>
+                  <p className="text-gray-400 text-xs">Earnings</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/5 border-white/10">
+              <Card className="bg-gray-800/60 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">
                     {streak.current}
                   </div>
-                  <p className="text-gray-300 text-xs flex items-center justify-center gap-1">
+                  <p className="text-gray-400 text-xs flex items-center justify-center gap-1">
                     <Flame className="h-3 w-3 text-orange-400" />
                     Day Streak
                   </p>
@@ -401,24 +401,24 @@ export default function UserProfile() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/5 border-white/10">
+              <Card className="bg-gray-800/60 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-xl font-bold text-white mb-1">
                     {streak.longest}
                   </div>
-                  <p className="text-gray-300 text-xs flex items-center justify-center gap-1">
+                  <p className="text-gray-400 text-xs flex items-center justify-center gap-1">
                     <Award className="h-3 w-3 text-yellow-400" />
                     Best Streak
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/5 border-white/10">
+              <Card className="bg-gray-800/60 border-white/10">
                 <CardContent className="p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">
                     {getUserRemixes().length}
                   </div>
-                  <p className="text-gray-300 text-xs">Total Remixes</p>
+                  <p className="text-gray-400 text-xs">Total Remixes</p>
                 </CardContent>
               </Card>
             </div>
@@ -467,7 +467,7 @@ export default function UserProfile() {
 
             {/* Referral Link + Stats */}
             {isOwnProfile && evmAddress && (
-              <Card className="bg-gradient-to-r from-yellow-400/5 to-orange-400/5 border-yellow-400/20 mb-4">
+              <Card className="bg-gradient-to-r from-yellow-400/10 to-orange-400/10 border-yellow-400/20 mb-4">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 min-w-0">
@@ -523,7 +523,7 @@ export default function UserProfile() {
             {/* User Type Info */}
             <div className="space-y-4">
               {(profile.user_type === 'videographer' || profile.user_type === 'both') && (
-                <Card className="bg-blue-500/10 border-blue-500/20">
+                <Card className="bg-blue-500/20 border-blue-500/30">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
                       <Camera className="h-8 w-8 text-blue-400" />
@@ -537,7 +537,7 @@ export default function UserProfile() {
               )}
 
               {(profile.user_type === 'artist' || profile.user_type === 'both') && (
-                <Card className="bg-purple-500/10 border-purple-500/20">
+                <Card className="bg-purple-500/20 border-purple-500/30">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
                       <Palette className="h-8 w-8 text-purple-400" />

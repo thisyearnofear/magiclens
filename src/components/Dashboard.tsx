@@ -142,21 +142,12 @@ export default function Dashboard() {
         {isGuest&&<GuestBanner onConnect={goHome} />}
         {/* Web3 identity bar — shows ENS/Lens/Farcaster when user has a web3 identity */}
         {!isGuest && !web3.loading && (web3.displayName || web3.avatarUrl) && (
-          <div className="mb-6 flex items-center gap-3 flex-wrap">
+          <div className="mb-6">
             <Web3Identities web3={web3} walletAddress={walletAddress} layout="compact" />
-            {profile.bio === 'Welcome to MagicLens! Update your profile to get started.' && (
-              <span className="text-gray-400 text-xs">
-                We found your Web3 identity!{' '}
-                <a href="/profile" className="text-yellow-400 hover:text-yellow-300 underline">
-                  Create a MagicLens profile
-                </a>{' '}
-                to add videos and assets.
-              </span>
-            )}
           </div>
         )}
 
-        <WelcomeSection isGuest={isGuest} profile={profile} />
+        <WelcomeSection isGuest={isGuest} profile={profile} web3DisplayName={web3.displayName} web3AvatarUrl={web3.avatarUrl} />
       {isNewUser&&<GettingStartedChecklist onNavigate={(p:string)=>router.push(p)} />}
       <QuickActions isGuest={isGuest} userType={profile.user_type} onNavigate={(p:string)=>router.push(p)} onShowGallery={()=>setShowGallery(true)} />
         {error&&<div className="mb-8 p-4 rounded-lg bg-red-500/20 border border-red-500/30"><div className="flex items-start space-x-3"><div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5"><span className="text-white text-xs">!</span></div><div><h4 className="text-white font-medium">Connection Issue</h4><p className="text-gray-300 text-sm mt-1">{error}</p><Button variant="outline" size="sm" className="mt-2 border-red-500/30 text-red-400 hover:bg-red-500/10" onClick={()=>window.location.reload()}>Retry</Button></div></div></div>}
