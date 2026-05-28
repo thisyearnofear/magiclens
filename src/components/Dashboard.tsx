@@ -24,7 +24,7 @@ import { Web3Identities } from '@/components/Web3Identities';
 
 export default function Dashboard() {
   const router = useRouter();
-  const { flowAddress: user, disconnect: disconnectWallet, isGuest } = useAuthContext();
+  const { flowAddress: user, evmAddress, disconnect: disconnectWallet, isGuest } = useAuthContext();
   const [profile, setProfile] = useState<UserProfile|null>(null);
   const [recentVideos, setRecentVideos] = useState<Video[]>([]);
   const [recentAssets, setRecentAssets] = useState<ArtistAsset[]>([]);
@@ -39,7 +39,9 @@ export default function Dashboard() {
   const { permission, subscribed, requestPermission } = useNotifications();
 
   // Resolve Web3 identity (ENS / Lens / Farcaster) from wallet address
-  const web3 = useWeb3Profile(user);
+  // Use EVM address first (RainbowKit), fall back to Flow address
+  const walletAddress = evmAddress || user || null;
+  const web3 = useWeb3Profile(walletAddress);
 
   const handleEdit=(id:string,title:string)=>{setEditingVideo({id,title});setEditOpen(true);};
   const handleDelete=(id:string,title:string)=>{setDeletingVideo({id,title});setDeleteOpen(true);};
@@ -59,7 +61,12 @@ export default function Dashboard() {
     try{
       const pr=await userServiceGetUserProfile({});
       if(pr.data)setProfile(pr.data);
-      else setProfile({id:user||'unknown',user_id:user||'unknown',username:`User ${user?.slice(-4)||'Unknown'}`,user_type:'both',bio:'Welcome to MagicLens! Update your profile to get started.',created_at:new Date().toISOString()}as UserProfile);
+      else {
+        // Use the best available wallet address for the fallback display
+        const fallbackAddr = walletAddress || user || null;
+        const fallbackName = fallbackAddr ? `${fallbackAddr.slice(0, 6)}...${fallbackAddr.slice(-4)}` : 'Guest';
+        setProfile({id:fallbackAddr||'unknown',user_id:fallbackAddr||'unknown',username:fallbackName,user_type:'both',bio:'Welcome to MagicLens! Update your profile to get started.',created_at:new Date().toISOString()}as UserProfile);
+      }
       try{const v=await videoServiceGetVideos({body:{limit:6,offset:0}});if(v.data)setRecentVideos(v.data);}catch{setRecentVideos([]);}
       try{const a=await assetServiceGetAssets({body:{limit:6,offset:0}});if(a.data)setRecentAssets(a.data);}catch{setRecentAssets([]);}
     }catch(e){console.error('Dashboard loading error:',e);setError('Unable to load dashboard data. Some features may be limited.');}
@@ -133,18 +140,11 @@ export default function Dashboard() {
         )}
         <StatsBar />
         {isGuest&&<GuestBanner onConnect={goHome} />}
-        {/* Web3 identity (ENS / Lens / Farcaster) — shown when no MagicLens profile exists */}
-        {!isGuest && !profile.username?.startsWith('User ') && !web3.loading && (web3.displayName || web3.avatarUrl) && (
-          <div className="mb-6">
-            <Web3Identities web3={web3} walletAddress={user} layout="compact" />
-          </div>
-        )}
-
-        {/* Enriched fallback banner — when user has no MagicLens profile but has a Web3 identity */}
-        {!isGuest && web3.displayName && !web3.loading && profile.bio === 'Welcome to MagicLens! Update your profile to get started.' && (
-          <div className="mb-6 p-4 rounded-lg bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-400/20">
-            <div className="flex items-center gap-4 flex-wrap">
-              <Web3Identities web3={web3} walletAddress={user} layout="compact" />
+        {/* Web3 identity bar — shows ENS/Lens/Farcaster when user has a web3 identity */}
+        {!isGuest && !web3.loading && (web3.displayName || web3.avatarUrl) && (
+          <div className="mb-6 flex items-center gap-3 flex-wrap">
+            <Web3Identities web3={web3} walletAddress={walletAddress} layout="compact" />
+            {profile.bio === 'Welcome to MagicLens! Update your profile to get started.' && (
               <span className="text-gray-400 text-xs">
                 We found your Web3 identity!{' '}
                 <a href="/profile" className="text-yellow-400 hover:text-yellow-300 underline">
@@ -152,7 +152,7 @@ export default function Dashboard() {
                 </a>{' '}
                 to add videos and assets.
               </span>
-            </div>
+            )}
           </div>
         )}
 
