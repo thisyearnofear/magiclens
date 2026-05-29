@@ -270,7 +270,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
         <Button
           onClick={onUploadNew}
           variant="outline"
-          className="border-white/20 text-white hover:bg-white/10"
+          className="border-white/40 text-white bg-white/5 hover:bg-white/15"
         >
           <Upload className="h-4 w-4 mr-2" />
           Upload Your Own Clip
