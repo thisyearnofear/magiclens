@@ -22,40 +22,10 @@ export function captureRemixFrame(
   overlays: { id: string; name: string }[],
   clipTitle: string,
 ): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const W = 1280
-    const H = 720
-    const canvas = document.createElement('canvas')
-    canvas.width = W
-    canvas.height = H
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return reject(new Error('Canvas not available'))
+  const W = 1280
+  const H = 720
 
-    // Gradient background
-    const grad = ctx.createLinearGradient(0, 0, W, H)
-    grad.addColorStop(0, '#1e1b4b')
-    grad.addColorStop(0.5, '#172554')
-    grad.addColorStop(1, '#0f172a')
-    ctx.fillStyle = grad
-    ctx.fillRect(0, 0, W, H)
-
-    // Draw video frame
-    if (videoEl && videoEl.readyState >= 2) {
-      try {
-        const vw = videoEl.videoWidth
-        const vh = videoEl.videoHeight
-        if (vw > 0 && vh > 0) {
-          const scale = Math.min(W / vw, H / vh)
-          const dx = (W - vw * scale) / 2
-          const dy = (H - vh * scale) / 2
-          ctx.drawImage(videoEl, dx, dy, vw * scale, vh * scale)
-        }
-      } catch {
-        // cross-origin video may taint canvas; skip gracefully
-      }
-    }
-
-    // Draw overlay decorations
+  function drawOverlays(ctx: CanvasRenderingContext2D) {
     const overlayColors: Record<string, string> = {
       'flag-halos': '#a855f7',
       'goal-lower-third': '#ef4444',
@@ -64,38 +34,80 @@ export function captureRemixFrame(
       'stadium-sparkles': '#facc15',
       'ref-card': '#dc2626',
     }
-
     overlays.forEach((ov, i) => {
       const color = overlayColors[ov.id] || '#8b5cf6'
       const x = 40 + i * 120
       const y = H - 60
-
       ctx.fillStyle = color + '30'
       ctx.beginPath()
       ctx.roundRect(x, y, 100, 36, 8)
       ctx.fill()
-
       ctx.fillStyle = color
       ctx.font = '600 13px -apple-system, BlinkMacSystemFont, sans-serif'
       ctx.fillText(ov.name, x + 10, y + 23)
     })
-
-    // MagicLens watermark
     ctx.fillStyle = '#ffffff40'
     ctx.font = '500 11px -apple-system, BlinkMacSystemFont, sans-serif'
     ctx.fillText('MagicLens', 16, 24)
-
-    // Title
     ctx.fillStyle = '#ffffff'
     ctx.font = '700 18px -apple-system, BlinkMacSystemFont, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(clipTitle, W / 2, 36)
     ctx.textAlign = 'start'
+  }
 
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob)
-      else reject(new Error('Canvas toBlob failed'))
-    }, 'image/png', 0.85)
+  function drawBackground(ctx: CanvasRenderingContext2D) {
+    const grad = ctx.createLinearGradient(0, 0, W, H)
+    grad.addColorStop(0, '#1e1b4b')
+    grad.addColorStop(0.5, '#172554')
+    grad.addColorStop(1, '#0f172a')
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, W, H)
+  }
+
+  function canvasToBlob(c: HTMLCanvasElement): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      c.toBlob((b) => {
+        if (b) resolve(b)
+        else reject(new Error('Canvas toBlob failed'))
+      }, 'image/png', 0.85)
+    })
+  }
+
+  // Try drawing with video frame first
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')!
+
+  drawBackground(ctx)
+
+  let drewVideo = false
+  if (videoEl && videoEl.readyState >= 2) {
+    try {
+      const vw = videoEl.videoWidth
+      const vh = videoEl.videoHeight
+      if (vw > 0 && vh > 0) {
+        const scale = Math.min(W / vw, H / vh)
+        ctx.drawImage(videoEl, (W - vw * scale) / 2, (H - vh * scale) / 2, vw * scale, vh * scale)
+        drewVideo = true
+      }
+    } catch {
+      // cross-origin without CORS — canvas tainted
+    }
+  }
+
+  drawOverlays(ctx)
+
+  return canvasToBlob(canvas).catch(() => {
+    // Canvas was tainted by cross-origin video — rebuild without it
+    const clean = document.createElement('canvas')
+    clean.width = W
+    clean.height = H
+    const c2 = clean.getContext('2d')!
+    drawBackground(c2)
+    drawOverlays(c2)
+    return canvasToBlob(clean)
   })
 }
 

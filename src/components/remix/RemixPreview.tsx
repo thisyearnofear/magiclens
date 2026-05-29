@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -51,6 +51,25 @@ export function RemixPreview({
   const packNames = selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name);
   const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const previewSizeRef = useRef<{ w: number; h: number } | null>(null);
+  const [fullscreenScale, setFullscreenScale] = useState(1);
+
+  // Track preview dimensions and compute scale factor for fullscreen
+  useEffect(() => {
+    const el = elementRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      if (!isFullscreen && width > 0 && height > 0) {
+        previewSizeRef.current = { w: width, h: height };
+        setFullscreenScale(1);
+      } else if (isFullscreen && previewSizeRef.current) {
+        setFullscreenScale(width / previewSizeRef.current.w);
+      }
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [elementRef, isFullscreen]);
 
   const handleMintClick = async () => {
     const blob = await captureRemixFrame(videoRef.current, selectedOverlays, clipTitle)
@@ -130,10 +149,23 @@ export function RemixPreview({
           {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
         </button>
 
+        {/* Scaled wrapper — keeps overlays aligned with video in fullscreen */}
+        <div
+          style={isFullscreen && fullscreenScale !== 1 ? {
+            transform: `scale(${fullscreenScale})`,
+            transformOrigin: '0 0',
+            width: previewSizeRef.current?.w,
+            height: previewSizeRef.current?.h,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          } : undefined}
+        >
         {clipVideoUrl ? (
           <video
             ref={videoRef}
             src={clipVideoUrl}
+            crossOrigin="anonymous"
             className="absolute inset-0 w-full h-full object-cover"
             muted
             loop
@@ -243,6 +275,7 @@ export function RemixPreview({
               return null;
           }
         })}
+        </div>{/* end scaled wrapper */}
       </div>
 
       {/* Metadata summary */}
