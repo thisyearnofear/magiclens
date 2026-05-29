@@ -11,7 +11,7 @@ import {
 interface MobileARWorkspaceProps {
   clipTitle: string;
   clipVideoUrl: string;
-  onNext: (selected: SelectedOverlay[], styles: Record<string, { x: number; y: number; scale: number; rotation: number; opacity: number }>) => void;
+  onNext: (selected: SelectedOverlay[], styles: Record<string, { x: number; y: number; scale: number; rotation: number; opacity: number }>, sourceSize?: { w: number; h: number }) => void;
   onBack: () => void;
 }
 
@@ -87,7 +87,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
             {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </button>
           <Button
-            onClick={() => onNext(selected, {})}
+            onClick={() => onNext(selected, {}, elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined)}
             disabled={selected.length === 0}
             size="sm"
             className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs h-8"
@@ -151,7 +151,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
                 </div>
                 <div>
                   <button
-                    onClick={() => onNext(selected, {})}
+                    onClick={() => onNext(selected, {}, elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined)}
                     disabled={selected.length === 0}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs transition-colors disabled:opacity-50 active:scale-95"
                   >

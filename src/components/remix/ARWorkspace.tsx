@@ -23,7 +23,7 @@ const DEFAULT_STYLES: Record<string, OverlayStyle> = {
 interface ARWorkspaceProps {
   clipTitle: string;
   clipVideoUrl: string;
-  onNext: (selected: SelectedOverlay[], styles: Record<string, OverlayStyle>) => void;
+  onNext: (selected: SelectedOverlay[], styles: Record<string, OverlayStyle>, sourceSize?: { w: number; h: number }) => void;
   onBack: () => void;
 }
 
@@ -251,7 +251,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
           <Button variant="ghost" onClick={onBack} className="text-white whitespace-nowrap">Back</Button>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
-              onClick={() => onNext(selected, styles)}
+              onClick={() => { const r = elementRef.current; onNext(selected, styles, r ? { w: r.clientWidth, h: r.clientHeight } : undefined); }}
               disabled={selected.length === 0}
               className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold"
             >
@@ -396,7 +396,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
 
                     <div>
                       <button
-                        onClick={() => onNext(selected, styles)}
+                        onClick={() => { const r = elementRef.current; onNext(selected, styles, r ? { w: r.clientWidth, h: r.clientHeight } : undefined); }}
                         disabled={selected.length === 0}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs transition-colors disabled:opacity-50"
                       >

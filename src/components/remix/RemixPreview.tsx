@@ -15,6 +15,7 @@ interface RemixPreviewProps {
   clipVideoUrl: string;
   selectedOverlays: SelectedOverlay[];
   overlayStyles?: Record<string, OverlayStyle>;
+  overlaySourceSize?: { w: number; h: number } | null;
   onBack: () => void;
   onMint: () => void;
   isMinting?: boolean;
@@ -39,6 +40,7 @@ export function RemixPreview({
   clipVideoUrl,
   selectedOverlays,
   overlayStyles = {},
+  overlaySourceSize,
   onBack,
   onMint,
   isMinting,
@@ -52,9 +54,9 @@ export function RemixPreview({
   const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewSizeRef = useRef<{ w: number; h: number } | null>(null);
-  const [fullscreenScale, setFullscreenScale] = useState(1);
+  const [posScale, setPosScale] = useState(1);
 
-  // Track preview dimensions and compute scale factor for fullscreen
+  // Track preview dimensions and compute scale factors
   useEffect(() => {
     const el = elementRef.current;
     if (!el) return;
@@ -62,14 +64,17 @@ export function RemixPreview({
       const { width, height } = entry.contentRect;
       if (!isFullscreen && width > 0 && height > 0) {
         previewSizeRef.current = { w: width, h: height };
-        setFullscreenScale(1);
+        // Scale overlay positions from source space to preview space
+        if (overlaySourceSize && overlaySourceSize.w > 0) {
+          setPosScale(width / overlaySourceSize.w);
+        }
       } else if (isFullscreen && previewSizeRef.current) {
-        setFullscreenScale(width / previewSizeRef.current.w);
+        setPosScale(width / (overlaySourceSize?.w ?? previewSizeRef.current.w));
       }
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [elementRef, isFullscreen]);
+  }, [elementRef, isFullscreen, overlaySourceSize]);
 
   const handleMintClick = async () => {
     const blob = await captureRemixFrame(videoRef.current, selectedOverlays, clipTitle)
@@ -151,8 +156,8 @@ export function RemixPreview({
 
         {/* Scaled wrapper — keeps overlays aligned with video in fullscreen */}
         <div
-          style={isFullscreen && fullscreenScale !== 1 ? {
-            transform: `scale(${fullscreenScale})`,
+          style={isFullscreen && posScale !== 1 ? {
+            transform: `scale(${posScale})`,
             transformOrigin: '0 0',
             width: previewSizeRef.current?.w,
             height: previewSizeRef.current?.h,
@@ -179,8 +184,10 @@ export function RemixPreview({
         {/* Render selected overlays with user's styles */}
         {selectedOverlays.map(overlay => {
           const st = overlayStyles[overlay.id];
+          const sx = st ? st.x * posScale : 0;
+          const sy = st ? st.y * posScale : 0;
           const transform = st
-            ? `translate(${st.x}px, ${st.y}px) rotate(${st.rotation}deg) scale(${st.scale})`
+            ? `translate(${sx}px, ${sy}px) rotate(${st.rotation}deg) scale(${st.scale})`
             : '';
 
           switch (overlay.id) {

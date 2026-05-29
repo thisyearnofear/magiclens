@@ -143,7 +143,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        <Card className="bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-blue-600/10 border-blue-400/30 mb-8 text-left overflow-hidden relative">
+        <Card className="bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-blue-600/20 border-blue-400/40 mb-8 text-left overflow-hidden relative">
           {/* Animated gradient line */}
           <motion.div
             className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500"
@@ -260,7 +260,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
                   }
                 }}
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 w-full"
+                className="border-white/40 text-white bg-white/5 hover:bg-white/15 w-full"
                 disabled={!txHash}
               >
                 <Copy className="h-4 w-4 mr-2" />
@@ -289,7 +289,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
         <Button
           onClick={onCreateAnother}
           variant="outline"
-          className="border-white/20 text-white hover:bg-white/10"
+          className="border-white/40 text-white bg-white/5 hover:bg-white/15"
         >
           Create Another Remix
         </Button>

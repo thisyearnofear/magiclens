@@ -153,6 +153,7 @@ export default function RemixFlow() {
   const [clip, setClip] = useState<{ title: string; id: string; videoUrl: string } | null>(null);
   const [selectedOverlays, setSelectedOverlays] = useState<SelectedOverlay[]>([]);
   const [overlayStyles, setOverlayStyles] = useState<Record<string, OverlayStyle>>({});
+  const [overlaySourceSize, setOverlaySourceSize] = useState<{ w: number; h: number } | null>(null);
   const [mintTx, setMintTx] = useState<string | null>(null);
   const [mintTokenId, setMintTokenId] = useState<number | undefined>(undefined);
   const [mintStage, setMintStage] = useState<MintStage>('idle');
@@ -336,9 +337,10 @@ export default function RemixFlow() {
                     <MobileARWorkspace
                       clipTitle={clip.title}
                       clipVideoUrl={clip.videoUrl}
-                      onNext={(overlays, styles) => {
+                      onNext={(overlays, styles, sourceSize) => {
                         setSelectedOverlays(overlays);
                         setOverlayStyles(styles);
+                        if (sourceSize) setOverlaySourceSize(sourceSize);
                         goForward();
                       }}
                       onBack={goBack}
@@ -405,6 +407,7 @@ export default function RemixFlow() {
                       clipVideoUrl={clip.videoUrl}
                       selectedOverlays={selectedOverlays}
                       overlayStyles={overlayStyles}
+                      overlaySourceSize={overlaySourceSize}
                       onBack={goBack}
                       onMint={handleMint}
                       isMinting={isMinting || isConnectingWallet}
