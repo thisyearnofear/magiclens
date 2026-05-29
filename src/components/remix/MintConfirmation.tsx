@@ -88,7 +88,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        <Card className="bg-white/5 border-white/10 mb-6 text-left">
+        <Card className="bg-white/10 border-white/20 mb-6 text-left">
           <CardContent className="p-5 space-y-3">
             {txHash && (
               <motion.div
@@ -143,7 +143,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        <Card className="bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-blue-600/20 border-blue-400/40 mb-8 text-left overflow-hidden relative">
+        <Card className="bg-gradient-to-r from-blue-600/30 via-purple-600/30 to-blue-600/30 border-blue-400/50 mb-8 text-left overflow-hidden relative">
           {/* Animated gradient line */}
           <motion.div
             className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500"
@@ -170,14 +170,14 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
               <span><strong className="text-white">X Layer</strong> for volume remixes · <strong className="text-white">Flow</strong> for premium collectibles</span>
             </div>
             {/* How it works */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-400/10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-400/20">
               {[
                 { step: '1', label: 'Mint on X Layer', desc: 'Remix minted as ERC-721' },
                 { step: '2', label: 'Leaderboard', desc: 'Votes determine top 3' },
                 { step: '3', label: 'Auto-promote', desc: 'Minted as Flow Cadence NFT' },
               ].map((item) => (
                 <div key={item.step} className="text-center">
-                  <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-300 text-xs font-bold flex items-center justify-center mx-auto mb-1">
+                  <div className="w-6 h-6 rounded-full bg-blue-500/30 text-blue-200 text-xs font-bold flex items-center justify-center mx-auto mb-1">
                     {item.step}
                   </div>
                   <div className="text-white text-[11px] font-medium">{item.label}</div>
@@ -196,7 +196,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
         transition={{ delay: 0.6 }}
         className="mb-8"
       >
-        <Card className="bg-white/5 border-white/10">
+        <Card className="bg-white/10 border-white/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -260,7 +260,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
                   }
                 }}
                 variant="outline"
-                className="border-white/40 text-white bg-white/5 hover:bg-white/15 w-full"
+                className="border-white/50 text-white bg-white/10 hover:bg-white/20 w-full"
                 disabled={!txHash}
               >
                 <Copy className="h-4 w-4 mr-2" />
@@ -289,7 +289,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
         <Button
           onClick={onCreateAnother}
           variant="outline"
-          className="border-white/40 text-white bg-white/5 hover:bg-white/15"
+          className="border-white/50 text-white bg-white/10 hover:bg-white/20"
         >
           Create Another Remix
         </Button>
