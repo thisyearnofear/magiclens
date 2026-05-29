@@ -143,7 +143,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        <Card className="bg-gradient-to-r from-blue-600/30 via-purple-600/30 to-blue-600/30 border-blue-400/50 mb-8 text-left overflow-hidden relative">
+        <Card className="bg-gradient-to-r from-blue-600/60 via-purple-600/60 to-blue-600/60 border-blue-300/80 mb-8 text-left overflow-hidden relative">
           {/* Animated gradient line */}
           <motion.div
             className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500"
@@ -160,28 +160,28 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
               <Sparkles className="h-5 w-5 text-blue-400" />
               <h3 className="text-white font-semibold">Cross-VM: X Layer → Flow</h3>
             </motion.div>
-            <p className="text-gray-300 text-sm mb-3">
+            <p className="text-gray-100 text-sm mb-3">
               {leaderboardRank && leaderboardRank <= 3
                 ? `Your remix is ranked #${leaderboardRank} today! Top 3 get promoted to premium Iconic Moment NFTs on Flow Cadence — with gasless transactions and NBA Top Shot lineage.`
                 : `Your remix has been submitted to today's leaderboard. Top 3 remixes are automatically promoted to Flow Iconic Moment NFTs.`}
             </p>
-            <div className="flex items-center gap-2 text-xs text-gray-300 mb-3">
+            <div className="flex items-center gap-2 text-xs text-gray-100 mb-3">
               <Medal className="h-4 w-4 text-blue-400" />
               <span><strong className="text-white">X Layer</strong> for volume remixes · <strong className="text-white">Flow</strong> for premium collectibles</span>
             </div>
             {/* How it works */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-400/20">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-300/50">
               {[
                 { step: '1', label: 'Mint on X Layer', desc: 'Remix minted as ERC-721' },
                 { step: '2', label: 'Leaderboard', desc: 'Votes determine top 3' },
                 { step: '3', label: 'Auto-promote', desc: 'Minted as Flow Cadence NFT' },
               ].map((item) => (
                 <div key={item.step} className="text-center">
-                  <div className="w-6 h-6 rounded-full bg-blue-500/30 text-blue-200 text-xs font-bold flex items-center justify-center mx-auto mb-1">
+                  <div className="w-6 h-6 rounded-full bg-blue-400/60 text-white text-xs font-bold flex items-center justify-center mx-auto mb-1">
                     {item.step}
                   </div>
                   <div className="text-white text-[11px] font-medium">{item.label}</div>
-                  <div className="text-gray-300 text-[10px]">{item.desc}</div>
+                  <div className="text-gray-100 text-[11px]">{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -203,7 +203,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
                 <Flame className={`h-5 w-5 ${streak > 0 ? 'text-orange-400' : 'text-gray-300'}`} />
                 <div>
                   <span className="text-white font-bold text-lg">{streak}</span>
-                  <span className="text-gray-300 text-sm ml-1">day streak</span>
+                  <span className="text-gray-100 text-sm ml-1">day streak</span>
                   {getStreakBadge(streak) && (
                     <Badge variant="outline" className={`ml-2 text-[10px] ${getStreakBadge(streak)!.color} border-current`}>
                       {getStreakBadge(streak)!.icon} {getStreakBadge(streak)!.label}
@@ -211,7 +211,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-gray-300 text-xs">
+              <div className="flex items-center gap-1 text-gray-100 text-xs">
                 <Timer className="h-3 w-3" />
                 {countdown}
               </div>
@@ -226,7 +226,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6 }}
       >
-        <Card className="bg-white/5 border-white/10 mb-6">
+        <Card className="bg-white/15 border-white/30 mb-6">
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <Share2 className="h-5 w-5 text-yellow-400" />
