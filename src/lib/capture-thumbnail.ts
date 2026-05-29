@@ -82,7 +82,6 @@ export function captureRemixFrame(
 
   drawBackground(ctx)
 
-  let drewVideo = false
   if (videoEl && videoEl.readyState >= 2) {
     try {
       const vw = videoEl.videoWidth
@@ -90,7 +89,6 @@ export function captureRemixFrame(
       if (vw > 0 && vh > 0) {
         const scale = Math.min(W / vw, H / vh)
         ctx.drawImage(videoEl, (W - vw * scale) / 2, (H - vh * scale) / 2, vw * scale, vh * scale)
-        drewVideo = true
       }
     } catch {
       // cross-origin without CORS — canvas tainted

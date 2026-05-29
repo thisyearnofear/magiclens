@@ -3,10 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 import { useFullscreen } from '@/hooks/use-fullscreen';
+import type { OverlayStyle } from './EditorOverlay';
 import {
   Flag, Sparkles, Image, MessageCircle, AlertTriangle,
   Check, Eye, Trophy, Maximize2, Minimize
 } from 'lucide-react';
+
+const DEFAULT_STYLES: Record<string, OverlayStyle> = {
+  'flag-halos': { x: 240, y: 120, scale: 1, rotation: 0, opacity: 1 },
+  'goal-lower-third': { x: 160, y: 380, scale: 1, rotation: 0, opacity: 1 },
+  'commentary-bubble': { x: 12, y: 12, scale: 1, rotation: -3, opacity: 1, text: 'What a moment!' },
+  'ref-card': { x: 510, y: 70, scale: 1, rotation: 2, opacity: 1, cardColor: 'yellow' },
+};
 
 interface MobileARWorkspaceProps {
   clipTitle: string;
@@ -32,6 +40,7 @@ const SVG_MAP: Record<string, string> = {
 export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }: MobileARWorkspaceProps) {
   const { manifest, loading } = usePack();
   const [selected, setSelected] = useState<SelectedOverlay[]>([]);
+  const [styles, setStyles] = useState<Record<string, OverlayStyle>>({});
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [refCardColor, setRefCardColor] = useState<'yellow' | 'red'>('yellow');
   const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
@@ -40,6 +49,9 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
     setSelected(prev => {
       const exists = prev.find(s => s.id === overlay.id);
       if (exists) return prev.filter(s => s.id !== overlay.id);
+      if (!styles[overlay.id]) {
+        setStyles(s => ({ ...s, [overlay.id]: DEFAULT_STYLES[overlay.id] ?? { x: 200, y: 180, scale: 1, rotation: 0, opacity: 1 } }));
+      }
       const chosenVariant = overlay.variants && overlay.variants.length > 0 ? overlay.variants[0] : null;
       return [...prev, { ...overlay, chosenVariant }];
     });
@@ -87,7 +99,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
             {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </button>
           <Button
-            onClick={() => onNext(selected, {}, elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined)}
+            onClick={() => onNext(selected, styles, elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined)}
             disabled={selected.length === 0}
             size="sm"
             className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs h-8"
@@ -151,7 +163,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
                 </div>
                 <div>
                   <button
-                    onClick={() => onNext(selected, {}, elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined)}
+                    onClick={() => onNext(selected, styles, elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined)}
                     disabled={selected.length === 0}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs transition-colors disabled:opacity-50 active:scale-95"
                   >

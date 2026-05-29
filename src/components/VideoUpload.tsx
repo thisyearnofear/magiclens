@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { EnvironmentalFootageGallery } from './EnvironmentalFootageGallery';
 import { Progress } from '@/components/ui/progress';
 
 
@@ -380,19 +379,6 @@ export default function VideoUpload() {
                 <li>• Good lighting helps artists see placement opportunities</li>
               </ul>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Environmental Footage Inspiration */}
-        <Card className="bg-white/10 border-white/20 mt-8">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-white">Need Inspiration?</CardTitle>
-            <CardDescription className="text-gray-300">
-              Browse professional environmental footage to see what makes great content for AR overlays.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EnvironmentalFootageGallery showAsInspiration={true} />
           </CardContent>
         </Card>
       </div>

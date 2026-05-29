@@ -209,8 +209,6 @@ export default function RemixFlow() {
       { overlays: selectedOverlays.length, demo: false }
     );
 
-    console.info('[MagicLens:mint] result:', result);
-
     if (result.ok) {
       const { hash, tokenId } = result;
       const addr = evmAddress || '';

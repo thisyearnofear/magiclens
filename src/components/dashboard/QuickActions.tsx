@@ -1,16 +1,15 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Camera, Palette, Eye, TrendingUp, Zap, Users } from 'lucide-react';
+import { Upload, Palette, Eye, TrendingUp, Zap, Users } from 'lucide-react';
 
 interface QuickActionsProps {
   isGuest: boolean;
   userType: string;
   onNavigate: (path: string) => void;
-  onShowGallery: () => void;
 }
 
-export function QuickActions({ isGuest, userType, onNavigate, onShowGallery }: QuickActionsProps) {
+export function QuickActions({ isGuest, userType, onNavigate }: QuickActionsProps) {
   const isVideographer = userType === 'videographer' || userType === 'both';
   const isArtist = userType === 'artist' || userType === 'both';
 
@@ -48,22 +47,6 @@ export function QuickActions({ isGuest, userType, onNavigate, onShowGallery }: Q
                 Recommended for you
               </Badge>
             )}
-          </CardContent>
-        </Card>
-      )}
-
-      {!isGuest && userType === 'videographer' && (
-        <Card
-          className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
-          onClick={onShowGallery}
-        >
-          <CardContent className="p-6 text-center relative">
-            <Camera className="h-12 w-12 text-green-400 mx-auto mb-4" />
-            <h3 className="text-white font-semibold">Get Inspired</h3>
-            <p className="text-gray-300 text-sm">Browse environmental footage examples</p>
-            <Badge className="mt-2 bg-green-500/20 text-green-300 text-xs">
-              Professional Examples
-            </Badge>
           </CardContent>
         </Card>
       )}

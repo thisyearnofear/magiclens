@@ -14,7 +14,6 @@ import { VideoGrid } from '@/components/dashboard/VideoGrid';
 import { AssetGrid } from '@/components/dashboard/AssetGrid';
 import { EditVideoDialog } from '@/components/dashboard/EditVideoDialog';
 import { DeleteVideoDialog } from '@/components/dashboard/DeleteVideoDialog';
-import { EnvironmentalGalleryDialog } from '@/components/dashboard/EnvironmentalGalleryDialog';
 import { EventCard } from '@/components/dashboard/EventCard';
 import { StatsBar } from '@/components/StatsBar';
 import { Button } from '@/components/ui/button';
@@ -35,7 +34,6 @@ export default function Dashboard() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingVideo, setDeletingVideo] = useState<{id:string;title:string}|null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showGallery, setShowGallery] = useState(false);
   const { permission, subscribed, requestPermission } = useNotifications();
 
   // Resolve Web3 identity (ENS / Lens / Farcaster) from wallet address
@@ -69,7 +67,13 @@ export default function Dashboard() {
       }
       try{const v=await videoServiceGetVideos({body:{limit:6,offset:0}});if(v.data)setRecentVideos(v.data);}catch{setRecentVideos([]);}
       try{const a=await assetServiceGetAssets({body:{limit:6,offset:0}});if(a.data)setRecentAssets(a.data);}catch{setRecentAssets([]);}
-    }catch(e){console.error('Dashboard loading error:',e);setError('Unable to load dashboard data. Some features may be limited.');}
+    }catch{
+      // 401 is expected when user has a wallet but no backend session
+      const fallbackAddr = walletAddress || user || null;
+      const fallbackName = fallbackAddr ? `${fallbackAddr.slice(0, 6)}...${fallbackAddr.slice(-4)}` : 'Guest';
+      setProfile({id:fallbackAddr||'unknown',user_id:fallbackAddr||'unknown',username:fallbackName,user_type:'both',bio:'Welcome to MagicLens! Update your profile to get started.',created_at:new Date().toISOString()}as UserProfile);
+      setRecentVideos([]);setRecentAssets([]);
+    }
     finally{setLoading(false);}
   })();},[router,isGuest]);
 
@@ -149,7 +153,7 @@ export default function Dashboard() {
 
         <WelcomeSection isGuest={isGuest} profile={profile} web3DisplayName={web3.displayName} web3AvatarUrl={web3.avatarUrl} />
       {isNewUser&&<GettingStartedChecklist onNavigate={(p:string)=>router.push(p)} />}
-      <QuickActions isGuest={isGuest} userType={profile.user_type} onNavigate={(p:string)=>router.push(p)} onShowGallery={()=>setShowGallery(true)} />
+      <QuickActions isGuest={isGuest} userType={profile.user_type} onNavigate={(p:string)=>router.push(p)} />
         {error&&<div className="mb-8 p-4 rounded-lg bg-red-500/20 border border-red-500/30"><div className="flex items-start space-x-3"><div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mt-0.5"><span className="text-white text-xs">!</span></div><div><h4 className="text-white font-medium">Connection Issue</h4><p className="text-gray-300 text-sm mt-1">{error}</p><Button variant="outline" size="sm" className="mt-2 border-red-500/30 text-red-400 hover:bg-red-500/10" onClick={()=>window.location.reload()}>Retry</Button></div></div></div>}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 xl:gap-8">
           <ActivityFeed />
@@ -159,7 +163,6 @@ export default function Dashboard() {
       </div>
       <EditVideoDialog open={editOpen} video={editingVideo} onClose={()=>setEditOpen(false)} onSave={handleUpdate} />
       <DeleteVideoDialog open={deleteOpen} video={deletingVideo} loading={isDeleting} onClose={()=>setDeleteOpen(false)} onConfirm={confirmDelete} />
-      <EnvironmentalGalleryDialog open={showGallery} onClose={()=>setShowGallery(false)} />
       </div>
     </div>
   );

@@ -64,9 +64,30 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
     setIsSearching(true);
     setHasSearched(true);
     try {
-      const res = await fetch(`${getApiBaseUrl()}/api/pexels/search?q=${encodeURIComponent(query)}&limit=9`);
-      const data = await res.json();
-      setSearchResults(data.success ? data.results : []);
+      const apiKey = process.env.NEXT_PUBLIC_PEXELS_API_KEY;
+      if (apiKey) {
+        const res = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=9&orientation=landscape`, {
+          headers: { Authorization: apiKey },
+        });
+        const data = await res.json();
+        const results: PexelsVideo[] = (data.videos || []).map((v: any) => {
+          const hd = (v.video_files || []).find((f: any) => f.quality === 'hd') || v.video_files?.[0];
+          return {
+            id: v.id,
+            title: (v.url || '').split('/').at(-2)?.replace(/-/g, ' ')?.replace(/\b\w/g, (c: string) => c.toUpperCase()) || 'Pexels Video',
+            video_url: hd?.link || '',
+            preview_url: v.image,
+            duration: v.duration || 0,
+            photographer: v.user?.name || 'Unknown',
+            photographer_url: v.user?.url || 'https://www.pexels.com',
+          };
+        }).filter((v: PexelsVideo) => v.video_url);
+        setSearchResults(results);
+      } else {
+        const res = await fetch(`${getApiBaseUrl()}/api/pexels/search?q=${encodeURIComponent(query)}&limit=9`);
+        const data = await res.json();
+        setSearchResults(data.success ? data.results : []);
+      }
     } catch {
       setSearchResults([]);
     } finally {
