@@ -33,6 +33,7 @@ export function MobileNav({ title, icon }: MobileNavProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [pendingRequests, setPendingRequests] = useState(0)
+  const isGuest = typeof window !== 'undefined' && localStorage.getItem('magiclens:guest') === 'true'
 
   useEffect(() => {
     const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
@@ -82,8 +83,17 @@ export function MobileNav({ title, icon }: MobileNavProps) {
           </SheetTrigger>
           <SheetContent side="right" className="w-72 bg-gray-900/98 border-white/10 p-0">
             <div className="p-6 border-b border-white/10">
-              <h2 className="text-lg font-bold text-white">MagicLens</h2>
-              <p className="text-xs text-gray-400 mt-0.5">The AR Remix Layer</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-white">MagicLens</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">The AR Remix Layer</p>
+                </div>
+                {isGuest && (
+                  <span className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-gray-500/20 text-gray-400">
+                    Guest
+                  </span>
+                )}
+              </div>
             </div>
             <nav className="p-3 space-y-1">
               {NAV_ITEMS.map((item) => {

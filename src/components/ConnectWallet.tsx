@@ -52,7 +52,7 @@ export function ConnectWallet() {
           variant="secondary"
           size="sm"
           className={cn(
-            'bg-white/10 text-white hover:bg-white/20 border border-white/20 flex items-center gap-2',
+            'bg-white/10 text-white hover:bg-white/20 border border-white/20 flex items-center gap-1.5',
             isWrongNetwork && 'border-red-400/40 bg-red-500/10'
           )}
         >
@@ -70,6 +70,16 @@ export function ConnectWallet() {
           )}>
             {chain === 'flow' ? 'FLOW' : 'EVM'}
           </span>
+          {chain === 'evm' && flowAddress && (
+            <span className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
+              FLOW
+            </span>
+          )}
+          {chain === 'flow' && evmAddress && (
+            <span className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400">
+              EVM
+            </span>
+          )}
           <ChevronDown className="h-3 w-3 text-white/50" />
         </Button>
 
@@ -169,7 +179,9 @@ export function ConnectWallet() {
   if (isGuest) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-400 hidden sm:inline">Guest</span>
+        <span className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-gray-500/20 text-gray-400 hidden sm:inline">
+          Guest
+        </span>
         <Button
           variant="ghost"
           size="sm"

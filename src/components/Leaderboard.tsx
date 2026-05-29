@@ -138,6 +138,27 @@ export default function Leaderboard() {
     return () => clearInterval(id);
   }, []);
 
+  // Inline vote tracking
+  const [votedTokens, setVotedTokens] = useState<Set<number>>(new Set());
+  const [voteCounts, setVoteCounts] = useState<Record<number, number>>({});
+
+  const handleVote = (entry: LeaderboardEntry) => {
+    if (votedTokens.has(entry.tokenId)) return;
+    setVotedTokens(prev => new Set(prev).add(entry.tokenId));
+    setEntries(prev =>
+      prev.map(e =>
+        e.tokenId === entry.tokenId ? { ...e, votes: e.votes + 1 } : e
+      )
+    );
+  };
+
+  // Scroll to top after mutations
+  useEffect(() => {
+    if (cycleStatus === 'completed') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [cycleStatus]);
+
   const iconicByTokenId = new Map<number, CrossVMPromotion>();
   moments.forEach(m => iconicByTokenId.set(m.xlayer_token_id, m));
 
@@ -236,7 +257,7 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
       <StadiumBackdrop />
       <div className="relative z-[3]">
       <DemoBanner message="Preview data — real leaderboard appears when users mint and vote." />
@@ -272,8 +293,8 @@ export default function Leaderboard() {
                 {cycleStatus === 'open' && (
                   <>
                     <div className="text-[10px] text-gray-300 flex items-center gap-1">
-                      <Timer className="h-3 w-3" />
-                      {countdown}
+                      <Timer className="h-3 w-3 shrink-0" />
+                      <span className="truncate">Leaderboard closes in {countdown}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -422,6 +443,29 @@ export default function Leaderboard() {
         )}
 
         {/* Leaderboard table */}
+        {entries.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card className="bg-white/5 border-white/10">
+              <CardContent className="p-12 text-center">
+                <Trophy className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                <h3 className="text-white text-lg font-medium mb-2">No remixes yet</h3>
+                <p className="text-gray-300 text-sm mb-6 max-w-md mx-auto">
+                  Be the first to create a remix! Mint an AR overlay on X Layer and climb the daily leaderboard.
+                </p>
+                <Button
+                  onClick={() => router.push('/remix')}
+                  className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Create Your First Remix
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : (
         <Card className="bg-white/5 border-white/10">
           <div className="flex flex-col gap-2 border-b border-white/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -479,25 +523,38 @@ export default function Leaderboard() {
                               </span>
                             )}
                           </div>
-                          {showPromote && (
-                            <div className="mt-2">
-                              {iconic ? (
-                                <Badge className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-300 text-[10px] border border-blue-400/30">
-                                  <Sparkles className="h-3 w-3 mr-0.5" /> Minted on Flow
-                                </Badge>
-                              ) : (
-                                <Button
-                                  onClick={() => handlePromote(entry)}
-                                  loading={isPromoting(1, entry.tokenId)}
-                                  loadingText="Promoting..."
-                                  size="sm"
-                                  className="h-7 text-[11px] bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 px-2"
-                                >
-                                  Promote to Flow <ArrowRight className="h-3 w-3 ml-0.5" />
-                                </Button>
-                              )}
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2 mt-2">
+                            <button
+                              onClick={() => handleVote(entry)}
+                              disabled={votedTokens.has(entry.tokenId)}
+                              className={`text-[10px] px-2 py-1 rounded font-medium transition-colors ${
+                                votedTokens.has(entry.tokenId)
+                                  ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/30'
+                                  : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-yellow-400/20 hover:text-yellow-300'
+                              }`}
+                            >
+                              {votedTokens.has(entry.tokenId) ? '+1 Voted' : '+1 Vote'}
+                            </button>
+                            {showPromote && (
+                              <>
+                                {iconic ? (
+                                  <Badge className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-300 text-[10px] border border-blue-400/30">
+                                    <Sparkles className="h-3 w-3 mr-0.5" /> Minted on Flow
+                                  </Badge>
+                                ) : (
+                                  <Button
+                                    onClick={() => handlePromote(entry)}
+                                    loading={isPromoting(1, entry.tokenId)}
+                                    loadingText="Promoting..."
+                                    size="sm"
+                                    className="h-7 text-[11px] bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 px-2"
+                                  >
+                                    Promote to Flow <ArrowRight className="h-3 w-3 ml-0.5" />
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -547,6 +604,20 @@ export default function Leaderboard() {
                         )}
                       </div>
 
+                      <div className="w-14 text-right shrink-0">
+                        <button
+                          onClick={() => handleVote(entry)}
+                          disabled={votedTokens.has(entry.tokenId)}
+                          className={`text-[10px] px-2 py-1 rounded font-medium transition-colors whitespace-nowrap ${
+                            votedTokens.has(entry.tokenId)
+                              ? 'bg-yellow-400/20 text-yellow-300 border border-yellow-400/30'
+                              : 'bg-white/10 text-gray-300 border border-white/20 hover:bg-yellow-400/20 hover:text-yellow-300'
+                          }`}
+                        >
+                          {votedTokens.has(entry.tokenId) ? '+1 Voted' : '+1 Vote'}
+                        </button>
+                      </div>
+
                       <div className="w-28 text-right shrink-0">
                         {iconic ? (
                           <Badge className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-300 text-[10px] border border-blue-400/30">
@@ -572,6 +643,7 @@ export default function Leaderboard() {
             </AnimatePresence>
           </CardContent>
         </Card>
+        )}
 
         {/* "Beat This" Social Feed */}
         {entries.length > 0 && (

@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
-import { Sparkles, ExternalLink, RefreshCw, Trophy, Medal } from 'lucide-react';
+import { Sparkles, ExternalLink, RefreshCw, Trophy, Medal, Share2, Copy, Twitter } from 'lucide-react';
+import { toast as sonnerToast } from 'sonner';
 import type { CrossVMPromotion } from '@/types/crossvm';
 import { getIconicMoments, seedDemoData, closeLeaderboardDay, triggerAutoPromote } from '@/lib/crossvm-client';
 import { measureUserAction } from '@/lib/action-observability';
@@ -135,6 +136,35 @@ function MomentCard({ moment }: { moment: CrossVMPromotion }) {
               </a>
             </div>
           )}
+
+          {moment.status === 'minted' && (
+            <div className="pt-2 border-t border-white/10 flex gap-2">
+              <button
+                onClick={() => {
+                  const url = `https://testnet.flowscan.io/token/${moment.flow_nft_id}`;
+                  navigator.clipboard.writeText(url).then(
+                    () => sonnerToast.success('Link copied!', { description: 'Flow NFT link copied to clipboard.' }),
+                    () => {}
+                  );
+                }}
+                className="flex-1 text-[11px] py-1.5 rounded bg-white/10 text-gray-300 hover:bg-white/20 transition-colors flex items-center justify-center gap-1"
+              >
+                <Copy className="h-3 w-3" /> Copy Link
+              </button>
+              <button
+                onClick={() => {
+                  window.open(
+                    `https://twitter.com/intent/tweet?text=I+earned+a+Iconic+Moment+on+MagicLens!+Check+it+out+→&url=https://testnet.flowscan.io/token/${moment.flow_nft_id}&via=magiclensx`,
+                    '_blank',
+                    'noopener,noreferrer'
+                  );
+                }}
+                className="flex-1 text-[11px] py-1.5 rounded bg-[#1DA1F2]/20 text-[#1DA1F2] hover:bg-[#1DA1F2]/30 transition-colors flex items-center justify-center gap-1"
+              >
+                <Twitter className="h-3 w-3" /> Share
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
@@ -144,7 +174,19 @@ function MomentCard({ moment }: { moment: CrossVMPromotion }) {
 function MomentSkeleton() {
   return (
     <Card className="overflow-hidden bg-white/5 border-white/10">
-      <Skeleton className="aspect-video rounded-none" />
+      <div className="aspect-video relative bg-gradient-to-br from-gray-800/60 via-gray-700/40 to-gray-800/60 flex items-center justify-center overflow-hidden">
+        <div className="absolute left-6 top-8 h-24 w-24 rounded-full border border-white/5" />
+        <div className="absolute right-8 top-10 h-16 w-28 skew-x-[-18deg] rounded-md border border-white/5" />
+        <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3">
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-5 w-36" />
+          </div>
+          <Skeleton className="h-6 w-12 rounded-md" />
+        </div>
+        <Skeleton className="absolute top-3 right-3 h-5 w-16" />
+        <Skeleton className="absolute top-3 left-3 h-5 w-24" />
+      </div>
       <CardHeader>
         <Skeleton className="h-5 w-3/4 mb-2" />
         <Skeleton className="h-4 w-1/2" />
@@ -269,8 +311,15 @@ export function IconicMomentsGallery() {
   const mintedCount = moments.filter((m) => m.status === 'minted').length;
   const pendingCount = moments.filter((m) => m.status === 'pending').length;
 
+  // Scroll to top after mutations
+  useEffect(() => {
+    if (!loading && moments.length > 0) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [seeding, closing]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-0">
       <ProductJourneyHeader
         active="promote"
         title="Iconic Moments minted on Flow"

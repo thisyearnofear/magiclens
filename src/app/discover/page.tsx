@@ -179,7 +179,7 @@ export default function DiscoverPage() {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
       <StadiumBackdrop />
       <div className="relative z-[3]">
       {/* Header */}

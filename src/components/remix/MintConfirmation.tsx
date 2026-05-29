@@ -1,12 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ExternalLink, Trophy, Medal, ArrowRight, Sparkles, Share2, Copy, Twitter, Flame, Timer } from 'lucide-react';
+import { CheckCircle, ExternalLink, Trophy, Medal, ArrowRight, Sparkles, Share2, Copy, Twitter, Flame, Timer, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { getUserRemixes } from '@/lib/remix-store';
 import { computeStreak, getStreakBadge } from '@/lib/streak';
+
+function ConfettiBurst() {
+  const particles = Array.from({ length: 30 }).map((_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: -10 - Math.random() * 20,
+    color: ['bg-yellow-400', 'bg-green-400', 'bg-blue-400', 'bg-purple-400', 'bg-pink-400', 'bg-orange-400'][Math.floor(Math.random() * 6)],
+    size: 4 + Math.random() * 6,
+    drift: (Math.random() - 0.5) * 60,
+    delay: Math.random() * 0.5,
+    duration: 1.5 + Math.random() * 1,
+    rotation: Math.random() * 360,
+  }));
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ perspective: '500px' }}>
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className={`absolute ${p.color} rounded-sm`}
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: p.size,
+            height: p.size,
+            rotate: p.rotation,
+          }}
+          initial={{ opacity: 0, y: 0, x: 0, scale: 0 }}
+          animate={{
+            opacity: [0, 1, 0.8, 0],
+            y: [0, 60 + Math.random() * 80],
+            x: [0, p.drift],
+            scale: [0, 1.2, 1, 0.5],
+            rotate: [p.rotation, p.rotation + 180],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            ease: 'easeOut',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 interface MintConfirmationProps {
   txHash: string | null;
@@ -41,28 +86,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
   }, []);
   return (
     <div className="max-w-2xl mx-auto px-4 py-12 text-center relative">
-      {/* Floating sparkles */}
-      {Array.from({ length: 8 }).map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute text-2xl"
-          style={{ left: `${15 + (i * 10)}%`, top: `${10 + (i * 8)}%` }}
-          initial={{ opacity: 0, scale: 0, rotate: 0 }}
-          animate={{
-            opacity: [0, 1, 0],
-            scale: [0, 1.5, 0],
-            rotate: [0, 180],
-            y: [-20, -80],
-          }}
-          transition={{
-            duration: 2 + Math.random() * 2,
-            repeat: Infinity,
-            delay: i * 0.3,
-          }}
-        >
-          {['✨', '🌟', '💫', '⭐', '🎉', '🎊', '🏆', '⚡'][i]}
-        </motion.div>
-      ))}
+      <ConfettiBurst />
 
       {/* Success check */}
       <motion.div
@@ -169,22 +193,8 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
               <Medal className="h-4 w-4 text-blue-400" />
               <span><strong className="text-white">X Layer</strong> for volume remixes · <strong className="text-white">Flow</strong> for premium collectibles</span>
             </div>
-            {/* How it works */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-300/50">
-              {[
-                { step: '1', label: 'Mint on X Layer', desc: 'Remix minted as ERC-721' },
-                { step: '2', label: 'Leaderboard', desc: 'Votes determine top 3' },
-                { step: '3', label: 'Auto-promote', desc: 'Minted as Flow Cadence NFT' },
-              ].map((item) => (
-                <div key={item.step} className="text-center">
-                  <div className="w-6 h-6 rounded-full bg-blue-400/60 text-white text-xs font-bold flex items-center justify-center mx-auto mb-1">
-                    {item.step}
-                  </div>
-                  <div className="text-white text-[11px] font-medium">{item.label}</div>
-                  <div className="text-gray-100 text-[11px]">{item.desc}</div>
-                </div>
-              ))}
-            </div>
+            {/* How it works — collapsible */}
+            <CollapsibleHowItWorks />
           </CardContent>
         </Card>
       </motion.div>
@@ -211,9 +221,9 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-gray-100 text-xs">
-                <Timer className="h-3 w-3" />
-                {countdown}
+              <div className="flex items-center gap-1.5 text-gray-100 text-xs">
+                <Timer className="h-3 w-3 shrink-0" />
+                <span className="truncate">Leaderboard closes in {countdown}</span>
               </div>
             </div>
           </CardContent>
@@ -294,6 +304,39 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
           Create Another Remix
         </Button>
       </motion.div>
+    </div>
+  );
+}
+
+function CollapsibleHowItWorks() {
+  const [open, setOpen] = useState(false);
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1.5 text-xs text-blue-300 hover:text-blue-200 transition-colors mt-2"
+      >
+        <ChevronDown className="h-3 w-3" />
+        How the Cross-VM pipeline works
+      </button>
+    );
+  }
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3 pt-3 border-t border-blue-300/50">
+      {[
+        { step: '1', label: 'Mint on X Layer', desc: 'Remix minted as ERC-721' },
+        { step: '2', label: 'Leaderboard', desc: 'Votes determine top 3' },
+        { step: '3', label: 'Auto-promote', desc: 'Minted as Flow Cadence NFT' },
+      ].map((item) => (
+        <div key={item.step} className="text-center">
+          <div className="w-6 h-6 rounded-full bg-blue-400/60 text-white text-xs font-bold flex items-center justify-center mx-auto mb-1">
+            {item.step}
+          </div>
+          <div className="text-white text-[11px] font-medium">{item.label}</div>
+          <div className="text-gray-100 text-[11px]">{item.desc}</div>
+        </div>
+      ))}
     </div>
   );
 }

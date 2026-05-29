@@ -259,7 +259,7 @@ export default function RemixFlow() {
   }, [resumeMintAfterConnect, evmReady, step, isMinting]);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
       <StadiumBackdrop />
       <div className="relative z-[3]">
       {/* Header */}

@@ -169,7 +169,7 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen relative overflow-hidden">
+      <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
         <StadiumBackdrop />
         <div className="relative z-[3]">
         <header className="border-b border-white/10 bg-black/20">
@@ -206,7 +206,7 @@ export default function UserProfile() {
 
   if (!effectiveProfile) {
     return (
-      <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+      <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0 flex items-center justify-center">
         <StadiumBackdrop />
         <div className="relative z-[3]">
         <Card className="bg-white/10 border-white/20 max-w-md text-center">
@@ -244,7 +244,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
       <StadiumBackdrop />
       <div className="relative z-[3]">
       {/* Header */}

@@ -1,6 +1,7 @@
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { Toaster } from "sonner"
 import { cn } from "@/lib/utils"
+import { BottomTabBar } from "@/components/BottomTabBar"
 
 interface RootLayoutProps {
   children: React.ReactNode
@@ -12,6 +13,7 @@ export function RootLayout({ children, className }: RootLayoutProps) {
     <ThemeProvider defaultTheme={{ base: "system", color: "default" }}>
       <div className={cn("min-h-screen bg-background font-sans antialiased", className)}>
         {children}
+        <BottomTabBar />
         <Toaster />
       </div>
     </ThemeProvider>

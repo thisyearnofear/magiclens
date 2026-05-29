@@ -101,7 +101,7 @@ export default function AssetLibrary() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 pb-24 sm:pb-0">
       {/* Header */}
       <header className="border-b border-white/10 bg-black/20">
         <div className="container mx-auto px-4 py-4">

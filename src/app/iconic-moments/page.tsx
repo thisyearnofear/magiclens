@@ -5,7 +5,7 @@ const IconicMomentsGallery = dynamic(() => import('@/components/IconicMomentsGal
 
 export default function IconicMomentsPage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen pb-24 sm:pb-0">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <IconicMomentsGallery />
       </div>
