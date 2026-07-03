@@ -6,6 +6,7 @@ import { userServiceGetUserProfile, videoServiceGetVideos, assetServiceGetAssets
 import { toast } from 'sonner';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { GuestBanner } from '@/components/dashboard/GuestBanner';
+import { useSound } from '@/hooks/useSound';
 import { WelcomeSection } from '@/components/dashboard/WelcomeSection';
 import { GettingStartedChecklist } from '@/components/dashboard/GettingStartedChecklist';
 import { QuickActions } from '@/components/dashboard/QuickActions';
@@ -24,6 +25,7 @@ import { Web3Identities } from '@/components/Web3Identities';
 export default function Dashboard() {
   const router = useRouter();
   const { flowAddress: user, evmAddress, disconnect: disconnectWallet, isGuest } = useAuthContext();
+  const sound = useSound();
   const [profile, setProfile] = useState<UserProfile|null>(null);
   const [recentVideos, setRecentVideos] = useState<Video[]>([]);
   const [recentAssets, setRecentAssets] = useState<ArtistAsset[]>([]);

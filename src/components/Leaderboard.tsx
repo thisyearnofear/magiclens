@@ -19,6 +19,8 @@ import { toast } from 'sonner';
 import { DEMO_LEADERBOARD_ENTRIES } from '@/lib/demo-data';
 import { closeLeaderboardDay, triggerAutoPromote, seedDemoData } from '@/lib/crossvm-client';
 import { measureUserAction } from '@/lib/action-observability';
+import { useSound } from '@/hooks/useSound';
+import { CelebrationOverlay } from '@/components/CelebrationOverlay';
 import type { CrossVMPromotion } from '@/types/crossvm';
 
 const DEMO_LEADERBOARD = DEMO_LEADERBOARD_ENTRIES;
@@ -61,6 +63,8 @@ export default function Leaderboard() {
   const [promoteResults, setPromoteResults] = useState<{ promoted: number; errors: string[] } | null>(null);
   const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [countdown, setCountdown] = useState('');
+  const [showCelebration, setShowCelebration] = useState<'promote' | 'vote' | null>(null);
+  const sound = useSound();
 
   const closeDayMutation = useMutation({
     mutationFn: async (top10: Parameters<typeof closeLeaderboardDay>[1]) => {
@@ -84,6 +88,8 @@ export default function Leaderboard() {
         setCycleStatus('completed');
         setPromoteResults({ promoted: result.promoted || 3, errors: result.errors || [] });
         setActionStatus(null);
+        sound.celebrate();
+        setShowCelebration('promote');
         await queryClient.invalidateQueries({ queryKey: ['iconic-moments'] });
         toast.success('Day closed & promoted!', {
           description: `Top-3 entries minted as Flow Iconic Moments.`,
@@ -144,6 +150,7 @@ export default function Leaderboard() {
 
   const handleVote = (entry: LeaderboardEntry) => {
     if (votedTokens.has(entry.tokenId)) return;
+    sound.vote();
     setVotedTokens(prev => new Set(prev).add(entry.tokenId));
     setEntries(prev =>
       prev.map(e =>
@@ -258,7 +265,8 @@ export default function Leaderboard() {
 
   return (
     <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
-      <StadiumBackdrop />
+      <StadiumBackdrop opacity={0.25} />
+      <div className="fixed inset-0 z-[1] bg-grid-darker pointer-events-none opacity-40" />
       <div className="relative z-[3]">
       <DemoBanner message="Preview data — real leaderboard appears when users mint and vote." />
       <header className="border-b border-white/10 bg-black/20">
@@ -691,6 +699,12 @@ export default function Leaderboard() {
         </div>
       </div>
       </div>
+
+      <CelebrationOverlay
+        type="promote"
+        show={showCelebration === 'promote'}
+        onClose={() => setShowCelebration(null)}
+      />
     </div>
   );
 }

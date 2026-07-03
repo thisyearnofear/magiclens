@@ -123,39 +123,86 @@ button:focus-visible {
 }
 
 /* Animation keyframes */
-@keyframes shine {
-  0% {
-    background-position: 0% 0%;
-  }
-  50% {
-    background-position: 100% 100%;
-  }
-  to {
-    background-position: 0% 0%;
-  }
+/* ── Enhanced Animation Keyframes ── */
+
+/* Celebration confetti */
+@keyframes confetti-fall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
 }
 
-/* Gooey blob animations for StadiumBackdrop */
-@keyframes gooey-blob-1 {
-  0%, 100% { cx: 15%; cy: 20%; r: 120; }
-  50% { cx: 25%; cy: 35%; r: 150; }
+/* Pulse ring for celebration icons */
+@keyframes ring-pulse {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.3); opacity: 0; }
+  100% { transform: scale(0.8); opacity: 0.5; }
 }
-@keyframes gooey-blob-2 {
-  0%, 100% { cx: 80%; cy: 25%; r: 100; }
-  50% { cx: 70%; cy: 40%; r: 130; }
+
+/* Floating particles for ambient background */
+@keyframes float-up {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  20% { opacity: 0.15; }
+  80% { opacity: 0.15; }
+  100% { transform: translateY(-10vh) scale(0.5); opacity: 0; }
 }
-@keyframes gooey-blob-3 {
-  0%, 100% { cx: 50%; cy: 70%; r: 90; }
-  50% { cx: 40%; cy: 55%; r: 120; }
+
+/* Scoreboard flicker effect for leaderboard */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
 }
-@keyframes gooey-blob-4 {
-  0%, 100% { cx: 20%; cy: 30%; r: 100; }
-  50% { cx: 30%; cy: 45%; r: 100; }
+
+/* Shimmer for brand loading */
+@keyframes shimmer-move {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
-@keyframes gooey-blob-5 {
-  0%, 100% { cx: 75%; cy: 60%; r: 80; }
-  50% { cx: 65%; cy: 45%; r: 80; }
+
+/* Vote +1 fly up */
+@keyframes vote-fly {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-60px) scale(1.3); opacity: 0; }
 }
+
+/* Stadium crowd sway (for ambient background) */
+@keyframes sway {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+/* Rank number pulse on leaderboard */
+@keyframes rank-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(250, 204, 21, 0); }
+}
+
+/* Notification slide-in */
+@keyframes slide-in-right {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* Countdown urgency pulse */
+@keyframes urgency-pulse {
+  0%, 100% { color: #facc15; }
+  50% { color: #ef4444; }
+}
+
+.bg-grid-pitch {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-grid-darker {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
 
 @layer base {
   body {

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { ConnectWallet } from '@/components/ConnectWallet';
@@ -8,6 +8,7 @@ import { Check, X, Zap, Play, Pause, TrendingUp, Trophy, Medal, ArrowRight } fro
 import { StatsBar } from '@/components/StatsBar';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { ScrollRevealSection } from '@/components/ScrollRevealSection';
+import { useSound } from '@/hooks/useSound';
 
 const HERO_CLIPS = [
   { src: '/clips/demo1.mp4', label: 'Match-winning Goal' },
@@ -17,6 +18,12 @@ const HERO_CLIPS = [
 
 export default function LandingPage() {
   const { continueAsGuest } = useAuthContext();
+  const sound = useSound();
+
+  // Play ambient stadium rumble once on mount
+  useEffect(() => {
+    sound.ambient(4000);
+  }, []);
 
   return (
     <div className="min-h-screen relative overflow-hidden">

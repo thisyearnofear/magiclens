@@ -8,6 +8,7 @@ import { AuthProvider } from '@/auth/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { RainbowBridge } from '@/components/RainbowBridge';
 import { ActionActivityDrawer } from '@/components/ActionActivityDrawer';
+import { ActivityTicker } from '@/components/ActivityTicker';
 import { Toaster } from '@/components/ui/sonner';
 import SystemErrorBoundary from '@/SystemErrorBoundary';
 import '@/lib/flow/fcl-config';
@@ -41,6 +42,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               <SystemErrorBoundary viewName="App">
                 {children}
               </SystemErrorBoundary>
+              <ActivityTicker />
               <RainbowBridge />
               <ActionActivityDrawer />
               <Toaster />

@@ -14,6 +14,8 @@ import { getIconicMoments, seedDemoData, closeLeaderboardDay, triggerAutoPromote
 import { measureUserAction } from '@/lib/action-observability';
 import { TransactionProgress, type TransactionStep } from '@/components/TransactionProgress';
 import { ProductJourneyHeader } from '@/components/ProductJourneyHeader';
+import { CelebrationOverlay } from '@/components/CelebrationOverlay';
+import { useSound } from '@/hooks/useSound';
 import { useToast } from '@/hooks/use-toast';
 
 const RANK_ICONS: Record<number, typeof Trophy> = {
@@ -204,6 +206,8 @@ export function IconicMomentsGallery() {
   const queryClient = useQueryClient();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const { toast } = useToast();
+  const [showCelebration, setShowCelebration] = useState(false);
+  const sound = useSound();
 
   const momentsQuery = useQuery({
     queryKey: ['iconic-moments', 'all'],
@@ -222,6 +226,8 @@ export function IconicMomentsGallery() {
         if (result.iconic_moments?.length) {
           queryClient.setQueryData(['iconic-moments', 'all'], result.iconic_moments);
         }
+        sound.celebrate();
+        setShowCelebration(true);
         toast({
           title: 'Demo Data Created',
           description: `Day ${result.day}: ${result.promoted} iconic moments minted on Flow!`,
@@ -422,6 +428,12 @@ export function IconicMomentsGallery() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CelebrationOverlay
+        type="promote"
+        show={showCelebration}
+        onClose={() => setShowCelebration(false)}
+      />
     </div>
   );
 }

@@ -15,9 +15,11 @@ import { CheckCircle2, ExternalLink, Sparkles, Trophy, Wand2, Zap } from 'lucide
 import { useAuthContext } from '@/auth';
 import { useMintRemix } from '@/hooks/useMintRemix';
 import { useReferrer } from '@/hooks/useReferrer';
+import { useSound } from '@/hooks/useSound';
 import { addRemix } from '@/lib/remix-store';
 import { claimReferral } from '@/lib/crossvm-client';
 import { measureUserAction } from '@/lib/action-observability';
+import { CelebrationOverlay } from '@/components/CelebrationOverlay';
 import type { TransactionStep, TransactionStepStatus } from '@/components/TransactionProgress';
 import type { SelectedOverlay } from '@/hooks/usePack';
 import type { OverlayStyle } from '@/components/remix/EditorOverlay';
@@ -161,8 +163,10 @@ export default function RemixFlow() {
   const [resumeMintAfterConnect, setResumeMintAfterConnect] = useState(false);
   const [isConnectingWallet, setIsConnectingWallet] = useState(false);
   const [leaderboardRank] = useState<number | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
   const isMobile = useIsMobile();
   const evmReady = isConnected && chain === 'evm' && !isWrongNetwork;
+  const sound = useSound();
 
   const goForward = () => { setDirection(1); setStep(s => s + 1); };
   const goBack = () => { setDirection(-1); setStep(s => s - 1); };
@@ -216,7 +220,9 @@ export default function RemixFlow() {
       setMintTx(hash);
       setMintTokenId(tokenId);
       addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
+      sound.celebrate();
       setMintStage('complete');
+      setShowCelebration(true);
       goForward();
 
       // Claim referral reward on backend
@@ -260,7 +266,8 @@ export default function RemixFlow() {
 
   return (
     <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
-      <StadiumBackdrop />
+      <StadiumBackdrop opacity={0.2} />
+      <div className="fixed inset-0 z-[1] bg-grid-pitch pointer-events-none" />
       <div className="relative z-[3]">
       {/* Header */}
       <motion.header
@@ -445,6 +452,13 @@ export default function RemixFlow() {
         </div>
       </main>
       </div>
+
+      <CelebrationOverlay
+        type="mint"
+        show={showCelebration}
+        onClose={() => setShowCelebration(false)}
+        shareUrl={mintTx ? `https://magiclens.vercel.app/remix/${mintTx}` : undefined}
+      />
     </div>
   );
 }
