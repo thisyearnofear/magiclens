@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SERVER="snel-bot"
+SERVER="nuncio-vultr"
 REMOTE_DIR="/opt/magiclens"
 RELEASE_NAME="release-$(date +%Y%m%d-%H%M%S)"
 LOCAL_SERVICES="$(cd "$(dirname "$0")/../services" && pwd)"
@@ -19,7 +19,7 @@ echo "  Release:    $RELEASE_NAME"
 echo ""
 
 echo "==> [1/6] Verifying package..."
-(cd "$LOCAL_SERVICES" && python3.11 - <<'PY'
+(cd "$LOCAL_SERVICES" && python3 - <<'PY'
 from pathlib import Path
 
 for path in [
@@ -69,8 +69,8 @@ ssh "$SERVER" "RD=$REMOTE_DIR RL=$REMOTE_DIR/releases/$RELEASE_NAME bash -s" << 
   fi
   ln -sf "$RD/.env" "$RL/.env"
   if [ ! -d "$RD/venv" ]; then
-    echo "  → Creating Python 3.11 venv..."
-    python3.11 -m venv "$RD/venv"
+    echo "  → Creating Python venv..."
+    python3 -m venv "$RD/venv"
   fi
   echo "  → Installing dependencies..."
   WHEEL_PATH="$(find "$RL/dist" -maxdepth 1 -name '*.whl' | head -n 1)"
@@ -78,7 +78,7 @@ ssh "$SERVER" "RD=$REMOTE_DIR RL=$REMOTE_DIR/releases/$RELEASE_NAME bash -s" << 
     echo "  ✗ Missing release wheel"
     exit 1
   fi
-  "$RD/venv/bin/pip" install --no-cache-dir --force-reinstall --no-deps "$WHEEL_PATH" --quiet
+  "$RD/venv/bin/pip" install --no-cache-dir --force-reinstall "$WHEEL_PATH" --quiet
   echo "  ✓ Deps installed"
   echo "  → Running migrations..."
   (cd "$RL" && "$RD/venv/bin/alembic" upgrade head 2>/dev/null && echo "  ✓ Migrations OK") || echo "  ⚠️  Migrations skipped (check DB)"
@@ -94,7 +94,7 @@ ssh "$SERVER" "RD=$REMOTE_DIR RL=$REMOTE_DIR/releases/$RELEASE_NAME bash -s" << 
     else
       pm2 start "$RD/venv/bin/python" --name magiclens-api \
         -- -m uvicorn api.bootstrap:app \
-        --host 0.0.0.0 --port 8000 --workers 4 \
+        --host 0.0.0.0 --port 8100 --workers 4 \
         --proxy-headers --loop uvloop --http httptools || true
     fi
     pm2 save

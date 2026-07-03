@@ -12,20 +12,32 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
 ## Current State
 - Contracts deployed: RemixNFT/WorldCupPack/FanCastRewards on X Layer testnet, ARAssetNFT/CollaborationHub/ForteAutomation on Flow testnet at `0x4520a5a7b69ee3ac`
 - Cross-VM mint confirmed working — 8 real Flow NFTs minted (tx history: `194be9eb`, `0ad06068`, `30549047`, `e82eb00`, `e307e5a`, `2bbed12`, `ef323d05`, `28b6c6e6`)
-- Backend live at `https://magiclens.thisyearnofear.com` (FastAPI, 4 workers, PM2)
+- Backend live at `https://magiclens.thisyearnofear.com` (FastAPI, 4 workers, PM2) — deployed on **nuncio-vultr** (migrated from snel-bot July 2026)
 - Frontend live at `https://magiclens.vercel.app` (Next.js 16.2.6, React 19, Tailwind 3.4)
 - "Seed Demo Data" button at `/iconic-moments` creates leaderboard + triggers cross-VM mint
 - Pre-commit hook fixed (removed broken `lint-staged@17.0.5`, uses direct eslint + hardhat)
+
+## Server Infrastructure (nuncio-vultr)
+- **Server**: nuncio-vultr (`144.202.117.160`), user `linuxuser`, 109GB disk
+- **Backend port**: 8100 (changed from 8000 to avoid conflict with Coolify on port 8000)
+- **Project dir**: `/opt/magiclens/` with `current` symlink → `releases/<timestamp>/`
+- **Python venv**: `/opt/magiclens/venv/` (Python 3.12, shared across releases)
+- **PM2 process**: `magiclens-api` (uvicorn, 4 workers, port 8100)
+- **Flow CLI**: `/home/linuxuser/.local/bin/flow` (installed via install script)
+- **Redis**: `redis://localhost:6379/0` (runs via Coolify's Redis container)
+- **DB**: Neon Postgres (external, connection string in `.env`)
+- **TLS/proxy**: Coolify Traefik routes `magiclens.thisyearnofear.com` → `host.docker.internal:8100` (dynamic config at `/data/coolify/proxy/dynamic/magiclens.yaml`)
+- **UFW**: Docker subnet `10.0.0.0/8` allowed to port 8100
 
 ## Commands
 - **Dev**: `npm run dev` (frontend, Next.js dev server)
 - **Build**: `npm run build` (frontend), `cd services && pip install -e .` (backend)
 - **Lint**: `npm run lint` (eslint src/)
 - **Typecheck**: `npm run typecheck` (tsc --noEmit --skipLibCheck)
-- **Deploy backend**: `bash deploy/deploy.sh` (build-local → rsync → symlink → pm2 reload)
+- **Deploy backend**: `bash deploy/deploy.sh` (build-local → rsync → symlink → pm2 reload, targets nuncio-vultr)
 
 ## Key Decisions
-- Flow CLI (`flow transactions send`) for Cadence 1.0 signing — not Python ECDSA — binary at `/home/deploy/.local/bin/flow`
+- Flow CLI (`flow transactions send`) for Cadence 1.0 signing — not Python ECDSA — binary at `/home/linuxuser/.local/bin/flow`
 - Contracts-cadence not synced to server; `flow.json` at `/opt/magiclens/flow.json` with `magiclens-testnet` account key
 - `--signer magiclens-testnet` + `--output json` + inline `--args-json` for CLI invocations
 - All 3 Flow contracts deployed to same account for simplicity
