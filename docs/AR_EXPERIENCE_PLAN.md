@@ -27,10 +27,20 @@ broadcast AR (wTVision/Vizrt), CapCut velocity-edit breakdowns.
 > mp4 fallback), driven by the same `resolveOverlayTransform`
 > (`src/lib/overlay-anchors.ts`) that powers the live layer. Verified:
 > 16.5MB webm with the halo locked to the keeper and confetti baked in.
-> Keyframes-in-metadata + public replay remains open — the backend
-> `token_metadata` schema is fixed-shape, so that path needs a
-> migration + `PublicRemix` rebuild (which currently shows fake pose
-> dots, not the remix).
+>
+> **Public replay shipped:** minted remixes now carry a `remix_state`
+> recipe in the token metadata `attributes` JSONB (no backend schema
+> change — see `src/lib/remix-state.ts`). `PublicRemix` resolves
+> txHash→tokenId from the Transfer receipt (or a bare tokenId),
+> fetches the recipe, and `RemixReplay` rebuilds the real output —
+> `mode:'track'` re-runs `useClipPoseTracker` on the clip and restores
+> the author's subject pick (verified live: stat card with the author's
+> custom name text anchored to the tracked player, ghost-trail echoes
+> painting, subject dots switchable); `mode:'static'` replays editor
+> placements via the shared `StaticOverlayArt` also used by
+> `RemixPreview`. Mints minted before `remix_state` fall back to the
+> legacy card. A first-class `remix_state` metadata column remains a
+> cleaner long-term home if the backend schema ever migrates.
 >
 > **Phase 2 remaining:** occlusion via segmentation (#6) — the canvas
 > pipeline now exists, so masks can composite behind the subject in a

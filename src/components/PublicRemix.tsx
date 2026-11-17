@@ -1,17 +1,70 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Zap, Trophy, ExternalLink, Sparkles, Twitter, Copy, Play } from 'lucide-react';
+import { Zap, ExternalLink, Sparkles, Twitter, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { usePublicClient } from 'wagmi';
+import { xLayerTestnet } from 'wagmi/chains';
+import { parseEventLogs } from 'viem';
+import { REMIX_NFT_ABI } from '@/lib/web3/contracts';
+import { getApiBaseUrl } from '@/lib/api-base';
+import { decodeRemixState, type RemixState } from '@/lib/remix-state';
+import { RemixReplay } from '@/components/remix/RemixReplay';
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const API_BASE = getApiBaseUrl();
+const TX_RE = /^0x[a-fA-F0-9]{64}$/;
+
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'ready'; tokenId: number | null; remixState: RemixState | null; name?: string }
+  | { status: 'error' };
 
 export default function PublicRemix() {
   const { txHash } = useParams<{ txHash: string }>();
   const router = useRouter();
+  const publicClient = usePublicClient({ chainId: xLayerTestnet.id });
+  const [load, setLoad] = useState<LoadState>({ status: 'loading' });
   const shareUrl = `https://magiclens.vercel.app/remix/${txHash}`;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // Param is either a tx hash (share links) or a bare tokenId (metadata external_url)
+        let tokenId: number | null = null;
+        if (txHash && TX_RE.test(txHash) && publicClient) {
+          const receipt = await publicClient.getTransactionReceipt({ hash: txHash as `0x${string}` });
+          const logs = parseEventLogs({ abi: REMIX_NFT_ABI, logs: receipt.logs as never[], eventName: 'Transfer' });
+          for (const log of logs) {
+            const args = log.args as { from: string; to: string; tokenId: bigint };
+            if (args.from === ZERO_ADDRESS) { tokenId = Number(args.tokenId); break; }
+          }
+        } else if (txHash && /^\d+$/.test(txHash)) {
+          tokenId = Number(txHash);
+        }
+
+        let remixState: RemixState | null = null;
+        let name: string | undefined;
+        if (tokenId !== null && tokenId >= 0) {
+          const res = await fetch(`${API_BASE}/api/metadata/RemixNFT/${tokenId}`);
+          if (res.ok) {
+            const meta = await res.json();
+            name = meta?.name;
+            remixState = decodeRemixState(meta?.attributes);
+          }
+        }
+        if (!cancelled) setLoad({ status: 'ready', tokenId, remixState, name });
+      } catch {
+        if (!cancelled) setLoad({ status: 'ready', tokenId: null, remixState: null });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [txHash, publicClient]);
 
   const handleTweet = () => {
     window.open(
@@ -30,8 +83,10 @@ export default function PublicRemix() {
     }
   };
 
+  const remixState = load.status === 'ready' ? load.remixState : null;
+
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center py-10">
       {/* Stadium backdrop */}
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -49,16 +104,8 @@ export default function PublicRemix() {
           </filter>
         </defs>
         <g filter="url(#gooey-share)">
-          <circle
-            cx="20%" cy="30%" r="100"
-            fill="rgba(168,85,247,0.4)"
-            style={{ animation: 'gooey-blob-4 14s ease-in-out infinite' }}
-          />
-          <circle
-            cx="75%" cy="60%" r="80"
-            fill="rgba(59,130,246,0.3)"
-            style={{ animation: 'gooey-blob-5 16s ease-in-out infinite 3s' }}
-          />
+          <circle cx="20%" cy="30%" r="100" fill="rgba(168,85,247,0.4)" style={{ animation: 'gooey-blob-4 14s ease-in-out infinite' }} />
+          <circle cx="75%" cy="60%" r="80" fill="rgba(59,130,246,0.3)" style={{ animation: 'gooey-blob-5 16s ease-in-out infinite 3s' }} />
         </g>
       </svg>
 
@@ -75,53 +122,55 @@ export default function PublicRemix() {
         </div>
 
         <Card className="bg-white/5 border-white/10 mb-6 overflow-hidden">
-          <div className="aspect-video bg-gradient-to-br from-purple-800/40 via-blue-800/40 to-indigo-800/40 flex items-center justify-center relative">
-            {/* Animated pose dots */}
-            {[
-              { x: '45%', y: '25%' }, { x: '50%', y: '32%' },
-              { x: '47%', y: '50%' }, { x: '35%', y: '65%' }, { x: '58%', y: '65%' },
-            ].map((dot, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-2.5 h-2.5 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/40"
-                style={{ left: dot.x, top: dot.y }}
-                animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.4, 1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-              />
-            ))}
-            {/* Pose lines */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <motion.line x1="45" y1="25" x2="50" y2="32" stroke="rgba(250,204,21,0.3)" strokeWidth="0.5"
-                animate={{ opacity: [0.2, 0.6, 0.2] }} transition={{ duration: 2, repeat: Infinity }} />
-              <motion.line x1="50" y1="32" x2="47" y2="50" stroke="rgba(250,204,21,0.3)" strokeWidth="0.5"
-                animate={{ opacity: [0.2, 0.6, 0.2] }} transition={{ duration: 2, repeat: Infinity, delay: 0.3 }} />
-              <motion.line x1="47" y1="50" x2="35" y2="65" stroke="rgba(250,204,21,0.3)" strokeWidth="0.5"
-                animate={{ opacity: [0.2, 0.6, 0.2] }} transition={{ duration: 2, repeat: Infinity, delay: 0.6 }} />
-              <motion.line x1="47" y1="50" x2="58" y2="65" stroke="rgba(250,204,21,0.3)" strokeWidth="0.5"
-                animate={{ opacity: [0.2, 0.6, 0.2] }} transition={{ duration: 2, repeat: Infinity, delay: 0.9 }} />
-            </svg>
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-t from-yellow-400/10 to-transparent"
-              animate={{ opacity: [0.2, 0.5, 0.2] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            />
-            <div className="absolute bottom-3 left-3 right-3 flex justify-between text-[10px] text-gray-300">
-              <span className="flex items-center gap-1"><Sparkles className="h-3 w-3" /> AR Overlays Active</span>
-              <span>X Layer NFT</span>
+          {remixState ? (
+            /* Real replay — the actual clip + AR recipe from token metadata */
+            <RemixReplay state={remixState} />
+          ) : (
+            /* Legacy fallback — mints before remix_state existed */
+            <div className="aspect-video bg-gradient-to-br from-purple-800/40 via-blue-800/40 to-indigo-800/40 flex items-center justify-center relative">
+              {load.status === 'loading' ? (
+                <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  {[
+                    { x: '45%', y: '25%' }, { x: '50%', y: '32%' },
+                    { x: '47%', y: '50%' }, { x: '35%', y: '65%' }, { x: '58%', y: '65%' },
+                  ].map((dot, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-2.5 h-2.5 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/40"
+                      style={{ left: dot.x, top: dot.y }}
+                      animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.4, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                    />
+                  ))}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-t from-yellow-400/10 to-transparent"
+                    animate={{ opacity: [0.2, 0.5, 0.2] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                  <div className="absolute bottom-3 left-3 right-3 flex justify-between text-[10px] text-gray-300">
+                    <span className="flex items-center gap-1"><Sparkles className="h-3 w-3" /> AR Overlays Active</span>
+                    <span>X Layer NFT</span>
+                  </div>
+                </>
+              )}
             </div>
-          </div>
+          )}
           <CardContent className="p-5 space-y-4">
             {txHash && (
               <>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-300">Transaction</span>
+                  <span className="text-gray-300">{TX_RE.test(txHash) ? 'Transaction' : 'Token'}</span>
                   <a
-                    href={`https://www.oklink.com/x-layer-testnet/tx/${txHash}`}
+                    href={TX_RE.test(txHash)
+                      ? `https://www.oklink.com/x-layer-testnet/tx/${txHash}`
+                      : `https://www.oklink.com/x-layer-testnet`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-yellow-400 font-mono text-xs hover:underline flex items-center gap-1"
                   >
-                    {txHash.slice(0, 10)}...{txHash.slice(-6)}
+                    {txHash.length > 16 ? `${txHash.slice(0, 10)}...${txHash.slice(-6)}` : `#${txHash}`}
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>

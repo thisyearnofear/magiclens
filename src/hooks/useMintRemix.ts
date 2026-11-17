@@ -6,6 +6,7 @@ import { uploadMetadataToGrove } from '@/lib/grove'
 import { getApiBaseUrl } from '@/lib/api-base'
 import { toast } from 'sonner'
 import { consumePendingThumbnail } from '@/lib/capture-thumbnail'
+import { encodeRemixState, type RemixState } from '@/lib/remix-state'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as const
 const API_BASE = getApiBaseUrl()
@@ -36,7 +37,7 @@ export function useMintRemix() {
     overlayIds: string[],
     overlayNames: string[],
     referrerAddress?: string | null,
-    options?: { onStage?: (stage: 'metadata' | 'wallet' | 'submitted' | 'confirming') => void },
+    options?: { onStage?: (stage: 'metadata' | 'wallet' | 'submitted' | 'confirming') => void; remixState?: RemixState },
   ): Promise<MintResult> => {
     const overlayIdsStr = overlayIds.join(',')
     const referrer = (referrerAddress || ZERO_ADDRESS) as `0x${string}`
@@ -128,6 +129,8 @@ export function useMintRemix() {
           { trait_type: 'Overlays', value: overlayNames.join(', ') },
           { trait_type: 'Platform', value: 'X Layer' },
           { trait_type: 'Token Standard', value: 'ERC-721' },
+          // replay recipe — decoded by the public /remix/[txHash] page
+          ...(options?.remixState ? [encodeRemixState(options.remixState)] : []),
         ]
 
         storeMetadata(tokenId, metadataName, metadataDescription, customImageUrl, metadataExternalUrl, metadataAttributes)

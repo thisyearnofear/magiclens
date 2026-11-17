@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import type { SelectedOverlay } from '@/hooks/usePack';
 import type { OverlayStyle } from '@/components/remix/EditorOverlay';
+import { StaticOverlayArt } from '@/components/remix/StaticOverlayArt';
 import { captureRemixFrame, uploadThumbnailToGrove, setPendingThumbnail } from '@/lib/capture-thumbnail';
 
 interface RemixPreviewProps {
@@ -182,106 +183,15 @@ export function RemixPreview({
         )}
 
         {/* Render selected overlays with user's styles */}
-        {selectedOverlays.map(overlay => {
-          const st = overlayStyles[overlay.id];
-          const sx = st ? st.x * posScale : 0;
-          const sy = st ? st.y * posScale : 0;
-          const transform = st
-            ? `translate(${sx}px, ${sy}px) rotate(${st.rotation}deg) scale(${st.scale})`
-            : '';
+        {selectedOverlays.map(overlay => (
+          <StaticOverlayArt
+            key={overlay.id}
+            overlay={overlay}
+            style={overlayStyles[overlay.id]}
+            posScale={posScale}
+          />
+        ))}
 
-          switch (overlay.id) {
-            case 'flag-halos':
-              return (
-                <div key="flag-halos" className="absolute" style={{ transform, opacity: st?.opacity ?? 1, transformOrigin: '0 0' }}>
-                  <div className="relative">
-                    <div className="w-20 h-20 rounded-full border-4 border-green-400/50"
-                      style={{ animation: 'spin 8s linear infinite' }} />
-                    <div className="absolute inset-1 rounded-full border-2 border-yellow-400/30"
-                      style={{ animation: 'spin 12s linear infinite', animationDirection: 'reverse' }} />
-                    {overlay.chosenVariant?.flagUrl ? (
-                      <img
-                        src={overlay.chosenVariant.flagUrl}
-                        alt={overlay.chosenVariant.name}
-                        className="absolute inset-3 w-[calc(100%-24px)] h-[calc(100%-24px)] rounded-full object-cover border-2 border-white/20 shadow-lg"
-                      />
-                    ) : (
-                      <div className="absolute inset-3 rounded-full bg-gradient-to-br from-green-500 to-yellow-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">WC</div>
-                    )}
-                  </div>
-                </div>
-              );
-            case 'goal-lower-third':
-              return (
-                <div key="goal-lower" className="absolute" style={{ transform, opacity: st?.opacity ?? 1, transformOrigin: '0 0' }}>
-                  <div className="px-8 py-4 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 rounded-xl shadow-2xl shadow-yellow-500/30 border border-yellow-300/50">
-                    <span className="text-white font-black text-4xl tracking-[0.15em] whitespace-nowrap">GOAL!</span>
-                  </div>
-                </div>
-              );
-            case 'trophy-confetti':
-              return (
-                <div key="confetti" className="absolute inset-0 overflow-hidden pointer-events-none">
-                  {Array.from({ length: 20 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute w-2 h-2 rounded-full"
-                      style={{
-                        left: `${Math.random() * 100}%`,
-                        background: ['#FFD700', '#FF4500', '#FF69B4', '#00FF88', '#00BFFF'][i % 5],
-                        animation: `fall ${2 + Math.random() * 2}s ${Math.random() * 2}s infinite`,
-                      }}
-                    />
-                  ))}
-                </div>
-              );
-            case 'commentary-bubble':
-              return (
-                <div key="commentary" className="absolute" style={{ transform, opacity: st?.opacity ?? 1, transformOrigin: '0 0' }}>
-                  <div className="bg-gray-900/80 backdrop-blur-md rounded-xl border border-yellow-400/30 p-3 shadow-xl max-w-[200px]">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-xs">🎙</span>
-                      <span className="text-yellow-400 text-xs font-bold">LIVE</span>
-                    </div>
-                    <p className="text-white text-sm leading-tight">{st?.text || 'What a moment!'}</p>
-                    <div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-gray-900/80 border-r border-b border-yellow-400/30 rotate-45" />
-                  </div>
-                </div>
-              );
-            case 'stadium-sparkles':
-              return (
-                <div key="sparkles" className="absolute inset-0 pointer-events-none">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute w-1 h-1 bg-yellow-300 rounded-full"
-                      style={{
-                        left: `${8 + (i * 8)}%`,
-                        top: `${10 + (i * 7)}%`,
-                        animation: `pulse 1.5s ${Math.random() * 2}s infinite`,
-                      }}
-                    />
-                  ))}
-                </div>
-              );
-            case 'ref-card':
-              return (
-                <div key="ref-card" className="absolute" style={{ transform, opacity: st?.opacity ?? 1, transformOrigin: '0 0' }}>
-                  <div className={`backdrop-blur-md rounded-xl border p-3 shadow-xl ${
-                    st?.cardColor === 'red' ? 'bg-red-900/70 border-red-400/40' : 'bg-gray-900/80 border-yellow-400/40'
-                  }`}>
-                    <div className={`w-8 h-6 rounded flex items-center justify-center ${
-                      st?.cardColor === 'red' ? 'bg-red-500' : 'bg-yellow-400'
-                    }`}>
-                      <span className="text-black text-xs font-bold">{st?.cardColor === 'red' ? 'RED' : 'YLW'}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            default:
-              return null;
-          }
-        })}
         </div>{/* end scaled wrapper */}
       </div>
 

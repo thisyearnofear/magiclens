@@ -23,6 +23,8 @@ import { CelebrationOverlay } from '@/components/CelebrationOverlay';
 import type { TransactionStep, TransactionStepStatus } from '@/components/TransactionProgress';
 import type { SelectedOverlay } from '@/hooks/usePack';
 import type { OverlayStyle } from '@/components/remix/EditorOverlay';
+import type { AnchorId } from '@/lib/overlay-anchors';
+import type { RemixState } from '@/lib/remix-state';
 
 const STEP_LABELS = ['Clip', 'AR Overlays', 'Preview', 'Done'];
 
@@ -162,6 +164,7 @@ export default function RemixFlow() {
   const [selectedOverlays, setSelectedOverlays] = useState<SelectedOverlay[]>([]);
   const [overlayStyles, setOverlayStyles] = useState<Record<string, OverlayStyle>>({});
   const [overlaySourceSize, setOverlaySourceSize] = useState<{ w: number; h: number } | null>(null);
+  const [replayInfo, setReplayInfo] = useState<{ mode: 'track' | 'static'; anchors: Record<string, AnchorId>; subjectId?: number } | null>(null);
   const [mintTx, setMintTx] = useState<string | null>(null);
   const [mintTokenId, setMintTokenId] = useState<number | undefined>(undefined);
   const [mintStage, setMintStage] = useState<MintStage>('idle');
@@ -207,6 +210,25 @@ export default function RemixFlow() {
     setMintError(null);
     setMintStage('metadata');
 
+    // Replayable recipe for the public /remix/[txHash] page — stored in the
+    // token metadata so the minted NFT replays the real AR, not a placeholder.
+    const remixState: RemixState = {
+      v: 1,
+      clipUrl: clip?.videoUrl || '',
+      clipTitle,
+      mode: replayInfo?.mode ?? 'static',
+      subjectId: replayInfo?.subjectId,
+      sourceSize: overlaySourceSize ?? undefined,
+      overlays: selectedOverlays.map(o => ({
+        id: o.id,
+        variant: o.chosenVariant
+          ? { name: o.chosenVariant.name, accent: o.chosenVariant.accent, flagUrl: o.chosenVariant.flagUrl }
+          : undefined,
+        style: overlayStyles[o.id],
+        anchor: replayInfo?.anchors?.[o.id],
+      })),
+    };
+
     const result = await measureUserAction(
       'mint_remix_xlayer',
       () => mintRemix(
@@ -214,7 +236,7 @@ export default function RemixFlow() {
         selectedOverlays.map(o => o.id),
         selectedOverlays.map(o => OVERLAY_NAMES[o.id] || o.name),
         referrerAddress,
-        { onStage: setMintStage }
+        { onStage: setMintStage, remixState }
       ),
       { overlays: selectedOverlays.length, demo: false }
     );
@@ -403,9 +425,11 @@ export default function RemixFlow() {
                   <ARWorkspace
                     clipTitle={clip.title}
                     clipVideoUrl={clip.videoUrl}
-                    onNext={(overlays, styles) => {
+                    onNext={(overlays, styles, sourceSize, replay) => {
                       setSelectedOverlays(overlays);
                       setOverlayStyles(styles);
+                      if (sourceSize) setOverlaySourceSize(sourceSize);
+                      if (replay) setReplayInfo(replay);
                       goForward();
                     }}
                     onBack={goBack}
