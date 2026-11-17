@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Flag, Sparkles, Image, MessageCircle, AlertTriangle,
   Check, Eye, Trophy, ChevronRight, Undo2, Redo2, Sun,
-  Maximize2, Minimize, Crosshair, Loader2
+  Maximize2, Minimize, Crosshair, Loader2, Download
 } from 'lucide-react';
 import { LiveDemoView } from './LiveDemoView';
 import { EditorOverlay, InlineTextEditor, OverlayStyle } from './EditorOverlay';
@@ -14,6 +14,8 @@ import { TrackedOverlayLayer, ANCHOR_OPTIONS, type AnchorId } from './TrackedOve
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
+import { exportRemixVideo } from '@/lib/remix-exporter';
+import { toast } from 'sonner';
 
 const DEFAULT_STYLES: Record<string, OverlayStyle> = {
   'flag-halos': { x: 240, y: 120, scale: 1, rotation: 0, opacity: 1 },
@@ -102,7 +104,43 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
     track: startTracking,
   } = tracker;
   const [anchorOverrides, setAnchorOverrides] = useState<Record<string, AnchorId>>({});
+  const [exportState, setExportState] = useState<'idle' | 'recording' | 'done' | 'error'>('idle');
+  const [exportProgress, setExportProgress] = useState(0);
   const trackVideoRef = React.useRef<HTMLVideoElement | null>(null);
+
+  const handleExport = useCallback(async () => {
+    const video = trackVideoRef.current;
+    if (!video || exportState === 'recording') return;
+    setExportState('recording');
+    setExportProgress(0);
+    try {
+      const result = await exportRemixVideo({
+        video,
+        overlays: selected,
+        anchors: anchorOverrides,
+        opacities: Object.fromEntries(selected.map((o) => [o.id, styles[o.id]?.opacity ?? 1])),
+        poseAt,
+        onProgress: setExportProgress,
+      });
+      const url = URL.createObjectURL(result.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `magiclens-remix.${result.extension}`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      setExportState('done');
+      toast.success('Remix exported', {
+        description: `${result.extension.toUpperCase()} · ${result.duration.toFixed(0)}s — ready to post.`,
+      });
+      setTimeout(() => setExportState('idle'), 4000);
+    } catch (e) {
+      setExportState('error');
+      toast.error('Export failed', {
+        description: e instanceof Error ? e.message : 'Recording is not supported in this browser',
+      });
+      setTimeout(() => setExportState('idle'), 4000);
+    }
+  }, [exportState, selected, anchorOverrides, styles, poseAt]);
 
   // Kick off clip pose analysis when Track mode is entered
   React.useEffect(() => {
@@ -673,9 +711,31 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                     </Button>
                   )}
                   {trackStatus === 'ready' && (
-                    <Button onClick={startTracking} size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                      Re-analyze
-                    </Button>
+                    <>
+                      <Button onClick={startTracking} size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                        Re-analyze
+                      </Button>
+                      {selected.length > 0 && (
+                        <Button
+                          onClick={handleExport}
+                          disabled={exportState === 'recording'}
+                          size="sm"
+                          className="bg-yellow-400 text-black hover:bg-yellow-500"
+                        >
+                          {exportState === 'recording' ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                              {Math.round(exportProgress * 100)}%
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-3.5 w-3.5 mr-1.5" />
+                              {exportState === 'done' ? 'Exported!' : 'Export video'}
+                            </>
+                          )}
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -696,6 +756,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                   <video
                     ref={trackVideoRef}
                     src={clipVideoUrl}
+                    crossOrigin="anonymous"
                     className="absolute inset-0 w-full h-full object-cover"
                     muted loop playsInline autoPlay controls={trackStatus === 'ready'}
                   />

@@ -2,26 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import { LM, bodyFrame, coverFit, visFade, type Pt } from '@/lib/pose-frames';
 import { ParticleSystem, type Emitter } from '@/lib/particles';
+import { resolveOverlayTransform, type AnchorId } from '@/lib/overlay-anchors';
 import type { SelectedOverlay } from '@/hooks/usePack';
 
-const clampDeg = (deg: number, max: number) => Math.min(Math.max(deg, -max), max);
-
-/** Where an overlay anchors on the body. 'auto' = the overlay's own default. */
-export type AnchorId = 'auto' | 'head' | 'shoulder' | 'hands' | 'feet';
-export const ANCHOR_OPTIONS: { id: AnchorId; label: string }[] = [
-  { id: 'auto', label: 'Auto' },
-  { id: 'head', label: 'Head' },
-  { id: 'shoulder', label: 'Shoulder' },
-  { id: 'hands', label: 'Hands' },
-  { id: 'feet', label: 'Feet' },
-];
-
-const DEFAULT_ANCHOR: Record<string, AnchorId> = {
-  'flag-halos': 'head',
-  'goal-lower-third': 'shoulder',
-  'commentary-bubble': 'head',
-  'ref-card': 'hands',
-};
+export { ANCHOR_OPTIONS } from '@/lib/overlay-anchors';
+export type { AnchorId } from '@/lib/overlay-anchors';
 
 const MAX_SUBJECT_DOTS = 3;
 
@@ -37,14 +22,6 @@ interface TrackedOverlayLayerProps {
   opacities?: Record<string, number>;
   /** per-overlay attach-point overrides */
   anchors?: Record<string, AnchorId>;
-}
-
-interface AnchorResult {
-  pos: Pt | null;
-  /** body-relative scale unit (head size or shoulder width) */
-  unit: number;
-  rotDeg: number;
-  vis: number;
 }
 
 /**
@@ -135,65 +112,6 @@ export function TrackedOverlayLayer({
       const bf = lms ? bodyFrame(lms) : null;
 
       const vis = (idx: number) => (lms ? visFade(lms[idx]) : 0);
-      const headVis = Math.min(vis(LM.L_EYE), vis(LM.R_EYE), vis(LM.NOSE));
-      const shoulderVis = Math.min(vis(LM.L_SHOULDER), vis(LM.R_SHOULDER));
-
-      const anchorPos = (kind: AnchorId): AnchorResult => {
-        const none: AnchorResult = { pos: null, unit: 0.16, rotDeg: 0, vis: 0 };
-        if (!bf) return none;
-        switch (kind) {
-          case 'head': {
-            const h = bf.head;
-            if (!h) return none;
-            return {
-              pos: h.c,
-              unit: h.size,
-              rotDeg: clampDeg((h.roll * 180) / Math.PI, 18) * 0.6,
-              vis: headVis,
-            };
-          }
-          case 'shoulder': {
-            const s = bf.shoulder;
-            if (!s) return none;
-            return {
-              pos: s.c,
-              unit: s.width,
-              rotDeg: clampDeg((s.tilt * 180) / Math.PI, 20) * 0.8,
-              vis: shoulderVis,
-            };
-          }
-          case 'hands': {
-            const pts = [bf.wristL, bf.wristR].filter((p): p is Pt => !!p);
-            if (pts.length === 0) return none;
-            const pos = {
-              x: pts.reduce((a, p) => a + p.x, 0) / pts.length,
-              y: pts.reduce((a, p) => a + p.y, 0) / pts.length,
-            };
-            return {
-              pos,
-              unit: (bf.shoulder?.width ?? 0.28) * 0.5,
-              rotDeg: 0,
-              vis: Math.max(vis(LM.L_WRIST), vis(LM.R_WRIST)),
-            };
-          }
-          case 'feet': {
-            const pts = [bf.ankleL, bf.ankleR].filter((p): p is Pt => !!p);
-            if (pts.length === 0) return none;
-            const pos = {
-              x: pts.reduce((a, p) => a + p.x, 0) / pts.length,
-              y: pts.reduce((a, p) => a + p.y, 0) / pts.length,
-            };
-            return {
-              pos,
-              unit: bf.shoulder?.width ?? 0.28,
-              rotDeg: 0,
-              vis: Math.max(vis(LM.L_ANKLE), vis(LM.R_ANKLE)),
-            };
-          }
-          default:
-            return none;
-        }
-      };
 
       const setItem = (id: string, pos: Pt | null, scale: number, rotDeg: number, alpha: number) => {
         const el = itemRefs.current.get(id);
@@ -209,49 +127,10 @@ export function TrackedOverlayLayer({
       };
 
       const userOpacity = (id: string) => opacities?.[id] ?? 1;
-      const anchorFor = (id: string) => {
-        const o = anchors?.[id];
-        return anchorPos(o && o !== 'auto' ? o : (DEFAULT_ANCHOR[id] ?? 'shoulder'));
-      };
 
       for (const ov of overlays) {
-        const uo = userOpacity(ov.id);
-
-        switch (ov.id) {
-          case 'flag-halos': {
-            const a = anchorFor(ov.id);
-            // halo floats ~0.9 head-sizes above the anchor
-            const scale = Math.min(Math.max(a.unit / 0.16, 0.5), 2.2);
-            setItem(ov.id, a.pos ? { x: a.pos.x, y: a.pos.y - a.unit * 0.9 } : null, scale, a.rotDeg, a.vis * uo);
-            break;
-          }
-          case 'goal-lower-third': {
-            const a = anchorFor(ov.id);
-            const scale = Math.min(Math.max(a.unit / 0.28, 0.55), 2.4);
-            setItem(ov.id, a.pos ? { x: a.pos.x, y: a.pos.y + a.unit * 0.75 } : null, scale, a.rotDeg, a.vis * uo);
-            break;
-          }
-          case 'commentary-bubble': {
-            const a = anchorFor(ov.id);
-            const scale = Math.min(Math.max(a.unit / 0.2, 0.55), 1.8);
-            setItem(
-              ov.id,
-              a.pos ? { x: a.pos.x + a.unit * 0.85, y: a.pos.y - a.unit * 0.4 } : null,
-              scale,
-              -3,
-              a.vis * uo,
-            );
-            break;
-          }
-          case 'ref-card': {
-            const a = anchorFor(ov.id);
-            const scale = Math.min(Math.max(a.unit / 0.16, 0.6), 1.8);
-            setItem(ov.id, a.pos, scale, a.rotDeg - 8, a.vis * uo);
-            break;
-          }
-          default:
-            break;
-        }
+        const xform = resolveOverlayTransform(ov.id, lms, anchors);
+        setItem(ov.id, xform.pos, xform.scale, xform.rotDeg, xform.alpha * userOpacity(ov.id));
       }
 
       // Velocity-reactive particles — confetti off the hands, sparkles off the feet

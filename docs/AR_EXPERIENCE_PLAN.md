@@ -20,12 +20,23 @@ broadcast AR (wTVision/Vizrt), CapCut velocity-edit breakdowns.
 > layer (`src/lib/particles.ts`) where wrist/ankle speed drives emission and
 > celebration spikes fire radial bursts.
 >
-> **Phase 2 remaining:** occlusion via segmentation (#6) — deferred; it needs
-> per-frame masks composited behind the subject, which conflicts with the
-> DOM-overlay renderer and is better paired with the Phase 3 canvas/export
-> pipeline. **Phase 3 remaining:** trajectory baking into minted output,
-> face/hand landmarkers, optional server-side track preprocessing.
-> Live webcam mode shares the same One Euro smoothing.
+> **Phase 3 shipped (canvas-composite path):** "Export video" in Track
+> Player records the tracked remix to a real file —
+> `src/lib/remix-exporter.ts` composites video + overlay art +
+> particles to a canvas via `captureStream` + `MediaRecorder` (VP9 WebM,
+> mp4 fallback), driven by the same `resolveOverlayTransform`
+> (`src/lib/overlay-anchors.ts`) that powers the live layer. Verified:
+> 16.5MB webm with the halo locked to the keeper and confetti baked in.
+> Keyframes-in-metadata + public replay remains open — the backend
+> `token_metadata` schema is fixed-shape, so that path needs a
+> migration + `PublicRemix` rebuild (which currently shows fake pose
+> dots, not the remix).
+>
+> **Phase 2 remaining:** occlusion via segmentation (#6) — the canvas
+> pipeline now exists, so masks can composite behind the subject in a
+> future pass. **Phase 3 remaining:** face/hand landmarkers, optional
+> server-side track preprocessing. Live webcam mode shares the same
+> One Euro smoothing.
 
 ## What "AR" means in MagicLens today
 
