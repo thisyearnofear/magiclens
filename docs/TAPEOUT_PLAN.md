@@ -3,6 +3,8 @@
 > Written Nov 17, 2026. Submission deadline **Dec 7, 23:59 UTC** (20 days).
 > Target submission date: **Dec 4** — never submit on deadline day.
 > Entry copy lives in `TAPEOUT_SUBMISSION.md`; this doc is the execution plan.
+> **Posture: target 1st prize.** Every item below is scoped to what a
+> winning entry actually requires, not a participation trophy.
 
 ## Status correction (Nov 17)
 
@@ -32,18 +34,25 @@ submission itself.
 
 ## Phase A — Devin builds (Nov 17–20)
 
-- [ ] Generate the DeWEB archive via `scripts/export_deweb_archive.py`;
-      produce the upload-ready folder with a day-by-day verdict index
-- [ ] Write the circuit's container spec page (v1 per submission doc):
-      "I am ICONIC-GATE" — netlist, truth table, tapeout tx, processor
-      address. Static HTML, DeWEB-uploadable
-- [ ] Deploy RemixNFT + CreatorPass to X Layer **mainnet 196**; add env
-      wiring so prod can point at mainnet while dev/test stays on 1952
+- [x] Generate the DeWEB archive via `scripts/export_deweb_archive.py`;
+      verified — 14 moments, 5 files, upload-ready folder. Regenerate at
+      upload time so it includes the newest days
+- [x] Circuit container spec page — `tapeout/container/index.html`:
+      "I am ICONIC-GATE" — deployment table, gating explanation, honest
+      scope note, live-verify links. Upload via HashPort alongside the
+      archive (or as its own container)
+- [~] Mainnet deploys — `contracts-solidity/scripts/deploy-mainnet.ts`
+      written and gated on balance. **Blocked: deployer
+      `0xc8d8EbCBA4149190B93Ab95fbC4e2F17CcdaF7A5` has 0 OKB on 196 —
+      fund it (~a few dollars covers all three deploys), then
+      `npx hardhat run scripts/deploy-mainnet.ts --network xlayerMainnet`**
+- [x] Demo video script — `docs/DEMO_VIDEO_SCRIPT.md`: 2:35 shot list,
+      mobile-first, TapeOut beat is live `eth_call` on camera
+- [ ] After funding: run deploy script, add env wiring so prod points at
+      mainnet 196 while dev/test stays on 1952
 - [ ] Finalize submission doc — fill ⟦ ⟧ placeholders, refresh "new work
       in window" list (AR rebuild, export, public replay, CreatorPass,
       mobile tracking are all Oct 16+)
-- [ ] Produce the demo video shotlist + script from the existing outline;
-      add 20s of the new mobile Track Player flow (the jaw-drop shot)
 - [ ] Write the creator-seeding kit: `?ref=` links, the tester script
       (already drafted), target list from `GROWTH_INTEL.md`
 
@@ -51,6 +60,9 @@ submission itself.
 
 These require your keys/identity — Devin can't do them:
 
+- [ ] **Fund mainnet deployer `0xc8d8EbCBA4149190B93Ab95fbC4e2F17CcdaF7A5`
+      with OKB on chain 196** — unblocks the three contract deploys
+      (script ready). Do this first; it gates mainnet minting
 - [ ] `id.tapeout.link` → one-click container; fund OKB for gas
 - [ ] Upload DeWEB archive folder via HashPort console (2 signatures);
       bind `tape://` name
@@ -81,16 +93,30 @@ These require your keys/identity — Devin can't do them:
 - [ ] Demo Day prep if shortlisted — offline pitch; confirm travel early,
       the event is in-person
 
+## What 1st prize requires (the stretch list)
+
+Third-tier execution is the floor. First prize adds:
+
+- **Real traction, not vibes** — 20+ real creators, 50+ real mints, a
+  week of daily battles with organic votes. Numbers we can cite on camera.
+- **Every named ecosystem surface shipped** — DeWEB archive AND the
+  circuit container AND mainnet product contracts, so "ecosystem
+  integration" is maximal, not adequate.
+- **The best demo video in the cohort** — the 2:35 script leads with a
+  jaw-drop most entries can't produce: consumer AR that demos in 45s.
+- **A visible vote count** — rally 50–200 holders. Judges see the number;
+  a real community voting is itself evidence of traction.
+- **Narrative** — "the only consumer product in the cohort with a
+  load-bearing circuit" is a 1st-prize story if the traction is real.
+
 ## Risks
 
-- **Traction is unfixable in 20 days at scale** — the honest mitigation is
-  10–20 real creators with real mints, not manufactured numbers. Judges
-  can tell; a small real base beats a fake large one.
+- **Traction decides it** — unfixable by code alone. 10–20 real creators
+  with real mints is the honest floor; judges detect manufactured numbers.
+  Small-and-real beats large-and-fake, but 1st needs real AND visible.
 - **Backend dependency** — `eval()` runs through our backend; if it dies
   during judging, promotion breaks visibly. Monitor `/api/tapeout/status`.
 - **Container hosting API is an open research item** — v1 spec page may
   hit API friction; fallback is hosting it inside the DeWEB archive site.
-- **Prize realism** — 1st ($20k) likely needs real users we won't have.
-  A 3rd-tier prize ($6k, five slots) is the honest target: complete
-  submission + load-bearing circuit + visible ecosystem usage beats most
-  entries on completeness and originality.
+- **Vote rally depends on holdings** — eligible-vote mechanics tie votes
+  to X Layer positions; our rally list must actually hold something.

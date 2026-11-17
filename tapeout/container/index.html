@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ICONIC-GATE — TapeOut Circuit #20</title>
+<style>
+:root{--bg:#08070d;--fg:#e8e6f0;--dim:#8b87a0;--acc:#f5c542;--ok:#4ade80;--line:#26242f}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:"Space Grotesk",system-ui,sans-serif;line-height:1.6;padding:2rem 1rem}
+.wrap{max-width:720px;margin:0 auto}
+h1{font-size:2rem;letter-spacing:-.02em}
+h1 span{color:var(--acc)}
+.tag{font-family:ui-monospace,monospace;font-size:.72rem;color:var(--ok);border:1px solid var(--ok);border-radius:99px;padding:.15rem .6rem;display:inline-block;vertical-align:middle;margin-left:.6rem}
+p.lede{color:var(--dim);margin:.8rem 0 2rem}
+section{border-top:1px solid var(--line);padding:1.4rem 0}
+h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.14em;color:var(--dim);margin-bottom:.8rem}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+td{padding:.35rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-family:ui-monospace,monospace;color:var(--acc);white-space:nowrap;width:1%}
+.kv td:first-child{color:var(--dim);width:9rem}
+code{font-family:ui-monospace,monospace;font-size:.8em;word-break:break-all}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+.note{color:var(--dim);font-size:.82rem;margin-top:.8rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ICONIC-GATE <span>#20</span><span class="tag">LIVE · X LAYER MAINNET</span></h1>
+<p class="lede">A purpose-built NAND circuit that gates promotion in <a href="https://magiclens.vercel.app">MagicLens</a> — the AR remix battle for live sports. Every day the crowd crowns one Iconic Moment; this circuit decides whether it earns permanence on Flow.</p>
+
+<section>
+<h2>Deployment</h2>
+<table class="kv">
+<tr><td>Circuit ID</td><td><code>20</code></td></tr>
+<tr><td>Name</td><td><code>ICONIC-GATE</code></td></tr>
+<tr><td>Processor</td><td><code>0x57F319CF056F72F48cF1dbb670F2A3DB007Aa355</code> (OrderGuard)</td></tr>
+<tr><td>Chain</td><td>X Layer mainnet · chain ID <code>196</code></td></tr>
+<tr><td>Tapeout tx</td><td><code>0xdc6dd373dbc9489fd10667f50abf50c3b8f57ae813d6254bc90f845f145bc35c</code></td></tr>
+<tr><td>Transistor mint</td><td><code>0xd94a31b0f1bacc31b9f864e1273094c4d34dfc2a0863cc359e314373d5f1ee00</code></td></tr>
+<tr><td>Deployer</td><td><code>0x8b0b474f86bE342E5A5329Cc2E25016Aa274594e</code></td></tr>
+<tr><td>Size</td><td>46 NAND gates · 14 inputs · 5 outputs · depth 9</td></tr>
+<tr><td>Verification</td><td>Exhaustive — all 16,384 input combinations simulated before tapeout (<code>verify.py</code>)</td></tr>
+</table>
+</section>
+
+<section>
+<h2>What it gates</h2>
+<p>The MagicLens backend packs promotion evidence into 14 bits — minted status, playable media, leaderboard rank, quantized votes — and calls <code>eval()</code> on the processor. If the circuit rejects or the call fails, promotion <em>fails closed</em>: no Iconic Moment is minted to Flow. Verdicts are journaled and surfaced in the product ("Cleared by TapeOut #20 · score N/15" in the Screening Room).</p>
+<p class="note">Honest scope: the circuit verifies the packed policy bits, not raw vote counts or media authenticity — a NAND netlist cannot hash arbitrary input. That boundary is stated in the product UI.</p>
+</section>
+
+<section>
+<h2>Verify it yourself</h2>
+<p><code>eval()</code> is permissionless and read-only. Live status: <a href="https://magiclens.thisyearnofear.com/api/tapeout/status">api/tapeout/status</a> · in-browser re-verification: Screening Room → "Live Verify" (<code>eth_call</code>, no wallet needed).</p>
+</section>
+
+<section>
+<h2>Source</h2>
+<p>Netlist <code>tapeout/iconic_gate.v</code> · builder <code>build_netlist.py</code> · simulation <code>verify.py</code> · integration <code>services/core/tapeout.py</code> — all in the <a href="https://github.com/thisyearnofear/magiclens">MagicLens repo</a>.</p>
+</section>
+</div>
+</body>
+</html>
