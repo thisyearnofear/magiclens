@@ -10,10 +10,30 @@ import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { ScrollRevealSection } from '@/components/ScrollRevealSection';
 import { useSound } from '@/hooks/useSound';
 import { KineticHeroTitle } from '@/components/KineticHeroTitle';
+import { KineticHeader } from '@/components/motion/KineticHeader';
 import { MeltDivider } from '@/components/MeltDivider';
 import { HollowStage } from '@/components/HollowStage';
 import { FerroSoundToggle } from '@/components/FerroSoundToggle';
 import { MagneticButton } from '@/components/ui/MagneticButton';
+import { MotionTrail } from '@/components/motion/MotionTrail';
+import { GiantTypeDivider } from '@/components/motion/GiantTypeDivider';
+import { ScrollHighlight } from '@/components/motion/ScrollHighlight';
+import { WavingFlag } from '@/components/motion/WavingFlag';
+
+const TRAIL_IMAGES = [
+  '/packs/match-day/thumb-goal-banner.svg',
+  '/packs/match-day/thumb-flag-halos.svg',
+  '/packs/match-day/thumb-confetti.svg',
+  '/packs/match-day/thumb-sparkles.svg',
+  '/packs/match-day/thumb-commentary.svg',
+  '/packs/match-day/thumb-ref-card.svg',
+];
+
+const FLAGS = [
+  '/packs/match-day/assets/flag-argentina.svg',
+  '/packs/match-day/assets/flag-brazil.svg',
+  '/packs/match-day/assets/flag-france.svg',
+];
 
 const HERO_CLIPS = [
   { src: '/clips/demo1.mp4', label: 'Match-winning Goal' },
@@ -84,6 +104,9 @@ export default function LandingPage() {
         </g>
       </svg>
 
+      {/* Pointer trail of remix frames — desktop only, reduced-motion safe */}
+      <MotionTrail images={TRAIL_IMAGES} />
+
       {/* Content layer */}
       <div className="relative z-[3]">
       {/* Header */}
@@ -93,7 +116,7 @@ export default function LandingPage() {
             <Trophy className="h-8 w-8 text-yellow-400" />
             <h1 className="text-2xl font-bold text-white">MagicLens</h1>
             <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-400/20 text-yellow-400 rounded-full border border-yellow-400/30">
-              Launching with FIFA World Cup 2026
+              Live Sports
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -107,12 +130,18 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 pt-12 pb-10 text-center relative overflow-hidden">
+        {/* Waving match flags drifting at the hero edges (2D cloth homage) */}
+        <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden="true">
+          <WavingFlag src={FLAGS[0]} className="absolute left-[2%] top-[8%] h-24 w-40 opacity-70" driftDuration={13} />
+          <WavingFlag src={FLAGS[1]} className="absolute right-[3%] top-[16%] h-20 w-32 opacity-60" driftDuration={17} delay={1.2} />
+          <WavingFlag src={FLAGS[2]} className="absolute left-[8%] bottom-[12%] h-16 w-28 opacity-50" driftDuration={15} delay={2.4} />
+        </div>
         <KineticHeroTitle />
         <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 bg-yellow-400/10 border border-yellow-400/30 rounded-full">
           <Trophy className="h-4 w-4 text-yellow-400" />
-          <span className="text-yellow-400 text-sm font-medium">OKX X Cup Hackathon — World Cup 2026</span>
+          <span className="text-yellow-400 text-sm font-medium">Daily Remix Battles — X Layer + Flow</span>
         </div>
-        <h2 className="text-4xl sm:text-6xl font-bold text-white mb-4 max-w-4xl mx-auto leading-tight">
+        <h2 className="text-4xl sm:text-6xl font-bold text-white mb-4 max-w-4xl mx-auto leading-tight font-display">
           The <span className="text-yellow-400">AR Remix Layer</span> for Live Sports
         </h2>
         <div className="mb-6 flex items-center justify-center gap-2 text-[11px] text-gray-400">
@@ -120,7 +149,7 @@ export default function LandingPage() {
           <FerroSoundToggle />
         </div>
         <p className="text-lg sm:text-xl text-gray-300 mb-3 max-w-2xl mx-auto">
-          Remix your clips with pose-aware AR overlays. The crowd crowns one Iconic Moment a day — premiered in the Screening Room, minted free on X Layer, elevated to Flow.
+          Remix your clips with pose-aware AR overlays. The crowd <ScrollHighlight>crowns one Iconic Moment a day</ScrollHighlight> — premiered in the Screening Room, minted free on X Layer, elevated to Flow.
         </p>
         <p className="text-sm text-green-300 mb-6">Free to play. No wallet needed. Mint only if you win.</p>
         <div className="flex flex-wrap items-center justify-center gap-2 mb-10 text-[11px]">
@@ -154,11 +183,17 @@ export default function LandingPage() {
       </section>
       <MeltDivider />
 
+      <GiantTypeDivider word="REMIX" label="create" />
+
       <StatsBar />
 
       {/* Value Proposition Section */}
       <section className="container mx-auto px-4 py-20">
-        <h3 className="text-3xl sm:text-4xl font-bold text-white text-center mb-16">Connect. Create. Earn.</h3>
+        <KineticHeader
+          as="h3"
+          text="Connect. Create. Earn."
+          className="text-3xl sm:text-4xl font-bold text-white text-center mb-16 font-display"
+        />
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all">
@@ -208,7 +243,8 @@ export default function LandingPage() {
           </Card>
         </div>
 
-        <div className="bg-gradient-to-r from-yellow-400/20 to-purple-400/20 rounded-3xl p-8 text-center max-w-4xl mx-auto">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center max-w-4xl mx-auto">
+          <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-400/50 to-transparent" />
           <h4 className="text-2xl font-bold text-white mb-4">Choose Your Path</h4>
           <div className="grid md:grid-cols-3 gap-8">
             <div>
@@ -239,7 +275,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <GiantTypeDivider word="COMPETE" label="daily battles" />
+
       <ScrollRevealSection />
+
+      <GiantTypeDivider word="PREMIERE" label="screening room" />
 
       <OnboardingWizard />
 
@@ -247,9 +287,13 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-20 text-center">
         <HollowStage>
           <div className="p-12">
-            <h3 className="text-3xl sm:text-4xl font-bold text-white mb-6">Ready to Create Iconic Moments?</h3>
+            <KineticHeader
+              as="h3"
+              text="Ready to Create Iconic Moments?"
+              className="text-3xl sm:text-4xl font-bold text-white mb-6 font-display"
+            />
             <p className="text-xl text-gray-300 mb-8">
-              Launching with FIFA World Cup 2026. Next: Wimbledon, NBA Finals, F1, Olympics LA 2028.
+              Works with any sport — football, basketball, tennis, racing and more.
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <MagneticButton
@@ -269,7 +313,7 @@ export default function LandingPage() {
         <div className="flex flex-col items-center text-gray-300 gap-2">
           <p>&copy; 2026 MagicLens. The AR remix layer for live sports.</p>
           <p className="text-sm">
-            Built for the <a href="https://web3.okx.com/xlayer/build-x-hackathon/xcup" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">OKX X Cup</a> on X Layer + Flow
+            Built on X Layer + Flow
           </p>
           <p className="text-xs text-gray-500">Remix your own clips — league footage rights belong to their owners.</p>
         </div>

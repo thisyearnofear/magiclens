@@ -18,6 +18,8 @@ import { GoldCausticOverlay } from '@/components/ui/GoldCausticOverlay';
 import { ProductJourneyHeader } from '@/components/ProductJourneyHeader';
 import { CelebrationOverlay } from '@/components/CelebrationOverlay';
 import { IconicFilmstrip } from '@/components/IconicFilmstrip';
+import { ElasticColumns } from '@/components/motion/ElasticColumns';
+import { ScrambleText } from '@/components/motion/ScrambleText';
 import { VinylLoader } from '@/components/VinylLoader';
 import { MeltDivider } from '@/components/MeltDivider';
 import { useSound } from '@/hooks/useSound';
@@ -86,9 +88,11 @@ function MomentCard({ moment }: { moment: CrossVMPromotion }) {
         <CardHeader>
           <CardTitle className="text-lg line-clamp-1">{moment.title}</CardTitle>
           <CardDescription className="flex items-center gap-2">
-            <span className="truncate font-mono text-xs">
-              {moment.xlayer_creator_address.slice(0, 10)}...
-            </span>
+            <ScrambleText
+              text={`${moment.xlayer_creator_address.slice(0, 10)}...`}
+              className="truncate text-xs"
+              onReveal
+            />
           </CardDescription>
         </CardHeader>
 
@@ -111,7 +115,7 @@ function MomentCard({ moment }: { moment: CrossVMPromotion }) {
                 rel="noopener noreferrer"
                 className="font-mono text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
               >
-                {moment.flow_tx_hash.slice(0, 12)}...
+                <ScrambleText text={`${moment.flow_tx_hash.slice(0, 12)}...`} />
                 <ExternalLink className="h-3 w-3" />
               </a>
             </div>
@@ -463,11 +467,10 @@ export function IconicMomentsGallery() {
             exit={{ opacity: 0 }}
           >
             <LayoutGroup>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {moments.map((moment) => (
-                  <MomentCard key={moment.id} moment={moment} />
-                ))}
-              </div>
+              <ElasticColumns
+                items={moments}
+                renderItem={(moment) => <MomentCard key={moment.id} moment={moment} />}
+              />
             </LayoutGroup>
           </motion.div>
         )}

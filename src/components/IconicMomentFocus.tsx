@@ -94,33 +94,65 @@ export function IconicMomentFocus({
             layoutId={`reel-${moment.id}`}
             transition={{ type: 'spring', stiffness: 260, damping: 26 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md overflow-hidden rounded-2xl border border-yellow-400/30 bg-neutral-950 shadow-[0_30px_80px_-20px_rgba(250,204,21,0.5)]"
+            className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-yellow-400/30 bg-neutral-950 shadow-[0_30px_80px_-20px_rgba(250,204,21,0.5)]"
           >
             {moment.rank === 1 && <GoldCausticOverlay />}
-            <div className="relative bg-gradient-to-br from-yellow-400/30 via-purple-500/20 to-sky-500/20 p-5">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                Day {moment.day} · Rank #{moment.rank}
+            <div className="grid sm:grid-cols-[1.6fr_1fr]">
+              {/* Editorial media area — the moment itself leads */}
+              <div className="relative aspect-video bg-gradient-to-br from-yellow-400/25 via-purple-500/15 to-sky-500/20 sm:aspect-auto sm:min-h-[300px]">
+                {moment.media_url ? (
+                  <video
+                    src={moment.media_url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-6xl font-black text-white/15 font-display">#{moment.rank}</span>
+                  </div>
+                )}
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent" />
+                <div className="absolute bottom-3 left-4 right-4">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                    Day {moment.day} · Rank #{moment.rank}
+                  </div>
+                  <div className="mt-0.5 text-xl font-black text-white font-display sm:text-2xl">{moment.title}</div>
+                </div>
               </div>
-              <div className="mt-1 text-2xl font-black text-white">{moment.title}</div>
-              <button
-                onClick={onClose}
-                aria-label="Close detail"
-                className="absolute right-3 top-3 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
-              >
-                <X className="h-4 w-4" />
-              </button>
+
+              {/* Metadata rail */}
+              <div className="flex flex-col border-t border-white/10 p-5 text-sm sm:border-l sm:border-t-0">
+                <div className="space-y-2 flex-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Flow NFT</span>
+                    <span className="font-mono font-bold text-purple-300">
+                      {moment.flow_nft_id != null ? `#${moment.flow_nft_id}` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">X Layer token</span>
+                    <span className="font-mono text-gray-200">#{moment.xlayer_token_id}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-gray-400 shrink-0">Creator</span>
+                    <span className="truncate font-mono text-[11px] text-gray-300">
+                      {moment.xlayer_creator_address}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2 p-5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Flow NFT</span>
-                <span className="font-mono font-bold text-purple-300">
-                  {moment.flow_nft_id != null ? `#${moment.flow_nft_id}` : '—'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">X Layer token</span>
-                <span className="font-mono text-gray-200">#{moment.xlayer_token_id}</span>
-              </div>
+            <button
+              onClick={onClose}
+              aria-label="Close detail"
+              className="absolute right-3 top-3 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <div className="space-y-2 border-t border-white/10 p-4 text-sm">
               {moment.flow_tx_hash && (
                 <a
                   href={`https://testnet.flowscan.io/transaction/${moment.flow_tx_hash}`}

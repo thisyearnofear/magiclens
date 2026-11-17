@@ -36,7 +36,7 @@ export interface SelectedOverlay extends OverlayDefinition {
   chosenVariant: OverlayVariant | null;
 }
 
-export function usePack(packId: string = 'world-cup-2026') {
+export function usePack(packId: string = 'match-day') {
   const [manifest, setManifest] = useState<PackManifest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, Play, Trophy, Flag, Search, Clock, User } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/api-base';
+import { ScrollRotateCard } from '@/components/motion/ScrollRotateCard';
+import { PixelImage } from '@/components/motion/PixelImage';
 import type { Video } from '@/lib/sdk';
 
 interface ClipPickerProps {
@@ -110,7 +112,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Choose Your Match Moment</h2>
-        <p className="text-gray-300">Pick a World Cup clip to remix with AR overlays</p>
+        <p className="text-gray-300">Pick a match clip to remix with AR overlays</p>
       </div>
 
       {/* Demo clips */}
@@ -118,8 +120,8 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
         <h3 className="text-lg font-semibold text-white mb-4">Featured Match Moments</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {DEMO_CLIPS.map((clip) => (
+            <ScrollRotateCard key={clip.id} intensity={0.5}>
             <Card
-              key={clip.id}
               className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-yellow-400/50 transition-all cursor-pointer group overflow-hidden"
               onClick={() => onSelect({ ...clip, file_path: clip.videoUrl, category: 'sports', duration: 12, uploader_id: 'demo' } as unknown as Video)}
               onMouseEnter={(e) => {
@@ -153,6 +155,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
                 </div>
               </CardContent>
             </Card>
+            </ScrollRotateCard>
           ))}
         </div>
       </div>
@@ -235,8 +238,8 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
         {!isSearching && searchResults.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {searchResults.map((v) => (
+              <ScrollRotateCard key={v.id} intensity={0.5}>
               <Card
-                key={v.id}
                 className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-yellow-400/50 transition-all cursor-pointer group overflow-hidden"
                 onClick={() => selectPexelsClip(v)}
                 onMouseEnter={(e) => {
@@ -250,13 +253,15 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
               >
                 <CardContent className="p-0">
                   <div className="aspect-video bg-gray-900 relative">
+                    {/* Pixelated poster resolves behind the video while metadata loads */}
+                    <PixelImage src={v.preview_url} alt={v.title} className="absolute inset-0" />
                     <video
                       src={v.video_url}
                       muted
                       loop
                       playsInline
                       preload="metadata"
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-colors">
                       <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 group-hover:scale-110 transition-transform">
@@ -281,6 +286,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
                   </div>
                 </CardContent>
               </Card>
+              </ScrollRotateCard>
             ))}
           </div>
         )}

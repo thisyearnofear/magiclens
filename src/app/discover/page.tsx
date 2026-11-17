@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { StadiumBackdrop } from '@/components/StadiumBackdrop';
+import { PageBackdrop } from '@/components/PageBackdrop';
 import {
   Users, User, Zap, Sparkles, Inbox,
   AlertCircle, RefreshCw,
@@ -180,7 +180,7 @@ export default function DiscoverPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
-      <StadiumBackdrop />
+      <PageBackdrop />
       <div className="relative z-[3]">
       {/* Header */}
       {usingDemo && <DemoBanner />}

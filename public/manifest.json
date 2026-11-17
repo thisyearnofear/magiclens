@@ -1,7 +1,7 @@
 {
   "name": "MagicLens",
   "short_name": "MagicLens",
-  "description": "The AR remix layer for live sports. Launching with FIFA World Cup 2026.",
+  "description": "The AR remix layer for live sports.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1e1b4b",

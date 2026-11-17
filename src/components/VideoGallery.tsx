@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { videoServiceGetVideos, videoServiceSearchVideos, videoServiceGetVideoCategories, collaborationServiceStartCollaboration } from '@/lib/sdk';
 import { Video } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
-import { StadiumBackdrop } from '@/components/StadiumBackdrop';
+import { PageBackdrop } from '@/components/PageBackdrop';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,7 +103,7 @@ export default function VideoGallery() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <StadiumBackdrop />
+      <PageBackdrop />
       <div className="relative z-[3]">
       {/* Header */}
       {usingDemo && <DemoBanner />}

@@ -23,7 +23,7 @@ export function QuickActions({ isGuest, userType, onNavigate }: QuickActionsProp
           <h3 className="text-white font-semibold">Create Remix</h3>
           <p className="text-gray-300 text-sm">Add AR overlays & mint</p>
           <Badge className="mt-2 bg-yellow-400 text-black text-xs font-bold">
-            World Cup 2026
+            Daily Battles
           </Badge>
         </CardContent>
       </Card>

@@ -39,7 +39,7 @@
   <!-- Subtitle -->
   <text x="400" y="152" text-anchor="middle" font-size="16" font-weight="700"
         font-family="sans-serif" fill="rgba(0,0,0,0.6)" letter-spacing="4">
-    FIFA WORLD CUP 2026
+    MATCH DAY
   </text>
   <!-- Corner accents -->
   <path d="M40 30 L80 30 L40 70 Z" fill="rgba(255,255,255,0.1)"/>

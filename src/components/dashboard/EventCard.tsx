@@ -14,8 +14,8 @@ interface EventCardProps {
 }
 
 export function EventCard({
-  name = 'FIFA World Cup 2026',
-  dateRange = 'Jun 8 — Jul 8, 2026',
+  name = 'Daily Remix Battle',
+  dateRange = 'Live now',
   packCount = 5,
   iconicCount = 8,
   isActive = true,

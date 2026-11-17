@@ -33,12 +33,12 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 const SVG_MAP: Record<string, string> = {
-  'flag-halos': '/packs/world-cup-2026/thumb-flag-halos.svg',
-  'goal-lower-third': '/packs/world-cup-2026/thumb-goal-banner.svg',
-  'trophy-confetti': '/packs/world-cup-2026/thumb-confetti.svg',
-  'commentary-bubble': '/packs/world-cup-2026/thumb-commentary.svg',
-  'stadium-sparkles': '/packs/world-cup-2026/thumb-sparkles.svg',
-  'ref-card': '/packs/world-cup-2026/thumb-ref-card.svg',
+  'flag-halos': '/packs/match-day/thumb-flag-halos.svg',
+  'goal-lower-third': '/packs/match-day/thumb-goal-banner.svg',
+  'trophy-confetti': '/packs/match-day/thumb-confetti.svg',
+  'commentary-bubble': '/packs/match-day/thumb-commentary.svg',
+  'stadium-sparkles': '/packs/match-day/thumb-sparkles.svg',
+  'ref-card': '/packs/match-day/thumb-ref-card.svg',
 };
 
 /** Simple undo/redo stack for overlay styles */
@@ -622,7 +622,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
         {/* ═══ PACK SELECTOR ═══ */}
         <motion.div variants={container} initial="hidden" animate="show" className="space-y-2">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">World Cup 2026 Packs</h3>
+            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">AR Overlay Packs</h3>
             <Trophy className="h-4 w-4 text-yellow-400" />
           </div>
 

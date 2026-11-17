@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { StadiumBackdrop } from '@/components/StadiumBackdrop';
+import { PageBackdrop } from '@/components/PageBackdrop';
 import { Button } from '@/components/ui/button';
 import { Trophy, Medal, Zap, DollarSign, Sparkles, ArrowRight, Clock, Database, Timer } from 'lucide-react';
 import { useAuthContext } from '@/auth/AuthProvider';
@@ -45,6 +45,8 @@ import { useSound } from '@/hooks/useSound';
 import { CelebrationOverlay } from '@/components/CelebrationOverlay';
 import { MagneticButton } from '@/components/ui/MagneticButton';
 import { LeaderboardHoverReveal, useHoverRevealTarget } from '@/components/LeaderboardHoverReveal';
+import { useParticleBurst } from '@/components/motion/ParticleBurst';
+import { ScrambleText } from '@/components/motion/ScrambleText';
 import { MeltDivider } from '@/components/MeltDivider';
 import { VinylLoader } from '@/components/VinylLoader';
 import type { CrossVMPromotion } from '@/types/crossvm';
@@ -76,6 +78,7 @@ interface LeaderboardEntry {
   color: string;
   tokenId: number;
   txHash: string;
+  mediaUrl?: string | null;
   isUser?: boolean;
 }
 
@@ -92,6 +95,7 @@ export default function Leaderboard() {
   const [showCelebration, setShowCelebration] = useState<'promote' | 'vote' | null>(null);
   const sound = useSound();
   const hover = useHoverRevealTarget<LeaderboardEntry>();
+  const { burst, layer: burstLayer } = useParticleBurst();
 
   const closeDayMutation = useMutation({
     mutationFn: async (top10: Parameters<typeof closeLeaderboardDay>[1]) => {
@@ -175,8 +179,9 @@ export default function Leaderboard() {
   const [votedTokens, setVotedTokens] = useState<Set<number>>(new Set());
   const [voteCounts, setVoteCounts] = useState<Record<number, number>>({});
 
-  const handleVote = (entry: LeaderboardEntry) => {
+  const handleVote = (entry: LeaderboardEntry, e?: React.MouseEvent) => {
     if (votedTokens.has(entry.tokenId)) return;
+    if (e) burst(e.clientX, e.clientY, ['#facc15', '#fde047', '#f97316'], 20);
     sound.vote();
     setVotedTokens(prev => new Set(prev).add(entry.tokenId));
     setEntries(prev =>
@@ -213,6 +218,7 @@ export default function Leaderboard() {
         ? guestTokenId(r.txHash)
         : parseInt(r.txHash.slice(-8), 16) % 10000 + 2000,
       txHash: r.txHash,
+      mediaUrl: r.clipUrl ?? null,
       isUser: true,
     }));
 
@@ -298,7 +304,8 @@ export default function Leaderboard() {
   return (
     <div ref={hover.anchorRef as React.RefObject<HTMLDivElement>} className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
       <LeaderboardHoverReveal active={hover.active} anchorRef={hover.anchorRef} />
-      <StadiumBackdrop opacity={0.25} />
+      {burstLayer}
+      <PageBackdrop />
       <div className="fixed inset-0 z-[1] bg-grid-darker pointer-events-none opacity-40" />
       <div className="relative z-[3]">
       <DemoBanner message="Preview data — real leaderboard appears when users mint and vote." />
@@ -320,10 +327,11 @@ export default function Leaderboard() {
 
         {/* Prize pool + Cross-VM banner */}
         <div className="grid md:grid-cols-3 gap-4 mb-6">
-          <Card className="bg-gradient-to-r from-yellow-400/20 to-purple-400/20 border-yellow-400/30 md:col-span-2">
+          <Card className="border border-yellow-400/25 bg-[#0d0b16] md:col-span-2 relative overflow-hidden">
+            <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-400/60 to-transparent" />
             <CardContent className="p-6 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-white">World Cup 2026 — Day 1</h2>
+                <h2 className="text-xl font-bold text-white">Daily Remix Battle</h2>
                 <p className="text-gray-300 text-sm mt-1">Top 10 remixes win daily rewards. Top 3 become Flow Iconic Moments.</p>
               </div>
               <div className="text-right flex flex-col items-end gap-2">
@@ -562,7 +570,7 @@ export default function Leaderboard() {
                             {entry.isUser && <Badge className="bg-green-500/20 text-green-300 text-[10px] border border-green-500/30">You</Badge>}
                             {iconic && <IconicMomentBadge flowNftId={iconic.flow_nft_id} flowTxHash={iconic.flow_tx_hash} status={iconic.status as any} />}
                           </div>
-                          <p className="text-gray-300 text-[11px]">{entry.creator}</p>
+                          <p className="text-[11px]"><ScrambleText text={entry.creator} className="text-gray-300" /></p>
                           <div className="flex items-center gap-3 mt-1.5">
                             <span className="text-white font-mono text-xs">{entry.votes.toLocaleString()}</span>
                             <span className="text-gray-300 text-[10px]">votes</span>
@@ -577,7 +585,7 @@ export default function Leaderboard() {
                           )}
                           <div className="flex items-center gap-2 mt-2">
                             <button
-                              onClick={() => handleVote(entry)}
+                              onClick={(e) => handleVote(entry, e)}
                               disabled={votedTokens.has(entry.tokenId)}
                               className={`text-[10px] px-2 py-1 rounded font-medium transition-colors ${
                                 votedTokens.has(entry.tokenId)
@@ -652,7 +660,7 @@ export default function Leaderboard() {
                             />
                           )}
                         </div>
-                        <p className="text-gray-300 text-[11px]">{entry.creator}</p>
+                        <p className="text-[11px]"><ScrambleText text={entry.creator} className="text-gray-300" /></p>
                       </div>
 
                       <div className="text-right min-w-[60px] shrink-0">
@@ -671,7 +679,7 @@ export default function Leaderboard() {
 
                       <div className="w-14 text-right shrink-0">
                         <button
-                          onClick={() => handleVote(entry)}
+                          onClick={(e) => handleVote(entry, e)}
                           disabled={votedTokens.has(entry.tokenId)}
                           className={`text-[10px] px-2 py-1 rounded font-medium transition-colors whitespace-nowrap ${
                             votedTokens.has(entry.tokenId)

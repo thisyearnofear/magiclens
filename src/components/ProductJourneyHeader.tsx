@@ -3,6 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ArrowRight, Sparkles, Trophy, Wand2, ChevronDown, Clapperboard } from 'lucide-react';
+import { KineticHeader } from '@/components/motion/KineticHeader';
 import { cn } from '@/lib/utils';
 
 type JourneyStage = 'create' | 'compete' | 'promote' | 'screen';
@@ -51,7 +52,12 @@ export function ProductJourneyHeader({ active, title, subtitle, metric, metricLa
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-yellow-300">MagicLens journey</p>
-          <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">{title}</h1>
+          <KineticHeader
+            as="h1"
+            text={title}
+            className="mt-2 text-2xl font-bold text-white sm:text-3xl font-display"
+            stagger={0.018}
+          />
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-300">{subtitle}</p>
         </div>
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { StadiumBackdrop } from '@/components/StadiumBackdrop';
+import { PageBackdrop } from '@/components/PageBackdrop';
 import { StepProgress } from '@/components/remix/StepProgress';
 import { ProductJourneyHeader } from '@/components/ProductJourneyHeader';
 import { ClipPicker } from '@/components/remix/ClipPicker';
@@ -307,7 +307,7 @@ export default function RemixFlow() {
 
   return (
     <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
-      <StadiumBackdrop opacity={0.2} />
+      <PageBackdrop />
       <div className="fixed inset-0 z-[1] bg-grid-pitch pointer-events-none" />
       <div className="relative z-[3]">
       {/* Header */}

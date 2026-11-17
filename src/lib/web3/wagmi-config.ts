@@ -19,7 +19,7 @@ export const wagmiConfig = createConfig({
   ssr: false,
 })
 
-// Target chain for the hackathon (default: X Layer testnet)
+// Target chain (default: X Layer testnet)
 export const getTargetChain = () => {
   if (process.env.NEXT_PUBLIC_XLAYER_NETWORK === 'mainnet') {
     return xLayer

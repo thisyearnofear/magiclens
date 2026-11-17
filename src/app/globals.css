@@ -293,3 +293,10 @@ button:focus-visible {
 
 
 
+
+/* Mint → leaderboard flight: travel an SVG offset-path to 100% */
+@keyframes flight-along {
+  0% { offset-distance: 0%; rotate: -8deg; }
+  85% { offset-distance: 100%; opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}

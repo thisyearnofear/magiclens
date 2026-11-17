@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { StadiumBackdrop } from '@/components/StadiumBackdrop';
+import { PageBackdrop } from '@/components/PageBackdrop';
 import { MobileNav } from '@/components/MobileNav';
 import {
   Inbox, Send, Check, X, Loader2,
@@ -234,7 +234,7 @@ export default function RequestsPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <StadiumBackdrop />
+      <PageBackdrop />
       <div className="relative z-[3]">
         {/* Header */}
         <header className="border-b border-white/10 bg-black/20">

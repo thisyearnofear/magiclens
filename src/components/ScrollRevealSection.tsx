@@ -6,7 +6,7 @@ const steps = [
   {
     icon: Play,
     title: 'Choose a Match Moment',
-    description: 'Pick a World Cup clip or upload your own. Our pose detector finds the action — tracking players, celebrations, and key moments in real time.',
+    description: 'Pick a match clip or upload your own. Our pose detector finds the action — tracking players, celebrations, and key moments in real time.',
     color: 'from-blue-500/20 to-blue-700/20',
     border: 'border-blue-500/30',
     accent: 'text-blue-400',

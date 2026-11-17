@@ -30,6 +30,7 @@ export function BottomTabBar() {
           return (
             <button
               key={tab.href}
+              data-flight-target={tab.href === '/leaderboard' ? 'leaderboard' : undefined}
               onClick={() => router.push(tab.href)}
               className={cn(
                 'relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg transition-colors min-w-0',

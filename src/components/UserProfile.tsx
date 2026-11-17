@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { useAuthContext } from '@/auth/AuthProvider';
-import { StadiumBackdrop } from '@/components/StadiumBackdrop';
+import { PageBackdrop } from '@/components/PageBackdrop';
 import { userServiceGetUserProfile, userServiceGetPublicProfile, userServiceUpdateUserProfile, userServiceCreateUserProfile } from '@/lib/sdk';
 import { UserProfile as UserProfileType } from '@/lib/sdk';
 import { Button } from '@/components/ui/button';
@@ -174,7 +174,7 @@ export default function UserProfile() {
   if (loading) {
     return (
       <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
-        <StadiumBackdrop />
+        <PageBackdrop />
         <div className="relative z-[3]">
         <header className="border-b border-white/10 bg-black/20">
           <div className="container mx-auto px-4 py-4">
@@ -211,7 +211,7 @@ export default function UserProfile() {
   if (!effectiveProfile) {
     return (
       <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0 flex items-center justify-center">
-        <StadiumBackdrop />
+        <PageBackdrop />
         <div className="relative z-[3]">
         <Card className="bg-white/10 border-white/20 max-w-md text-center">
           <CardContent className="p-8">
@@ -249,7 +249,7 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
-      <StadiumBackdrop />
+      <PageBackdrop />
       <div className="relative z-[3]">
       {/* Header */}
       <header className="border-b border-white/10 bg-black/20">

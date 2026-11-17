@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { GiltPlayer } from '@/components/gilt/GiltPlayer';
 import { ScreeningRoomArchive } from '@/components/gilt/ScreeningRoomArchive';
+import { SeatMap, SeatedStage, type SeatSelection } from '@/components/gilt/SeatMap';
 import { TapeoutBadge } from '@/components/gilt/TapeoutBadge';
 import { getIconicMoments } from '@/lib/crossvm-client';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,7 @@ export function ScreeningRoomView() {
   const isArchive = view === 'archive';
 
   const [marathonIdx, setMarathonIdx] = useState(0);
+  const [seat, setSeat] = useState<SeatSelection | null>(null);
 
   const momentsQuery = useQuery({
     queryKey: ['iconic-moments', 'all'],
@@ -162,12 +164,21 @@ export function ScreeningRoomView() {
         </Link>
       </div>
 
-      <GiltPlayer
-        src={featured?.media_url || undefined}
-        featureKey={featured?.media_url || featured?.flow_nft_id || 'house-reel'}
-        onEnded={isMarathon && minted.length > 1 ? handleEnded : undefined}
-        autoPlay={isMarathon && minted.length > 1}
-      />
+      <SeatedStage selection={seat}>
+        <GiltPlayer
+          src={featured?.media_url || undefined}
+          featureKey={featured?.media_url || featured?.flow_nft_id || 'house-reel'}
+          onEnded={isMarathon && minted.length > 1 ? handleEnded : undefined}
+          autoPlay={isMarathon && minted.length > 1}
+        />
+      </SeatedStage>
+
+      {/* Seat picker — the view leans to where you sit (premiere mode) */}
+      {!isMarathon && (
+        <div className="mt-4">
+          <SeatMap selected={seat} onSelect={setSeat} />
+        </div>
+      )}
 
       {/* Up-next rail — the content pipeline, visible */}
       {minted.length > 0 && (

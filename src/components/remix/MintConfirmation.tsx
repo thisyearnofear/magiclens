@@ -7,6 +7,9 @@ import { CheckCircle, ExternalLink, Trophy, Medal, ArrowRight, Sparkles, Share2,
 import { toast } from 'sonner';
 import { getUserRemixes } from '@/lib/remix-store';
 import { computeStreak, getStreakBadge } from '@/lib/streak';
+import { ScrambleText } from '@/components/motion/ScrambleText';
+import { useParticleBurst } from '@/components/motion/ParticleBurst';
+import { useFlightToLeaderboard } from '@/components/motion/FlightToLeaderboard';
 
 function ConfettiBurst() {
   const particles = Array.from({ length: 30 }).map((_, i) => ({
@@ -64,10 +67,20 @@ interface MintConfirmationProps {
 export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeaderboard, onCreateAnother }: MintConfirmationProps) {
   const [streak, setStreak] = useState(0);
   const [countdown, setCountdown] = useState('');
+  const { burst, layer: burstLayer } = useParticleBurst();
+  const { launch, layer: flightLayer } = useFlightToLeaderboard();
 
   useEffect(() => {
     const remixes = getUserRemixes();
     setStreak(computeStreak(remixes).current);
+    // Mint dopamine: burst + the remix chip flies into the leaderboard dock
+    burst(window.innerWidth / 2, window.innerHeight * 0.45);
+    const t = setTimeout(
+      () => launch({ x: window.innerWidth / 2, y: window.innerHeight * 0.5 }, 'your remix'),
+      500
+    );
+    return () => clearTimeout(t);
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -87,6 +100,8 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
   return (
     <div className="max-w-2xl mx-auto px-4 py-12 text-center relative">
       <ConfettiBurst />
+      {burstLayer}
+      {flightLayer}
 
       {/* Success check */}
       <motion.div
@@ -134,7 +149,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
                   >
                     ●
                   </motion.span>
-                  {' '}{txHash.slice(0, 10)}...{txHash.slice(-6)}
+                  {' '}<ScrambleText text={`${txHash.slice(0, 10)}...${txHash.slice(-6)}`} />
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </motion.div>
@@ -247,7 +262,7 @@ export function MintConfirmation({ txHash, tokenId, leaderboardRank, onViewLeade
                 onClick={() => {
                   if (txHash) {
                     window.open(
-                      `https://twitter.com/intent/tweet?text=I+just+remixed+a+World+Cup+2026+moment+on+MagicLens!+Check+it+out+→&url=https://magiclens.app/remix/${txHash}&via=magiclensx`,
+                      `https://twitter.com/intent/tweet?text=I+just+remixed+a+sports+moment+on+MagicLens!+Check+it+out+→&url=https://magiclens.app/remix/${txHash}&via=magiclensx`,
                       '_blank',
                       'noopener,noreferrer'
                     );

@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Box, GitFork, Layers } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Trophy, Flame, Zap, Layers } from 'lucide-react';
+import { getIconicMoments } from '@/lib/crossvm-client';
+import { getUserRemixes } from '@/lib/remix-store';
+import { computeStreak } from '@/lib/streak';
+import { DEMO_LEADERBOARD_ENTRIES } from '@/lib/demo-data';
 
 interface StatItem {
   icon: React.ReactNode;
@@ -9,33 +14,6 @@ interface StatItem {
   prefix?: string;
   label: string;
 }
-
-const stats: StatItem[] = [
-  {
-    icon: <Trophy className="h-6 w-6 text-yellow-400" />,
-    target: 8,
-    suffix: '',
-    label: 'Iconic Moments minted',
-  },
-  {
-    icon: <Box className="h-6 w-6 text-green-400" />,
-    target: 6,
-    suffix: '',
-    label: 'smart contracts deployed',
-  },
-  {
-    icon: <GitFork className="h-6 w-6 text-blue-400" />,
-    target: 2,
-    suffix: '',
-    label: 'blockchain networks',
-  },
-  {
-    icon: <Layers className="h-6 w-6 text-purple-400" />,
-    target: 5,
-    suffix: '',
-    label: 'overlay packs',
-  },
-];
 
 function Counter({ target, prefix, suffix }: { target: number; prefix?: string; suffix: string }) {
   const [count, setCount] = useState(0);
@@ -58,7 +36,7 @@ function Counter({ target, prefix, suffix }: { target: number; prefix?: string; 
   }, [target]);
 
   return (
-    <span className="text-3xl font-bold text-white">
+    <span className="text-3xl font-bold text-white font-display">
       {prefix}
       {count.toLocaleString()}
       {suffix}
@@ -67,6 +45,34 @@ function Counter({ target, prefix, suffix }: { target: number; prefix?: string; 
 }
 
 export function StatsBar() {
+  const momentsQuery = useQuery({
+    queryKey: ['iconic-moments', 'all'],
+    queryFn: () => getIconicMoments(),
+    staleTime: 60_000,
+    retry: 0,
+  });
+
+  const [localStats, setLocalStats] = useState({ remixes: 0, streak: 0 });
+  useEffect(() => {
+    try {
+      const remixes = getUserRemixes();
+      setLocalStats({ remixes: remixes.length, streak: computeStreak(remixes).current });
+    } catch {}
+  }, []);
+
+  const minted = momentsQuery.data?.filter((m) => m.status === 'minted').length ?? 8;
+  const battling = DEMO_LEADERBOARD_ENTRIES.length + localStats.remixes;
+  const votes =
+    DEMO_LEADERBOARD_ENTRIES.reduce((sum, e) => sum + e.votes, 0) +
+    getUserRemixesSafe().reduce((sum, r) => sum + (r.votes ?? 0), 0);
+
+  const stats: StatItem[] = [
+    { icon: <Trophy className="h-6 w-6 text-yellow-400" />, target: minted, suffix: '', label: 'Iconic Moments minted' },
+    { icon: <Zap className="h-6 w-6 text-green-400" />, target: battling, suffix: '', label: 'remixes battling today' },
+    { icon: <Layers className="h-6 w-6 text-blue-400" />, target: votes, suffix: '', label: 'votes cast in the battle' },
+    { icon: <Flame className="h-6 w-6 text-orange-400" />, target: Math.max(localStats.streak, 1), suffix: ' day', label: 'your remix streak' },
+  ];
+
   return (
     <section className="container mx-auto px-4 py-12">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -111,4 +117,12 @@ export function StatsBar() {
       </div>
     </section>
   );
+}
+
+function getUserRemixesSafe() {
+  try {
+    return getUserRemixes();
+  } catch {
+    return [] as ReturnType<typeof getUserRemixes>;
+  }
 }

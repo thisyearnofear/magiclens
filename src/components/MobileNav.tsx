@@ -11,6 +11,7 @@ import { Menu, Home, Trophy, Users, Zap, User, ArrowLeft, Sparkles, Inbox } from
 import { cn } from '@/lib/utils'
 import { STORAGE_KEYS } from '@/lib/constants'
 import { getApiBaseUrl } from '@/lib/api-base'
+import { GooeyStrand } from '@/components/motion/GooeyStrand'
 
 const API_BASE = getApiBaseUrl()
 
@@ -65,7 +66,9 @@ export function MobileNav({ title, icon }: MobileNavProps) {
   }, [pathname])
 
   return (
-    <div className="flex items-center justify-between w-full">
+    <div className="relative flex items-center justify-between w-full">
+      {/* goo strand dripping from the header edge on scroll velocity */}
+      <GooeyStrand />
       <div className="flex items-center gap-2">
         {icon}
         <h1 className="text-2xl font-bold text-white">{title}</h1>

@@ -15,7 +15,7 @@ export default function PublicRemix() {
 
   const handleTweet = () => {
     window.open(
-      `https://twitter.com/intent/tweet?text=I+just+remixed+a+World+Cup+2026+moment+on+MagicLens!+Check+it+out+→&url=${encodeURIComponent(shareUrl)}&via=magiclensx&hashtags=AR,WorldCup2026,NFT`,
+      `https://twitter.com/intent/tweet?text=I+just+remixed+a+sports+moment+on+MagicLens!+Check+it+out+→&url=${encodeURIComponent(shareUrl)}&via=magiclensx&hashtags=AR,Sports,NFT`,
       '_blank',
       'noopener,noreferrer'
     );
@@ -70,7 +70,7 @@ export default function PublicRemix() {
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">AR Remix on MagicLens</h1>
           <p className="text-gray-300">
-            This World Cup moment was remixed with AR overlays and minted as an NFT on X Layer.
+            This sports moment was remixed with AR overlays and minted as an NFT on X Layer.
           </p>
         </div>
 

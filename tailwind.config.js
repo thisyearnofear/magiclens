@@ -97,6 +97,10 @@ export default {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
   			shine: 'shine var(--duration, 3s) infinite linear'
+  		},
+  		fontFamily: {
+  			display: ['var(--font-display)', 'system-ui', 'sans-serif'],
+  			mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace']
   		}
   	}
   },

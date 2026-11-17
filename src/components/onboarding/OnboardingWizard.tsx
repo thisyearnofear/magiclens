@@ -21,7 +21,7 @@ const vibeOptions = [
 ];
 
 const sportOptions = [
-  { id: 'worldcup', icon: Zap, label: 'World Cup', color: 'from-yellow-500/20 to-yellow-700/20' },
+  { id: 'soccer', icon: Zap, label: 'Football', color: 'from-yellow-500/20 to-yellow-700/20' },
   { id: 'nba', icon: Dumbbell, label: 'NBA', color: 'from-red-500/20 to-red-700/20' },
   { id: 'f1', icon: Waves, label: 'F1', color: 'from-red-600/20 to-red-800/20' },
   { id: 'wimbledon', icon: Zap, label: 'Wimbledon', color: 'from-green-500/20 to-green-700/20' },
@@ -190,7 +190,7 @@ function TourStep({ onNext }: { onNext: () => void }) {
   const tourSteps = [
     {
       title: 'Pick a Match Clip',
-      desc: 'Choose a World Cup moment or upload your own video. Our pose tracker finds the action automatically.',
+      desc: 'Choose a match moment or upload your own video. Our pose tracker finds the action automatically.',
       gradient: 'from-blue-500 to-blue-700',
     },
     {
@@ -315,10 +315,21 @@ export function OnboardingWizard() {
 
   useEffect(() => {
     const completed = localStorage.getItem(ONBOARDING_KEY);
-    if (!completed) {
-      const timer = setTimeout(() => setVisible(true), 600);
-      return () => clearTimeout(timer);
-    }
+    if (completed) return;
+    // Don't hijack first paint: wait for the user's first interaction,
+    // falling back to a generous timer so the prompt still appears.
+    const show = () => {
+      cleanup();
+      setVisible(true);
+    };
+    const events: (keyof WindowEventMap)[] = ['pointerdown', 'scroll', 'keydown'];
+    const cleanup = () => {
+      clearTimeout(timer);
+      events.forEach((ev) => window.removeEventListener(ev, show));
+    };
+    events.forEach((ev) => window.addEventListener(ev, show, { once: true, passive: true }));
+    const timer = setTimeout(show, 5000);
+    return cleanup;
   }, []);
 
   const completeOnboarding = useCallback(() => {

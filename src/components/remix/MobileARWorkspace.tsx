@@ -29,12 +29,12 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 const SVG_MAP: Record<string, string> = {
-  'flag-halos': '/packs/world-cup-2026/thumb-flag-halos.svg',
-  'goal-lower-third': '/packs/world-cup-2026/thumb-goal-banner.svg',
-  'trophy-confetti': '/packs/world-cup-2026/thumb-confetti.svg',
-  'commentary-bubble': '/packs/world-cup-2026/thumb-commentary.svg',
-  'stadium-sparkles': '/packs/world-cup-2026/thumb-sparkles.svg',
-  'ref-card': '/packs/world-cup-2026/thumb-ref-card.svg',
+  'flag-halos': '/packs/match-day/thumb-flag-halos.svg',
+  'goal-lower-third': '/packs/match-day/thumb-goal-banner.svg',
+  'trophy-confetti': '/packs/match-day/thumb-confetti.svg',
+  'commentary-bubble': '/packs/match-day/thumb-commentary.svg',
+  'stadium-sparkles': '/packs/match-day/thumb-sparkles.svg',
+  'ref-card': '/packs/match-day/thumb-ref-card.svg',
 };
 
 export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }: MobileARWorkspaceProps) {
@@ -227,7 +227,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
       >
         <div className="px-3 h-full overflow-y-auto pb-6">
           <div className="flex items-center justify-between mb-2 sticky top-0 bg-gradient-to-b from-purple-900/90 via-blue-900/90 to-transparent pt-1 pb-2">
-            <h3 className="text-xs font-semibold text-gray-300 uppercase tracking-wider">World Cup 2026 Packs</h3>
+            <h3 className="text-xs font-semibold text-gray-300 uppercase tracking-wider">AR Overlay Packs</h3>
             <Trophy className="h-3.5 w-3.5 text-yellow-400" />
           </div>
 

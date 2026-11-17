@@ -67,14 +67,11 @@ function applyTheme(settings: ThemeSettings): void {
   root.classList.add(mode)
 }
 
-// Get effective color mode (resolving system preference)
-function getEffectiveMode(baseTheme: BaseTheme): "light" | "dark" {
-  if (baseTheme === "system") {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light"
-  }
-  return baseTheme
+// Get effective color mode — MagicLens ships dark-only: the entire component
+// library assumes dark surfaces (bg-white/5 cards, text-white), so light mode
+// renders washed-out. Pinned to "dark" until a real light theme exists.
+function getEffectiveMode(_baseTheme: BaseTheme): "light" | "dark" {
+  return "dark"
 }
 
 export function ThemeProvider({ 

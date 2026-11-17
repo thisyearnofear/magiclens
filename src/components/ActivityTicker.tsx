@@ -15,7 +15,7 @@ interface Activity {
 }
 
 const DEMO_ACTIVITIES: Activity[] = [
-  { id: '1', type: 'mint', user: '0xABC...F1D2', target: 'World Cup Final Goal', timestamp: Date.now() - 5000 },
+  { id: '1', type: 'mint', user: '0xABC...F1D2', target: 'Match-Winning Goal', timestamp: Date.now() - 5000 },
   { id: '2', type: 'vote', user: '0xDEF...A3B4', target: 'Penalty Save Highlight', timestamp: Date.now() - 15000 },
   { id: '3', type: 'promote', user: 'System', target: 'Trophy Lift Ceremony → Flow', timestamp: Date.now() - 30000 },
   { id: '4', type: 'join', user: '0x123...C5D6', target: 'joined the competition', timestamp: Date.now() - 45000 },
@@ -31,7 +31,7 @@ const ACTIVITY_CONFIG = {
 
 export function ActivityTicker() {
   const [activities, setActivities] = useState<Activity[]>(DEMO_ACTIVITIES.slice(0, 3));
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
   const indexRef = useRef(3);
 
   // Rotate through demo activities every 6 seconds
@@ -48,7 +48,20 @@ export function ActivityTicker() {
     return () => clearInterval(interval);
   }, []);
 
-  if (!visible) return null;
+  if (!visible) {
+    return (
+      <button
+        onClick={() => setVisible(true)}
+        aria-label="Show live activity"
+        className="fixed top-4 right-4 z-50 hidden md:flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-gray-900/80 backdrop-blur-xl shadow-lg shadow-black/30 hover:border-green-400/40 transition-colors"
+      >
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+        </span>
+      </button>
+    );
+  }
 
   return (
     <div className="fixed top-4 right-4 z-50 max-w-sm hidden md:block">
