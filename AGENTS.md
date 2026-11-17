@@ -90,6 +90,11 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
 - **Positioning statement:** "MagicLens — the free-to-play AR remix battle for live sports. Fans create, the crowd crowns one Iconic Moment a day, premiered in the Screening Room, minted free on X Layer and elevated to Flow."
 - **Next window:** X Cup + Hook x World Cup are over; TapeOut Accelerate live until Dec 7, 2026 (+ continuous Super Nova track).
 
+## Growth Intel (Nov 2026)
+
+- **TikTok data validates the wedge:** top "football edit" videos hit 16–31.5M plays in the last 30 days, all fan-made remixes built with generic CapCut tooling — no dedicated sports-remix product exists. Fans reward star players, nostalgia, celebrations; sound drives edits. Full findings + Monid endpoint map + playbooks (weekly trend check, creator seed list, launch listening, competitor watch): `docs/GROWTH_INTEL.md`.
+- **Growth loop:** recruit mid-tier TikTok edit creators → they remix with MagicLens → 9:16 share-cards back to TikTok → signups. Share-card export already exists in `IconicMomentFocus`.
+
 ## TapeOut Accelerate Readiness (Nov 2026)
 
 - **Event:** Oct 16 – Dec 7 2026, 23:59 UTC, 100K USDT (1st 20K, 2nd x5 10K, 3rd x5 6K). Shortlisted teams attend offline Demo Day. Only work done Oct 16–Dec 7 is judged.
