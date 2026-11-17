@@ -1,0 +1,66 @@
+@layer base.theme, base.preset, base.preferences;
+
+@layer base.preset {
+  .media-skin[data-theme="gilt"] {
+    /* Cinema surfaces: warm black stage, liquid gold spent once. */
+    --media-background: #0a0906;
+    --media-foreground: #f5f0e6;
+    --media-accent: var(--media-accent-color, #facc15);
+    --media-accent-foreground: var(--media-accent-text-color, #1c1405);
+    --media-primary: var(--media-accent);
+    --media-primary-foreground: var(--media-accent-foreground);
+    --media-muted: rgb(255 255 255 / 0.12);
+    --media-muted-foreground: rgb(245 240 230 / 0.6);
+    --media-popover: #14110b;
+    --media-popover-foreground: var(--media-foreground);
+    --media-popover-boundary-offset: calc(var(--media-spacing) * 3);
+    --media-tooltip-boundary-offset: var(--media-popover-boundary-offset);
+    --media-ring: var(--media-accent);
+    --media-button-highlight: rgb(250 204 21 / 0.16);
+    --media-border: rgb(255 255 255 / 0.12);
+    --media-video-border-radius: var(--media-border-radius, 14px);
+    --media-control-radius: 999px;
+    --media-controls-radius: 0px;
+    --media-menu-item-radius: 8px;
+    --media-popup-radius: 12px;
+    --media-dialog-radius: 16px;
+    --media-scrollbar-thumb-color: #4d4636;
+    --media-shadow-surface: 0 12px 32px rgb(0 0 0 / 0.55);
+    --media-shadow-surface-inset: inset 0 1px 0 rgb(255 255 255 / 0.07);
+    --media-shadow-thumb: 0 0 0 2px var(--media-background), 0 2px 8px rgb(0 0 0 / 0.55);
+    --media-backdrop-filter-surface: blur(16px) saturate(115%);
+    --media-backdrop-filter-indicator: blur(8px);
+    --media-backdrop-filter-dialog: blur(18px) saturate(115%);
+    --media-font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  .media-skin[data-theme="gilt"][data-preset$="audio"] {
+    --media-foreground: #f5f0e6;
+    --media-muted: rgb(255 255 255 / 0.12);
+  }
+
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .media-skin[data-theme="gilt"]:where([data-preset$="video"]) {
+      --media-popover: #0a0906;
+      --media-backdrop-filter-surface: none;
+      --media-backdrop-filter-indicator: none;
+      --media-backdrop-filter-dialog: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .media-skin[data-theme="gilt"] {
+      --media-background: Canvas;
+      --media-popover: Canvas;
+      --media-popover-foreground: CanvasText;
+      --media-foreground: CanvasText;
+      --media-muted-foreground: CanvasText;
+      --media-accent: Highlight;
+      --media-primary: Highlight;
+      --media-primary-foreground: HighlightText;
+      --media-ring: Highlight;
+      --media-button-highlight: Highlight;
+      --media-border: CanvasText;
+    }
+  }
+}

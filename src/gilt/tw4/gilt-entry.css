@@ -1,0 +1,5 @@
+@import "./skin.css";
+@import "./styles/video/scaffold.css";
+
+/* skin.css lives one level deeper here; point class scanning at the ported components. */
+@source "../video";
