@@ -62,3 +62,7 @@ editframe-teaser/
 # Rendered videos
 videos/
 .env*
+
+# local tooling + other-contest working docs
+.commandcode/
+docs/easylens-*
