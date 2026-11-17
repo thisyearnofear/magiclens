@@ -117,9 +117,39 @@ as a permanent record of who the circuit crowned.
 5. **The loop (2:20–3:00)** — Marathon mode plays the channel; CTA to
    create a remix. End card: processor + circuit addresses.
 
+## Container receipts (ERC-6551 + tape://) — planned
+
+TapeOut containers are token-bound accounts (ERC-6551) attached to each
+circuit NFT. They can hold assets, receive TapeSend messages, and host
+permanent `tape://` websites — content stored inside the account contract on
+X Layer, independent of our hosting.
+
+**v1 (submission):** circuit #20's own container hosts a permanent spec page
+— "I am ICONIC-GATE, 46 NAND gates, taped out by MagicLens" — with the
+tapeout tx, processor address, and truth table. The judge artifact gets its
+own on-chain home; if magiclens.vercel.app disappears, the circuit's page
+doesn't.
+
+**v2 (post-submission, designed now):** every Iconic Moment gets its own
+container-bound receipt — "Moment X cleared by circuit #20, inputs `0x4b02`,
+output `0x13`, at block N" — published to tape:// at promotion time. This
+moves `tapeout_verifications` from a private Postgres journal to a public
+on-chain record: provenance that lives on X Layer, not on our server. The
+Screening Room badge would link to the moment's tape:// receipt instead of
+(only) OKLink.
+
+Implementation notes:
+- Deployer wallet `0x8b0b…594e` funds container deployment/update txs
+  (small OKB cost per receipt).
+- Flow: `process_day()` verdict → publish receipt to the moment's container
+  → store container address + tape:// URL in `tapeout_verifications` →
+  surface in API/UI.
+- Open research item: exact TapeOut container hosting API (canvas vs.
+  contract calls) — needs a docs/repo pass before building.
+
 ## Open items before submitting
 
 - ⟦ Record the ≤3-min demo video ⟧
-- ⟦ Confirm whether judges want the tape:// container receipt page for
-      circuit #20 (ERC-6551) — optional ecosystem flex ⟧
+- ⟦ Deploy circuit #20's container spec page (v1 above) — optional but
+      recommended ecosystem flex ⟧
 - ⟦ Submit via the TapeOut portal with this doc ⟧
