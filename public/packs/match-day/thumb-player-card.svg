@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#1a1a2e" rx="12"/>
+  <!-- player silhouette -->
+  <circle cx="58" cy="62" r="14" fill="#3b82f6" opacity="0.5"/>
+  <rect x="46" y="78" width="24" height="42" rx="8" fill="#3b82f6" opacity="0.5"/>
+  <!-- floating card -->
+  <g transform="translate(86 46)">
+    <rect width="96" height="66" rx="10" fill="#111827" stroke="#FFD700" stroke-opacity="0.5" stroke-width="2"/>
+    <rect x="8" y="8" width="22" height="16" rx="4" fill="#FFD700"/>
+    <text x="19" y="20" text-anchor="middle" font-size="11" font-weight="bold" fill="#111">10</text>
+    <text x="36" y="20" font-size="9" font-weight="bold" fill="#facc15">RATING</text>
+    <text x="36" y="34" font-size="14" font-weight="bold" fill="#fff">9.4</text>
+    <rect x="8" y="44" width="80" height="4" rx="2" fill="#374151"/>
+    <rect x="8" y="44" width="64" height="4" rx="2" fill="#FFD700"/>
+    <rect x="8" y="54" width="80" height="4" rx="2" fill="#374151"/>
+    <rect x="8" y="54" width="52" height="4" rx="2" fill="#38BDF8"/>
+  </g>
+  <text x="100" y="170" text-anchor="middle" font-size="15" font-weight="bold" fill="white" opacity="0.85">STAT CARD</text>
+</svg>

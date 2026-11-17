@@ -119,6 +119,33 @@
       "asset": "/packs/match-day/assets/ref-card.svg",
       "icon": "alert-triangle",
       "position": "top-right"
+    },
+    {
+      "id": "ghost-trail",
+      "name": "Ghost Trail",
+      "type": "particle",
+      "description": "Echoes of the player's run — the last seconds replayed as a fading ghost",
+      "previewColor": "from-cyan-400/30 to-blue-500/30",
+      "thumbnail": "/packs/match-day/thumb-ghost-trail.svg",
+      "asset": "/packs/match-day/assets/ghost-trail.svg",
+      "icon": "sparkles",
+      "position": "fullscreen"
+    },
+    {
+      "id": "player-card",
+      "name": "Player Stat Card",
+      "type": "overlay",
+      "description": "Broadcast-style stat card that floats beside the tracked player",
+      "previewColor": "from-amber-400/30 to-sky-500/30",
+      "thumbnail": "/packs/match-day/thumb-player-card.svg",
+      "asset": "/packs/match-day/assets/player-card.svg",
+      "icon": "image",
+      "position": "top-right",
+      "variants": [
+        { "style": "gold", "label": "Gold", "accent": "#FFD700" },
+        { "style": "sky", "label": "Sky", "accent": "#38BDF8" },
+        { "style": "pink", "label": "Pink", "accent": "#F472B6" }
+      ]
     }
   ]
 }

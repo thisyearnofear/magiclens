@@ -22,6 +22,8 @@ const DEFAULT_STYLES: Record<string, OverlayStyle> = {
   'goal-lower-third': { x: 160, y: 380, scale: 1, rotation: 0, opacity: 1 },
   'commentary-bubble': { x: 12, y: 12, scale: 1, rotation: -3, opacity: 1, text: 'What a moment!' },
   'ref-card': { x: 510, y: 70, scale: 1, rotation: 2, opacity: 1, cardColor: 'yellow' },
+  'ghost-trail': { x: 320, y: 240, scale: 1, rotation: 0, opacity: 1 },
+  'player-card': { x: 500, y: 60, scale: 1, rotation: -2, opacity: 1, text: 'STAR PLAYER' },
 };
 
 interface ARWorkspaceProps {
@@ -43,6 +45,8 @@ const SVG_MAP: Record<string, string> = {
   'commentary-bubble': '/packs/match-day/thumb-commentary.svg',
   'stadium-sparkles': '/packs/match-day/thumb-sparkles.svg',
   'ref-card': '/packs/match-day/thumb-ref-card.svg',
+  'ghost-trail': '/packs/match-day/thumb-ghost-trail.svg',
+  'player-card': '/packs/match-day/thumb-player-card.svg',
 };
 
 /** Simple undo/redo stack for overlay styles */
@@ -118,6 +122,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
         video,
         overlays: selected,
         anchors: anchorOverrides,
+        texts: Object.fromEntries(selected.map((o) => [o.id, styles[o.id]?.text ?? '']).filter(([, v]) => v)),
         opacities: Object.fromEntries(selected.map((o) => [o.id, styles[o.id]?.opacity ?? 1])),
         poseAt,
         onProgress: setExportProgress,
@@ -140,7 +145,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
       });
       setTimeout(() => setExportState('idle'), 4000);
     }
-  }, [exportState, selected, anchorOverrides, styles, poseAt]);
+  }, [exportState, selected, anchorOverrides, styles, poseAt, trackVideoRef]);
 
   // Kick off clip pose analysis when Track mode is entered
   React.useEffect(() => {
@@ -208,8 +213,8 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   }, []);
 
   const handleDoubleClick = useCallback((id: string) => {
-    // Open inline text editor for commentary bubble
-    if (id === 'commentary-bubble') {
+    // Open inline text editor for text-bearing overlays
+    if (id === 'commentary-bubble' || id === 'player-card') {
       setEditingOverlayId(id);
     }
   }, []);
@@ -626,6 +631,53 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                         </motion.div>,
                       );
 
+                    case 'ghost-trail':
+                      return (
+                        <motion.div key="ghost" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 pointer-events-none">
+                          {[0.12, 0.3, 0.55, 0.85].map((o, i) => (
+                            <motion.div
+                              key={i}
+                              className="absolute text-cyan-200"
+                              style={{ left: `${20 + i * 18}%`, top: `${55 - i * 8}%`, opacity: o }}
+                              animate={{ y: [0, -4, 0] }}
+                              transition={{ duration: 1.6, repeat: Infinity, delay: i * 0.2 }}
+                            >
+                              <svg width="28" height="44" viewBox="0 0 28 44" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                                <circle cx="14" cy="6" r="4" fill="currentColor" stroke="none" />
+                                <line x1="14" y1="10" x2="14" y2="26" />
+                                <line x1="14" y1="14" x2="5" y2="22" />
+                                <line x1="14" y1="14" x2="23" y2="22" />
+                                <line x1="14" y1="26" x2="7" y2="40" />
+                                <line x1="14" y1="26" x2="21" y2="40" />
+                              </svg>
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      );
+
+                    case 'player-card': {
+                      const accent = overlay.chosenVariant?.accent ?? '#FFD700';
+                      return wrap(
+                        <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }}>
+                          <div className="bg-gray-900/85 backdrop-blur-md rounded-xl px-3 py-2.5 shadow-xl w-40 cursor-text" style={{ border: `1.5px solid ${accent}66` }}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-5 rounded-sm flex items-center justify-center text-[10px] font-black text-black" style={{ background: accent }}>10</div>
+                              <span className="text-[10px] font-bold" style={{ color: accent }}>RATING</span>
+                              <span className="ml-auto text-white text-sm font-black">9.4</span>
+                            </div>
+                            <p className="text-white text-xs font-bold mt-1.5 leading-tight whitespace-nowrap">
+                              {st.text || 'STAR PLAYER'}
+                              {isSel && <span className="text-[8px] text-gray-400 ml-1">✏️</span>}
+                            </p>
+                            <div className="mt-1.5 space-y-1">
+                              <div className="h-1 rounded-full bg-white/15 overflow-hidden"><div className="h-full w-[86%] rounded-full" style={{ background: accent }} /></div>
+                              <div className="h-1 rounded-full bg-white/15 overflow-hidden"><div className="h-full w-[64%] rounded-full bg-sky-400" /></div>
+                            </div>
+                          </div>
+                        </motion.div>,
+                      );
+                    }
+
                     case 'stadium-sparkles':
                       return (
                         <motion.div key="sparkles" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 pointer-events-none">
@@ -666,7 +718,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
               {/* Inline text editor modal */}
               {editingOverlayId && (
                 <InlineTextEditor
-                  text={styles[editingOverlayId]?.text || 'What a moment!'}
+                  text={styles[editingOverlayId]?.text || (editingOverlayId === 'player-card' ? 'STAR PLAYER' : 'What a moment!')}
                   onSave={(text) => {
                     handleStyleChange(editingOverlayId, { text });
                     setEditingOverlayId(null);
@@ -774,6 +826,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                     overlays={selected}
                     opacities={Object.fromEntries(selected.map(o => [o.id, styles[o.id]?.opacity ?? 1]))}
                     anchors={anchorOverrides}
+                    texts={Object.fromEntries(selected.map(o => [o.id, styles[o.id]?.text ?? '']).filter(([, v]) => v))}
                   />
                 )}
 

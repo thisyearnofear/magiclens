@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#1a1a2e" rx="12"/>
+  <!-- ghost echoes, oldest faintest -->
+  <g stroke="#A5F3FC" fill="#E0FEFF" stroke-width="4" stroke-linecap="round">
+    <g opacity="0.15" transform="translate(45 55) scale(0.8)">
+      <circle cx="0" cy="-28" r="6"/>
+      <line x1="0" y1="-20" x2="0" y2="8"/>
+      <line x1="0" y1="-12" x2="-14" y2="2"/>
+      <line x1="0" y1="-12" x2="14" y2="2"/>
+      <line x1="0" y1="8" x2="-10" y2="30"/>
+      <line x1="0" y1="8" x2="10" y2="30"/>
+    </g>
+    <g opacity="0.35" transform="translate(80 60) scale(0.9)">
+      <circle cx="0" cy="-28" r="6"/>
+      <line x1="0" y1="-20" x2="0" y2="8"/>
+      <line x1="0" y1="-12" x2="-14" y2="2"/>
+      <line x1="0" y1="-12" x2="14" y2="2"/>
+      <line x1="0" y1="8" x2="-10" y2="30"/>
+      <line x1="0" y1="8" x2="10" y2="30"/>
+    </g>
+    <g opacity="0.6" transform="translate(115 66)">
+      <circle cx="0" cy="-28" r="6"/>
+      <line x1="0" y1="-20" x2="0" y2="8"/>
+      <line x1="0" y1="-12" x2="-14" y2="2"/>
+      <line x1="0" y1="-12" x2="14" y2="2"/>
+      <line x1="0" y1="8" x2="-10" y2="30"/>
+      <line x1="0" y1="8" x2="10" y2="30"/>
+    </g>
+    <g opacity="0.95" transform="translate(152 72)">
+      <circle cx="0" cy="-28" r="6"/>
+      <line x1="0" y1="-20" x2="0" y2="8"/>
+      <line x1="0" y1="-12" x2="-14" y2="2"/>
+      <line x1="0" y1="-12" x2="14" y2="2"/>
+      <line x1="0" y1="8" x2="-10" y2="30"/>
+      <line x1="0" y1="8" x2="10" y2="30"/>
+    </g>
+  </g>
+  <text x="100" y="170" text-anchor="middle" font-size="15" font-weight="bold" fill="white" opacity="0.85">GHOST</text>
+</svg>

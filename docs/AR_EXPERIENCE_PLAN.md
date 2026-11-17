@@ -37,6 +37,18 @@ broadcast AR (wTVision/Vizrt), CapCut velocity-edit breakdowns.
 > future pass. **Phase 3 remaining:** face/hand landmarkers, optional
 > server-side track preprocessing. Live webcam mode shares the same
 > One Euro smoothing.
+>
+> **Harvested overlays shipped:** two concepts borrowed from
+> consumption-side AR ideas (Ghost Player + AR Sports Lens), reworked
+> for creation-side use — `ghost-trail` replays the selected subject's
+> last ~1.5s of body poses as fading cyan echoes
+> (`src/lib/ghost-trail.ts`, drawn on the shared particle canvas and in
+> the exporter), and `player-card` is a broadcast-style stat card
+> anchored beside the tracked head (3 accent variants, double-click
+> editable name text that flows to preview + export). Verified live:
+> subject switching retargets both, visibility gating fades them when
+> the subject is lost, and a 9.5MB exported webm bakes echoes + card
+> into the video.
 
 ## What "AR" means in MagicLens today
 

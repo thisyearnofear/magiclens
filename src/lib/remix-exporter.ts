@@ -1,6 +1,7 @@
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import { LM, bodyFrame, visFade, type Pt } from '@/lib/pose-frames';
 import { resolveOverlayTransform, type AnchorId } from '@/lib/overlay-anchors';
+import { drawGhostTrail } from '@/lib/ghost-trail';
 import { ParticleSystem, type Emitter } from '@/lib/particles';
 import type { SelectedOverlay } from '@/hooks/usePack';
 
@@ -9,6 +10,8 @@ export interface RemixExportOptions {
   video: HTMLVideoElement;
   overlays: SelectedOverlay[];
   anchors?: Record<string, AnchorId>;
+  /** per-overlay custom text (e.g. player-card headline) */
+  texts?: Record<string, string>;
   opacities?: Record<string, number>;
   poseAt: (t: number) => NormalizedLandmark[] | null;
   onProgress?: (p: number) => void;
@@ -62,7 +65,7 @@ function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: n
  * file carries the tracking, not just the preview.
  */
 export async function exportRemixVideo(opts: RemixExportOptions): Promise<RemixExportResult> {
-  const { video, overlays, anchors, opacities, poseAt, onProgress } = opts;
+  const { video, overlays, anchors, texts, opacities, poseAt, onProgress } = opts;
   const maxDuration = opts.maxDuration ?? 30;
 
   const vw = video.videoWidth;
@@ -95,6 +98,7 @@ export async function exportRemixVideo(opts: RemixExportOptions): Promise<RemixE
 
   const wantsConfetti = overlays.some((o) => o.id === 'trophy-confetti');
   const wantsSparkles = overlays.some((o) => o.id === 'stadium-sparkles');
+  const wantsGhost = overlays.some((o) => o.id === 'ghost-trail');
   const confetti = new ParticleSystem('confetti');
   const sparkles = new ParticleSystem('sparkles');
 
@@ -233,6 +237,55 @@ export async function exportRemixVideo(opts: RemixExportOptions): Promise<RemixE
         ctx.fillText('BOOKED', 0, h * 0.28);
         break;
       }
+      case 'player-card': {
+        const accent = ov.chosenVariant?.accent ?? '#FFD700';
+        const w = 0.13 * W * s;
+        const h = w * 0.46;
+        ctx.fillStyle = 'rgba(17,24,39,0.88)';
+        rr(ctx, -w / 2, -h / 2, w, h, h * 0.16);
+        ctx.fill();
+        ctx.strokeStyle = `${accent}66`;
+        ctx.lineWidth = Math.max(1.5, w * 0.015);
+        rr(ctx, -w / 2, -h / 2, w, h, h * 0.16);
+        ctx.stroke();
+        // number badge
+        const bw = w * 0.18;
+        const bh = h * 0.26;
+        ctx.fillStyle = accent;
+        rr(ctx, -w / 2 + w * 0.06, -h / 2 + h * 0.12, bw, bh, bw * 0.2);
+        ctx.fill();
+        ctx.fillStyle = '#111';
+        ctx.font = `900 ${Math.round(bh * 0.62)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('10', -w / 2 + w * 0.06 + bw / 2, -h / 2 + h * 0.12 + bh / 2 + 1);
+        // rating
+        ctx.fillStyle = accent;
+        ctx.font = `bold ${Math.round(h * 0.11)}px sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText('RATING', -w / 2 + w * 0.3, -h * 0.28);
+        ctx.fillStyle = '#fff';
+        ctx.font = `900 ${Math.round(h * 0.24)}px sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.fillText('9.4', w / 2 - w * 0.07, -h * 0.28);
+        // name + stat bars
+        ctx.textAlign = 'left';
+        ctx.font = `bold ${Math.round(h * 0.15)}px sans-serif`;
+        ctx.fillText(texts?.[ov.id] || 'STAR PLAYER', -w / 2 + w * 0.06, h * 0.02);
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        rr(ctx, -w / 2 + w * 0.06, h * 0.14, w * 0.88, h * 0.07, h * 0.035);
+        ctx.fill();
+        ctx.fillStyle = accent;
+        rr(ctx, -w / 2 + w * 0.06, h * 0.14, w * 0.88 * 0.86, h * 0.07, h * 0.035);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        rr(ctx, -w / 2 + w * 0.06, h * 0.28, w * 0.88, h * 0.07, h * 0.035);
+        ctx.fill();
+        ctx.fillStyle = '#38BDF8';
+        rr(ctx, -w / 2 + w * 0.06, h * 0.28, w * 0.88 * 0.64, h * 0.07, h * 0.035);
+        ctx.fill();
+        break;
+      }
       default:
         break;
     }
@@ -278,6 +331,8 @@ export async function exportRemixVideo(opts: RemixExportOptions): Promise<RemixE
       const lms = poseAt(t);
       const bf = lms ? bodyFrame(lms) : null;
       const vis = (idx: number) => (lms ? visFade(lms[idx]) : 0);
+
+      if (wantsGhost) drawGhostTrail(ctx, poseAt, t, W, H);
 
       // particles first — they trail *behind* the DOM overlays in the live layer too
       if (wantsConfetti || wantsSparkles) {

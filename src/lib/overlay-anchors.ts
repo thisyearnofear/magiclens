@@ -18,6 +18,7 @@ export const DEFAULT_ANCHOR: Record<string, AnchorId> = {
   'goal-lower-third': 'shoulder',
   'commentary-bubble': 'head',
   'ref-card': 'hands',
+  'player-card': 'head',
 };
 
 interface AnchorResult {
@@ -137,6 +138,14 @@ export function resolveOverlayTransform(
         pos: a.pos,
         scale: Math.min(Math.max(a.unit / 0.16, 0.6), 1.8),
         rotDeg: a.rotDeg - 8,
+        alpha: a.vis,
+      };
+    case 'player-card':
+      // broadcast stat card floats beside the head
+      return {
+        pos: a.pos ? { x: a.pos.x + a.unit * 1.35, y: a.pos.y - a.unit * 0.35 } : null,
+        scale: Math.min(Math.max(a.unit / 0.16, 0.5), 2.0),
+        rotDeg: a.rotDeg * 0.3,
         alpha: a.vis,
       };
     default:

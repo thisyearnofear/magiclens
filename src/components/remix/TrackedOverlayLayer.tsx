@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
 import { LM, bodyFrame, coverFit, visFade, type Pt } from '@/lib/pose-frames';
 import { ParticleSystem, type Emitter } from '@/lib/particles';
+import { drawGhostTrail } from '@/lib/ghost-trail';
 import { resolveOverlayTransform, type AnchorId } from '@/lib/overlay-anchors';
 import type { SelectedOverlay } from '@/hooks/usePack';
 
@@ -22,6 +23,8 @@ interface TrackedOverlayLayerProps {
   opacities?: Record<string, number>;
   /** per-overlay attach-point overrides */
   anchors?: Record<string, AnchorId>;
+  /** per-overlay custom text (e.g. player-card headline) */
+  texts?: Record<string, string>;
 }
 
 /**
@@ -42,6 +45,7 @@ export function TrackedOverlayLayer({
   overlays,
   opacities,
   anchors,
+  texts,
 }: TrackedOverlayLayerProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -142,6 +146,10 @@ export function TrackedOverlayLayer({
         ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
         const wantsConfetti = overlays.some((o) => o.id === 'trophy-confetti');
         const wantsSparkles = overlays.some((o) => o.id === 'stadium-sparkles');
+        const wantsGhost = overlays.some((o) => o.id === 'ghost-trail');
+        if (wantsGhost) {
+          drawGhostTrail(ctx, poseAt, t, frame.clientWidth, frame.clientHeight);
+        }
         if (wantsConfetti || wantsSparkles) {
           const emit = (name: string, p: Pt | null, v: number): Emitter | null => {
             const prev = prevJoints.get(name);
@@ -200,7 +208,7 @@ export function TrackedOverlayLayer({
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [videoRef, poseAt, subjectsAt, selectedSubjectId, overlays, opacities, anchors]);
+  }, [videoRef, poseAt, subjectsAt, selectedSubjectId, overlays, opacities, anchors, texts]);
 
   const setItemRef = (id: string) => (el: HTMLDivElement | null) => {
     if (el) itemRefs.current.set(id, el);
@@ -211,7 +219,9 @@ export function TrackedOverlayLayer({
     else dotRefs.current.delete(i);
   };
 
-  const wantsParticles = overlays.some((o) => o.id === 'trophy-confetti' || o.id === 'stadium-sparkles');
+  const wantsParticles = overlays.some((o) =>
+    o.id === 'trophy-confetti' || o.id === 'stadium-sparkles' || o.id === 'ghost-trail',
+  );
   const showPicker = !!subjectsAt && !!onSelectSubject;
 
   return (
@@ -221,7 +231,7 @@ export function TrackedOverlayLayer({
         {wantsParticles && <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />}
         {overlays.map((ov) => (
           <div key={ov.id} ref={setItemRef(ov.id)} className="absolute opacity-0 will-change-transform">
-            <TrackedArt overlay={ov} />
+            <TrackedArt overlay={ov} text={texts?.[ov.id]} />
           </div>
         ))}
         {showPicker &&
@@ -246,7 +256,7 @@ export function TrackedOverlayLayer({
 }
 
 /** Pack-art visuals for tracked mode — mirrors the editor's overlay look. */
-function TrackedArt({ overlay }: { overlay: SelectedOverlay }) {
+function TrackedArt({ overlay, text }: { overlay: SelectedOverlay; text?: string }) {
   switch (overlay.id) {
     case 'flag-halos':
       return (
@@ -289,9 +299,29 @@ function TrackedArt({ overlay }: { overlay: SelectedOverlay }) {
           <span className="text-[8px] text-white font-bold block text-center mt-1">BOOKED</span>
         </div>
       );
+    case 'player-card': {
+      const accent = overlay.chosenVariant?.accent ?? '#FFD700';
+      return (
+        <div className="bg-gray-900/85 backdrop-blur-md rounded-xl px-3 py-2.5 shadow-xl w-40" style={{ border: `1.5px solid ${accent}66` }}>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-5 rounded-sm flex items-center justify-center text-[10px] font-black text-black" style={{ background: accent }}>
+              10
+            </div>
+            <span className="text-[10px] font-bold" style={{ color: accent }}>RATING</span>
+            <span className="ml-auto text-white text-sm font-black">9.4</span>
+          </div>
+          <p className="text-white text-xs font-bold mt-1.5 leading-tight whitespace-nowrap">{text || 'STAR PLAYER'}</p>
+          <div className="mt-1.5 space-y-1">
+            <div className="h-1 rounded-full bg-white/15 overflow-hidden"><div className="h-full w-[86%] rounded-full" style={{ background: accent }} /></div>
+            <div className="h-1 rounded-full bg-white/15 overflow-hidden"><div className="h-full w-[64%] rounded-full bg-sky-400" /></div>
+          </div>
+        </div>
+      );
+    }
     case 'trophy-confetti':
     case 'stadium-sparkles':
-      // rendered by the canvas particle layer — keep a mounted node so the id stays registered
+    case 'ghost-trail':
+      // rendered by the canvas layer — keep a mounted node so the id stays registered
       return <div className="w-0 h-0" />;
     default:
       return null;
