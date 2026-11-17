@@ -30,7 +30,9 @@ export function ScreeningRoomView() {
     retry: 1,
   });
   const moments = momentsQuery.data ?? [];
-  const minted = moments.filter((m) => m.status === 'minted');
+  // Only minted moments with a real clip can premiere — anything else would
+  // headline a title while the house reel plays underneath.
+  const minted = moments.filter((m) => m.status === 'minted' && m.media_url);
 
   const featured =
     minted.find((m) => String(m.flow_nft_id) === premiereId) ?? minted[0] ?? null;

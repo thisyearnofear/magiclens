@@ -28,12 +28,15 @@ interface GiltPlayerProps {
   featureKey?: string | number;
 }
 
-export function GiltPlayer({ src = GILT_DEMO_SRC, poster = GILT_DEMO_POSTER, featureKey }: GiltPlayerProps) {
+export function GiltPlayer({ src = GILT_DEMO_SRC, poster, featureKey }: GiltPlayerProps) {
   const isMuxStream = src.includes('.m3u8');
+  // The Mux thumbnail only belongs to the house reel; premiere clips get no
+  // poster rather than a mismatched one.
+  const resolvedPoster = poster ?? (src === GILT_DEMO_SRC ? GILT_DEMO_POSTER : undefined);
   return (
     <I18nProvider>
       <div className="gilt-player">
-        <VideoJsPlayer key={featureKey ?? src} poster={poster}>
+        <VideoJsPlayer key={featureKey ?? src} poster={resolvedPoster}>
           <VideoSkin>
             {isMuxStream ? (
               <MuxVideo src={src} playsInline crossOrigin="" />
