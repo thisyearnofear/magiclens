@@ -100,7 +100,9 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   const [styles, setStyles] = useState<Record<string, OverlayStyle>>({});
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
   const [editingOverlayId, setEditingOverlayId] = useState<string | null>(null);
-  const [mode, setMode] = useState<'preview' | 'live' | 'track'>('preview');
+  // Default to Track mode — pose analysis starts on mount and overlays lock on
+  // as the user picks them. Editor stays one tab away for manual placement.
+  const [mode, setMode] = useState<'preview' | 'live' | 'track'>('track');
   const tracker = useClipPoseTracker(clipVideoUrl || null);
   const {
     status: trackStatus,
@@ -743,10 +745,17 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {trackStatus === 'ready' ? (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                      <span className="text-sm font-medium text-purple-300">Pose tracking active — overlays follow the player</span>
-                    </>
+                    tracks.length > 0 ? (
+                      <>
+                        <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                        <span className="text-sm font-medium text-purple-300">Pose tracking active — overlays follow the player</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle className="h-4 w-4 text-amber-400" />
+                        <span className="text-sm font-medium text-amber-300">No player detected — try a clip with a close-up player, or place overlays in Editor</span>
+                      </>
+                    )
                   ) : trackStatus === 'tracking' || trackStatus === 'loading' ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin text-purple-300" />

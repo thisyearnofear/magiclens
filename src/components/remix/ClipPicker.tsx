@@ -13,25 +13,26 @@ interface ClipPickerProps {
   onUploadNew: () => void;
 }
 
-const DEMO_CLIPS: { id: string; title: string; description: string; icon: React.ReactNode; videoUrl: string }[] = [
+const DEMO_CLIPS: { id: string; title: string; description: string; icon: React.ReactNode; videoUrl: string; recommended?: boolean }[] = [
   {
     id: 'demo-goal',
     title: 'Match-winning Goal',
-    description: 'Close-up goal action — ideal for pose-tracked flag halos + GOAL banner',
+    description: 'Close-up player action — AR tracking locks onto the scorer',
     icon: <Flag className="h-10 w-10 text-green-400" />,
     videoUrl: '/clips/celebration-goal.mp4',
+    recommended: true,
   },
   {
     id: 'demo-trophy',
     title: 'Trophy Lift Ceremony',
-    description: 'Captain lifting the trophy — perfect for confetti burst overlay',
+    description: 'Wide stadium shot — best with static overlays',
     icon: <Trophy className="h-10 w-10 text-yellow-400" />,
     videoUrl: '/clips/demo2.mp4',
   },
   {
     id: 'demo-celebration',
     title: 'Fan Celebration',
-    description: 'Crowd erupting — ideal for flag halos and commentary bubbles',
+    description: 'Crowd erupting — best with static overlays',
     icon: <Play className="h-10 w-10 text-blue-400" />,
     videoUrl: '/clips/demo3.mp4',
   },
@@ -112,7 +113,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Choose Your Match Moment</h2>
-        <p className="text-gray-300">Pick a match clip to remix with AR overlays</p>
+        <p className="text-gray-300">Pick a clip — our AI tracks the player and locks overlays onto them automatically</p>
       </div>
 
       {/* Demo clips */}
@@ -135,6 +136,11 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
             >
               <CardContent className="p-0">
                 <div className="aspect-video bg-gray-900 relative">
+                  {clip.recommended && (
+                    <span className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 rounded-full bg-yellow-400 px-2 py-0.5 text-[10px] font-bold text-black shadow">
+                      ★ Best for AR tracking
+                    </span>
+                  )}
                   <video
                     src={clip.videoUrl}
                     muted

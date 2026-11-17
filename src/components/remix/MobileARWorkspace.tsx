@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 import { useFullscreen } from '@/hooks/use-fullscreen';
+import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
+import { TrackedOverlayLayer, type AnchorId } from './TrackedOverlayLayer';
+import { exportRemixVideo } from '@/lib/remix-exporter';
+import { useReferrer } from '@/hooks/useReferrer';
+import { toast } from 'sonner';
 import type { OverlayStyle } from './EditorOverlay';
 import {
   Flag, Sparkles, Image, MessageCircle, AlertTriangle,
-  Check, Eye, Trophy, Maximize2, Minimize
+  Check, Eye, Trophy, Maximize2, Minimize, Loader2, Download, Crosshair
 } from 'lucide-react';
 
 const DEFAULT_STYLES: Record<string, OverlayStyle> = {
@@ -14,12 +19,19 @@ const DEFAULT_STYLES: Record<string, OverlayStyle> = {
   'goal-lower-third': { x: 160, y: 380, scale: 1, rotation: 0, opacity: 1 },
   'commentary-bubble': { x: 12, y: 12, scale: 1, rotation: -3, opacity: 1, text: 'What a moment!' },
   'ref-card': { x: 510, y: 70, scale: 1, rotation: 2, opacity: 1, cardColor: 'yellow' },
+  'ghost-trail': { x: 320, y: 240, scale: 1, rotation: 0, opacity: 1 },
+  'player-card': { x: 500, y: 60, scale: 1, rotation: -2, opacity: 1, text: 'STAR PLAYER' },
 };
 
 interface MobileARWorkspaceProps {
   clipTitle: string;
   clipVideoUrl: string;
-  onNext: (selected: SelectedOverlay[], styles: Record<string, { x: number; y: number; scale: number; rotation: number; opacity: number }>, sourceSize?: { w: number; h: number }) => void;
+  onNext: (
+    selected: SelectedOverlay[],
+    styles: Record<string, OverlayStyle>,
+    sourceSize?: { w: number; h: number },
+    replay?: { mode: 'track' | 'static'; anchors: Record<string, AnchorId>; subjectId?: number },
+  ) => void;
   onBack: () => void;
 }
 
@@ -35,6 +47,8 @@ const SVG_MAP: Record<string, string> = {
   'commentary-bubble': '/packs/match-day/thumb-commentary.svg',
   'stadium-sparkles': '/packs/match-day/thumb-sparkles.svg',
   'ref-card': '/packs/match-day/thumb-ref-card.svg',
+  'ghost-trail': '/packs/match-day/thumb-ghost-trail.svg',
+  'player-card': '/packs/match-day/thumb-player-card.svg',
 };
 
 export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }: MobileARWorkspaceProps) {
@@ -43,7 +57,28 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
   const [styles, setStyles] = useState<Record<string, OverlayStyle>>({});
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [refCardColor, setRefCardColor] = useState<'yellow' | 'red'>('yellow');
+  const [exportState, setExportState] = useState<'idle' | 'recording' | 'done'>('idle');
+  const [exportProgress, setExportProgress] = useState(0);
+  const trackVideoRef = useRef<HTMLVideoElement | null>(null);
   const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
+  const { referrerAddress } = useReferrer();
+
+  const {
+    status: trackStatus,
+    progress: trackProgress,
+    tracks,
+    selectedTrackId,
+    setSelectedTrackId,
+    poseAt,
+    subjectsAt,
+    track: startTracking,
+  } = useClipPoseTracker(clipVideoUrl || null);
+
+  // Mobile is magic-first: analysis starts the moment the workspace mounts,
+  // so overlays lock on as the user picks them.
+  useEffect(() => {
+    if (trackStatus === 'idle') startTracking();
+  }, [trackStatus, startTracking]);
 
   const toggleOverlay = (overlay: OverlayDefinition) => {
     setSelected(prev => {
@@ -61,8 +96,51 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
     setSelected(prev => prev.map(s => s.id === overlayId ? { ...s, chosenVariant: variant } : s));
   };
 
+  const handleExport = useCallback(async () => {
+    const video = trackVideoRef.current;
+    if (!video || exportState === 'recording') return;
+    setExportState('recording');
+    setExportProgress(0);
+    try {
+      const result = await exportRemixVideo({
+        video,
+        overlays: selected,
+        texts: Object.fromEntries(selected.map((o) => [o.id, styles[o.id]?.text ?? '']).filter(([, v]) => v)),
+        opacities: Object.fromEntries(selected.map((o) => [o.id, styles[o.id]?.opacity ?? 1])),
+        poseAt,
+        onProgress: setExportProgress,
+        watermark: !referrerAddress,
+      });
+      const url = URL.createObjectURL(result.blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `magiclens-remix.${result.extension}`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      setExportState('done');
+      toast.success('Remix exported', {
+        description: `${result.extension.toUpperCase()} · ${result.duration.toFixed(0)}s — ready to post.`,
+      });
+      setTimeout(() => setExportState('idle'), 4000);
+    } catch (err) {
+      setExportState('idle');
+      toast.error('Export failed', { description: err instanceof Error ? err.message : 'Try again' });
+    }
+  }, [exportState, selected, styles, poseAt, referrerAddress]);
+
+  const sourceSize = () =>
+    elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined;
+
+  const handleNext = () =>
+    onNext(selected, styles, sourceSize(), {
+      mode: trackStatus === 'ready' ? 'track' : 'static',
+      anchors: {},
+      subjectId: selectedTrackId,
+    });
+
   const overlays = manifest?.overlays ?? [];
   const selectedIds = new Set(selected.map(s => s.id));
+  const analyzing = trackStatus === 'loading' || trackStatus === 'tracking';
 
   if (loading) {
     return (
@@ -94,12 +172,12 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
           <button
             onClick={toggle}
             className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-colors text-gray-300 active:bg-white/20"
-            title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F)'}
+            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           >
             {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </button>
           <Button
-            onClick={() => onNext(selected, styles, elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined)}
+            onClick={handleNext}
             disabled={selected.length === 0}
             size="sm"
             className="bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs h-8"
@@ -108,6 +186,62 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
           </Button>
         </div>
       </div>
+
+      {/* Track status bar */}
+      <div className="px-3 pb-1.5 shrink-0 flex items-center justify-between gap-2">
+        {trackStatus === 'ready' ? (
+          tracks.length > 0 ? (
+            <span className="flex items-center gap-1.5 text-[11px] font-medium text-purple-300 min-w-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse shrink-0" />
+              <span className="truncate">
+                {tracks.length > 1 ? `${tracks.length} players — tap a dot to switch` : 'Player tracked — overlays follow them'}
+              </span>
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-[11px] font-medium text-amber-300 min-w-0">
+              <AlertTriangle className="h-3 w-3 shrink-0" />
+              <span className="truncate">No player detected — try another clip</span>
+            </span>
+          )
+        ) : analyzing ? (
+          <span className="flex items-center gap-1.5 text-[11px] font-medium text-purple-300">
+            <Loader2 className="h-3 w-3 animate-spin" />
+            {trackStatus === 'loading' ? 'Loading pose AI…' : `Tracking player… ${Math.round(trackProgress * 100)}%`}
+          </span>
+        ) : trackStatus === 'error' ? (
+          <button onClick={startTracking} className="flex items-center gap-1.5 text-[11px] font-medium text-red-300">
+            <AlertTriangle className="h-3 w-3" /> Tracking failed — tap to retry
+          </button>
+        ) : (
+          <span className="flex items-center gap-1.5 text-[11px] text-gray-400">
+            <Crosshair className="h-3 w-3" /> Preparing player tracking…
+          </span>
+        )}
+        {trackStatus === 'ready' && selected.length > 0 && (
+          <button
+            onClick={handleExport}
+            disabled={exportState === 'recording'}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-yellow-400 text-black text-[10px] font-bold shrink-0 disabled:opacity-60 active:scale-95 transition-transform"
+          >
+            {exportState === 'recording' ? (
+              <><Loader2 className="h-3 w-3 animate-spin" /> {Math.round(exportProgress * 100)}%</>
+            ) : (
+              <><Download className="h-3 w-3" /> {exportState === 'done' ? 'Saved!' : 'Export'}</>
+            )}
+          </button>
+        )}
+      </div>
+
+      {/* Analysis progress bar */}
+      {trackStatus === 'tracking' && (
+        <div className="mx-3 mb-1.5 h-0.5 bg-white/10 rounded-full overflow-hidden shrink-0">
+          <motion.div
+            className="h-full bg-gradient-to-r from-purple-500 to-fuchsia-400"
+            animate={{ width: `${trackProgress * 100}%` }}
+            transition={{ ease: 'easeOut', duration: 0.3 }}
+          />
+        </div>
+      )}
 
       {/* Video preview */}
       <div className="px-3 pb-2 shrink-0">
@@ -123,7 +257,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
 
           {/* Dark overlay transition — visible only when controls are shown */}
           <AnimatePresence>
-            {controlsVisible && (
+            {isFullscreen && controlsVisible && (
               <motion.div
                 key="fullscreen-overlay"
                 initial={{ opacity: 0 }}
@@ -137,7 +271,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
 
           {/* Fullscreen floating toolbar — visible only when controls are shown */}
           <AnimatePresence>
-            {controlsVisible && (
+            {isFullscreen && controlsVisible && (
               <motion.div
                 key="fullscreen-toolbar"
                 initial={{ y: -24, opacity: 0 }}
@@ -152,7 +286,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white text-xs font-medium backdrop-blur-sm active:bg-white/30"
                   >
                     <Minimize className="h-3.5 w-3.5" />
-                    Exit <span className="text-white/40 ml-1">Esc</span>
+                    Exit
                   </button>
                 </div>
                 <div className="flex-1" />
@@ -163,7 +297,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
                 </div>
                 <div>
                   <button
-                    onClick={() => onNext(selected, styles, elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined)}
+                    onClick={handleNext}
                     disabled={selected.length === 0}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-yellow-400 text-black hover:bg-yellow-500 font-semibold text-xs transition-colors disabled:opacity-50 active:scale-95"
                   >
@@ -179,18 +313,46 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
           <button
             onClick={(e) => { e.stopPropagation(); toggle(); }}
             className="absolute bottom-2 right-2 z-30 p-1.5 rounded-lg bg-black/60 backdrop-blur-sm transition-colors text-white/70 active:bg-black/80"
-            title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F)'}
+            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           >
             {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </button>
 
           {clipVideoUrl ? (
-            <video src={clipVideoUrl} className="absolute inset-0 w-full h-full object-cover" muted loop playsInline autoPlay />
+            <video
+              ref={trackVideoRef}
+              src={clipVideoUrl}
+              crossOrigin="anonymous"
+              className="absolute inset-0 w-full h-full object-cover"
+              muted loop playsInline autoPlay
+            />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-green-900/20 to-green-900/40 flex items-center justify-center">
               <Trophy className="h-8 w-8 text-gray-600" />
             </div>
           )}
+
+          {/* Pose-tracked overlay layer — same renderer as desktop */}
+          {trackStatus === 'ready' && selected.length > 0 && (
+            <TrackedOverlayLayer
+              videoRef={trackVideoRef}
+              poseAt={poseAt}
+              subjectsAt={subjectsAt}
+              selectedSubjectId={selectedTrackId}
+              onSelectSubject={setSelectedTrackId}
+              overlays={selected}
+              opacities={Object.fromEntries(selected.map(o => [o.id, styles[o.id]?.opacity ?? 1]))}
+              texts={Object.fromEntries(selected.map(o => [o.id, styles[o.id]?.text ?? '']).filter(([, v]) => v))}
+            />
+          )}
+
+          {/* Prompt to pick overlays once tracking is live */}
+          {trackStatus === 'ready' && tracks.length > 0 && selected.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+              <p className="text-gray-200 text-xs text-center px-6">Pick an overlay below — it locks onto the player</p>
+            </div>
+          )}
+
           {/* Show selected overlay count (animated hide during fullscreen) */}
           <AnimatePresence>
             {selected.length > 0 && !isFullscreen && (
@@ -226,7 +388,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
         className="overflow-hidden"
       >
         <div className="px-3 h-full overflow-y-auto pb-6">
-          <div className="flex items-center justify-between mb-2 sticky top-0 bg-gradient-to-b from-purple-900/90 via-blue-900/90 to-transparent pt-1 pb-2">
+          <div className="flex items-center justify-between mb-2 sticky top-0 bg-gradient-to-b from-purple-900 via-blue-900/95 to-transparent backdrop-blur-md pt-1 pb-2 z-10">
             <h3 className="text-xs font-semibold text-gray-300 uppercase tracking-wider">AR Overlay Packs</h3>
             <Trophy className="h-3.5 w-3.5 text-yellow-400" />
           </div>

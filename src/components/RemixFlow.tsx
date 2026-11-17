@@ -413,10 +413,11 @@ export default function RemixFlow() {
                     <MobileARWorkspace
                       clipTitle={clip.title}
                       clipVideoUrl={clip.videoUrl}
-                      onNext={(overlays, styles, sourceSize) => {
+                      onNext={(overlays, styles, sourceSize, replay) => {
                         setSelectedOverlays(overlays);
                         setOverlayStyles(styles);
                         if (sourceSize) setOverlaySourceSize(sourceSize);
+                        if (replay) setReplayInfo(replay);
                         goForward();
                       }}
                       onBack={goBack}
