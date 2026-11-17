@@ -14,7 +14,6 @@ export default function ScreeningRoomPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-[#0a0906] px-4 py-10 text-[#f5f0e6] sm:px-8">
       {/* Compiled Gilt skin stylesheet (Tailwind 4 output; served statically). */}
-      {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/gilt-skin.css" />
       <header className="mb-8 w-full max-w-5xl text-center">
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#facc15]">
