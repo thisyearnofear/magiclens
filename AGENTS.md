@@ -86,3 +86,12 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
 - **Rights rule:** UGC remixes of your own clips only — never imply licensed league footage (Top Shot buyers get a personal licence, not footage).
 - **Positioning statement:** "MagicLens — the free-to-play AR remix battle for live sports. Fans create, the crowd crowns one Iconic Moment a day, premiered in the Screening Room, minted free on X Layer and elevated to Flow."
 - **Next window:** X Cup + Hook x World Cup are over; TapeOut Accelerate live until Dec 7, 2026 (+ continuous Super Nova track).
+
+## TapeOut Accelerate Readiness (Nov 2026)
+
+- **Event:** Oct 16 – Dec 7 2026, 23:59 UTC, 100K USDT (1st 20K, 2nd x5 10K, 3rd x5 6K). Shortlisted teams attend offline Demo Day. Only work done Oct 16–Dec 7 is judged.
+- **Entry rule:** use TapeOut circuits/contracts/on-chain data on X Layer (interfaces may run off-chain) OR run on X Layer DeWEB. Existing projects eligible with substantial new work. Submit via Google Form + ≤3 min demo video (problem, demo, users, revenue, TapeOut usage).
+- **Criteria:** user value & commercial potential, innovation, ecosystem integration (DeWEB/FabX/TapeCode/TapeKit/TapeSend), product readiness & UX.
+- **Verified X Layer (chainId 196) contracts:** factory `0x1f09daefA827f02CBB40967cc91b259763760761` (cpuAt(0)=Genesis `0x839bdd…`), opener `0x536add…50106`, SiteRegistry `0xd6efb7…9adb6`, binding `0x68809f…66f9`. RPCs: rpc.xlayer.tech, xlayerrpc.okx.com.
+- **Our entry shape:** "Iconic Moments Archive on DeWEB" — daily Top-3 published to a `tape://` site (permanent verifiable winner record) + a purpose-built tally/winner-check circuit on an X Layer processor. `scripts/export_deweb_archive.py` generates the upload-ready static folder (inline CSS, relative links, SHA-256 manifest).
+- **Wallet-required playbook (user does these):** 1) id.tapeout.link → X Layer → one-click container; 2) fund OKB for gas; 3) upload `deweb/` via HashPort console (2 signatures); 4) bind `tape://` name; 5) canvas-design the winner-check circuit on Behemoth/TapeOut processor, tape out; 6) register project on voting page + rally votes; 7) record demo video; 8) submit form before Dec 7.
