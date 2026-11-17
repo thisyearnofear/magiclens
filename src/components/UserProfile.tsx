@@ -497,7 +497,7 @@ export default function UserProfile() {
                       <div className="min-w-0">
                         <h4 className="text-white font-semibold text-sm">Your Referral Link</h4>
                         <p className="text-gray-300 text-xs mt-0.5">
-                          Share this link — when someone mints a remix using it, they earn a leaderboard boost!
+                          Share this link — when a friend mints with it, you earn +200 leaderboard votes per referral.
                         </p>
                         <code className="block mt-2 text-[11px] text-yellow-300 bg-yellow-400/10 rounded px-2 py-1 truncate font-mono">
                           {`https://magiclens.vercel.app?ref=${evmAddress}`}

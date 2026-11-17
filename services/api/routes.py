@@ -264,7 +264,11 @@ metrics_manager.expose_metrics(app)
 @app.on_event("startup")
 async def startup_render_worker():
     start_render_worker()
-    start_auto_promote_scheduler(interval_seconds=60)
+    # Auto-promote scheduler disabled to avoid keeping Neon DB awake 24/7.
+    # The 60s polling prevented Neon's auto-suspend (5min idle timeout),
+    # burning through the entire 100 CU-hour free tier monthly allowance.
+    # Promotion is triggered on-demand via the "Close Day & Promote" button instead.
+    # start_auto_promote_scheduler(interval_seconds=60)
 
 
 @app.post("/api/auth/flow/login", response_model=FlowLoginResponse)
@@ -416,10 +420,12 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Health check endpoints
 @app.get("/health", include_in_schema=False, tags=["monitoring"])
 async def health_check():
-    """Basic health check endpoint."""
-    from core.health import health_check
-
-    return await health_check.get_full_health_status()
+    """Basic health check endpoint.
+    
+    Lightweight — does NOT probe the database to avoid waking Neon.
+    Use /health/ready for a full readiness check including DB connectivity.
+    """
+    return {"status": "alive", "service": "magiclens-api"}
 
 
 @app.get("/health/live", include_in_schema=False, tags=["monitoring"])

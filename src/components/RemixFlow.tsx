@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { StadiumBackdrop } from '@/components/StadiumBackdrop';
 import { StepProgress } from '@/components/remix/StepProgress';
@@ -150,6 +150,11 @@ export default function RemixFlow() {
   } = useAuthContext();
   const { mintRemix, isMinting } = useMintRemix();
   const { referrerAddress, clearReferrer } = useReferrer();
+  const searchParams = useSearchParams();
+  const duetTokenId = searchParams?.get('duet');
+  const duetTitle = searchParams?.get('title');
+  const duetVotes = searchParams?.get('votes');
+  const duetCreator = searchParams?.get('creator');
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
   const [clip, setClip] = useState<{ title: string; id: string; videoUrl: string } | null>(null);
@@ -317,6 +322,14 @@ export default function RemixFlow() {
           />
 
           <div className="min-w-0 flex-1">
+            {duetTokenId && step === 0 && (
+              <div className="mb-3 flex items-center gap-2 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-3 py-2 text-xs text-yellow-200">
+                <span aria-hidden="true">⚔️</span>
+                <span className="min-w-0 truncate">
+                  Dueting {duetCreator ? `@${duetCreator}` : `#${duetTokenId}`} · {duetTitle || 'Top remix'} · {duetVotes || '?'} pts to beat
+                </span>
+              </div>
+            )}
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={step}

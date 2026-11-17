@@ -507,21 +507,27 @@ def cleanup_old_jobs(max_age_hours: int = 24):
 
 # Auto-start cleanup thread for PERFORMANT resource management
 def _start_periodic_cleanup():
-    """Start periodic cleanup of old jobs."""
+    """Start periodic cleanup of old jobs.
+    
+    Note: PoseCacheManager.cleanup_expired_cache() disabled to avoid
+    waking Neon Postgres every hour. The hourly DELETE queries prevent
+    Neon's auto-suspend (5min idle timeout), burning free-tier compute.
+    Re-enable when there's actual cache data worth cleaning.
+    """
 
     def cleanup_worker():
         while True:
             time.sleep(3600)  # Run every hour
             try:
                 cleanup_old_jobs()
-                # Also cleanup database cache
-                PoseCacheManager.cleanup_expired_cache()
+                # DB cache cleanup disabled — wakes Neon every hour
+                # PoseCacheManager.cleanup_expired_cache()
             except Exception as e:
                 print(f"Error in periodic cleanup: {e}")
 
     cleanup_thread = threading.Thread(target=cleanup_worker, daemon=True)
     cleanup_thread.start()
-    print("🧹 Started periodic cleanup thread")
+    print("Started periodic cleanup thread (in-memory only, DB cleanup disabled)")
 
 
 # Start cleanup on module import

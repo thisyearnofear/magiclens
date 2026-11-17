@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Codrops caustic sweep for rank-1 Iconic Moments */
+.caustic-sweep {
+  transform: translateX(-100%);
+  animation: caustic-sweep 5.5s ease-in-out infinite;
+}
+@keyframes caustic-sweep {
+  0% { transform: translateX(-100%); }
+  55% { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .caustic-sweep { animation: none; }
+  .melt-drift, .vinyl-spin { animation: none !important; }
+}
+
+/* Melt divider drift */
+.melt-drift {
+  animation: melt-drift 9s ease-in-out infinite alternate;
+}
+@keyframes melt-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* Vinyl loader spin */
+.vinyl-spin {
+  animation: vinyl-spin 1.6s linear infinite;
+}
+@keyframes vinyl-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Custom scrollbar for overlay variant pickers */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;

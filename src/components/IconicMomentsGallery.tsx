@@ -13,8 +13,12 @@ import type { CrossVMPromotion } from '@/types/crossvm';
 import { getIconicMoments, seedDemoData, closeLeaderboardDay, triggerAutoPromote } from '@/lib/crossvm-client';
 import { measureUserAction } from '@/lib/action-observability';
 import { TransactionProgress, type TransactionStep } from '@/components/TransactionProgress';
+import { GoldCausticOverlay } from '@/components/ui/GoldCausticOverlay';
 import { ProductJourneyHeader } from '@/components/ProductJourneyHeader';
 import { CelebrationOverlay } from '@/components/CelebrationOverlay';
+import { IconicFilmstrip } from '@/components/IconicFilmstrip';
+import { VinylLoader } from '@/components/VinylLoader';
+import { MeltDivider } from '@/components/MeltDivider';
 import { useSound } from '@/hooks/useSound';
 import { useToast } from '@/hooks/use-toast';
 
@@ -51,6 +55,7 @@ function MomentCard({ moment }: { moment: CrossVMPromotion }) {
     >
       <Card className="overflow-hidden bg-white/5 border-white/10 hover:bg-white/10 transition-colors h-full">
         <div className={`aspect-video relative bg-gradient-to-br ${hue} flex items-center justify-center overflow-hidden`}>
+          {moment.rank === 1 && <GoldCausticOverlay />}
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
           <div className="absolute left-6 top-8 h-24 w-24 rounded-full border border-white/15" />
           <div className="absolute right-8 top-10 h-16 w-28 skew-x-[-18deg] rounded-md border border-white/10 bg-white/5" />
@@ -334,6 +339,8 @@ export function IconicMomentsGallery() {
         metricLabel="minted"
       />
 
+      <IconicFilmstrip moments={moments} />
+      <MeltDivider />
       <div className="flex items-center justify-between flex-wrap gap-4 rounded-lg border border-white/10 bg-black/25 p-3">
         <div className="flex items-center gap-2 text-sm text-gray-300">
           <Sparkles className="h-4 w-4 text-purple-300" />
@@ -364,12 +371,17 @@ export function IconicMomentsGallery() {
         </div>
       </div>
 
-      {statusMessage && (
-        <TransactionProgress
-          title="Creating Iconic Moments"
-          subtitle={statusMessage}
-          steps={flowSeedSteps}
-        />
+      {(statusMessage || seeding || closing) && (
+        <div className="flex items-center gap-3 rounded-lg border border-yellow-400/20 bg-yellow-400/5 p-3">
+          <VinylLoader size={40} />
+          <div className="min-w-0 flex-1">
+            <TransactionProgress
+              title="Creating Iconic Moments"
+              subtitle={statusMessage ?? (closing ? 'Closing day and promoting…' : 'Minting on Flow…')}
+              steps={flowSeedSteps}
+            />
+          </div>
+        </div>
       )}
 
       <AnimatePresence mode="wait">

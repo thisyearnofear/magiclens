@@ -27,17 +27,23 @@ if DB_SSLMODE:
 pool: Optional[ConnectionPool] = None
 
 def init_db():
-    """Initialize database connection pool."""
+    """Initialize database connection pool.
+    
+    Uses min_size=0 so all connections are released when idle.
+    This allows Neon's serverless Postgres to auto-suspend after 5min
+    of inactivity, preserving free-tier compute hours.
+    """
     global pool
     try:
         pool = ConnectionPool(
             DATABASE_URL,
-            min_size=1,
+            min_size=0,
             max_size=10,
+            max_idle=300,  # Close idle connections after 5 minutes
             timeout=30,
             kwargs={"autocommit": True}
         )
-        logger.info("Database connection pool initialized")
+        logger.info("Database connection pool initialized (min_size=0, max_idle=300s)")
         create_tables()
     except Exception as e:
         logger.error(f"Failed to initialize database connection pool: {e}")

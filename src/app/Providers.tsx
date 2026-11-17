@@ -10,6 +10,7 @@ import { RainbowBridge } from '@/components/RainbowBridge';
 import { ActionActivityDrawer } from '@/components/ActionActivityDrawer';
 import { ActivityTicker } from '@/components/ActivityTicker';
 import { Toaster } from '@/components/ui/sonner';
+import { SeamTransition } from '@/components/SeamTransition';
 import SystemErrorBoundary from '@/SystemErrorBoundary';
 import '@/lib/flow/fcl-config';
 import '@rainbow-me/rainbowkit/styles.css';
@@ -42,6 +43,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               <SystemErrorBoundary viewName="App">
                 {children}
               </SystemErrorBoundary>
+              <SeamTransition />
               <ActivityTicker />
               <RainbowBridge />
               <ActionActivityDrawer />

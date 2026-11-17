@@ -9,6 +9,27 @@ import { Button } from '@/components/ui/button';
 import { Trophy, Medal, Zap, DollarSign, Sparkles, ArrowRight, Clock, Database, Timer } from 'lucide-react';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { getUserRemixes } from '@/lib/remix-store';
+import { computeStreak, getStreakBadge } from '@/lib/streak';
+import { Flame } from 'lucide-react';
+
+function StreakBadge() {
+  const [label, setLabel] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const s = computeStreak(getUserRemixes());
+      if (s.current >= 2) {
+        const b = getStreakBadge(s.current);
+        setLabel(`${s.current}-day streak${b ? ` · ${b.label}` : ''}${s.todayMinted ? '' : ' · remix today to extend'}`);
+      }
+    } catch {}
+  }, []);
+  if (!label) return null;
+  return (
+    <span className="ml-auto flex items-center gap-1 rounded-full bg-orange-400/10 border border-orange-400/30 px-2 py-0.5 text-[10px] font-semibold text-orange-300">
+      <Flame className="h-3 w-3" /> {label}
+    </span>
+  );
+}
 import { useIconicMoments } from '@/hooks/useIconicMoments';
 import { IconicMomentBadge } from '@/components/IconicMomentBadge';
 import { MobileNav } from '@/components/MobileNav';
@@ -21,6 +42,10 @@ import { closeLeaderboardDay, triggerAutoPromote, seedDemoData } from '@/lib/cro
 import { measureUserAction } from '@/lib/action-observability';
 import { useSound } from '@/hooks/useSound';
 import { CelebrationOverlay } from '@/components/CelebrationOverlay';
+import { MagneticButton } from '@/components/ui/MagneticButton';
+import { LeaderboardHoverReveal, useHoverRevealTarget } from '@/components/LeaderboardHoverReveal';
+import { MeltDivider } from '@/components/MeltDivider';
+import { VinylLoader } from '@/components/VinylLoader';
 import type { CrossVMPromotion } from '@/types/crossvm';
 
 const DEMO_LEADERBOARD = DEMO_LEADERBOARD_ENTRIES;
@@ -65,6 +90,7 @@ export default function Leaderboard() {
   const [countdown, setCountdown] = useState('');
   const [showCelebration, setShowCelebration] = useState<'promote' | 'vote' | null>(null);
   const sound = useSound();
+  const hover = useHoverRevealTarget<LeaderboardEntry>();
 
   const closeDayMutation = useMutation({
     mutationFn: async (top10: Parameters<typeof closeLeaderboardDay>[1]) => {
@@ -264,7 +290,8 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
+    <div ref={hover.anchorRef as React.RefObject<HTMLDivElement>} className="min-h-screen relative overflow-hidden pb-24 sm:pb-0">
+      <LeaderboardHoverReveal active={hover.active} anchorRef={hover.anchorRef} />
       <StadiumBackdrop opacity={0.25} />
       <div className="fixed inset-0 z-[1] bg-grid-darker pointer-events-none opacity-40" />
       <div className="relative z-[3]">
@@ -403,15 +430,19 @@ export default function Leaderboard() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4"
+            className="mb-4 flex items-center gap-3 rounded-lg border border-yellow-400/20 bg-yellow-400/5 p-3"
           >
-            <TransactionProgress
-              title="Updating leaderboard"
-              subtitle={actionStatus}
-              steps={leaderboardCycleSteps(cycleStatus)}
-            />
+            <VinylLoader size={40} />
+            <div className="min-w-0 flex-1">
+              <TransactionProgress
+                title="Updating leaderboard"
+                subtitle={actionStatus}
+                steps={leaderboardCycleSteps(cycleStatus)}
+              />
+            </div>
           </motion.div>
         )}
+        <MeltDivider />
 
         {/* Your Remixes */}
         {entries.filter(e => e.isUser).length > 0 && (
@@ -425,6 +456,7 @@ export default function Leaderboard() {
                 <div className="flex items-center gap-2 mb-3">
                   <Zap className="h-4 w-4 text-green-400" />
                   <h3 className="text-white text-sm font-semibold">Your Remixes</h3>
+                  <StreakBadge />
                 </div>
                 <div className="space-y-2">
                   {entries.filter(e => e.isUser).map(entry => (
@@ -568,7 +600,12 @@ export default function Leaderboard() {
                     </div>
 
                     {/* ═══ DESKTOP: Table row (hidden sm:flex) ═══ */}
-                    <div className={`hidden sm:flex items-center gap-3 p-3 hover:bg-white/5 transition-colors ${
+                    <div
+                      onMouseEnter={() => hover.setActive(entry)}
+                      onMouseLeave={() => hover.setActive(null)}
+                      onFocus={() => hover.setActive(entry)}
+                      onBlur={() => hover.setActive(null)}
+                      className={`hidden sm:flex items-center gap-3 p-3 hover:bg-white/5 transition-colors ${
                       isTop3 ? 'bg-yellow-400/5' : ''
                     } ${entry.isUser ? 'ring-1 ring-green-400/40 bg-green-400/5' : ''}`}>
                       <div className="w-9 text-center shrink-0">
@@ -676,10 +713,10 @@ export default function Leaderboard() {
                       <span className="text-yellow-400 text-xs font-bold ml-auto">{entry.votes} pts</span>
                     </div>
                     <button
-                      onClick={() => router.push('/remix')}
+                      onClick={() => router.push(`/remix?duet=${entry.tokenId}&title=${encodeURIComponent(entry.title)}&votes=${entry.votes}&creator=${encodeURIComponent(entry.creator)}`)}
                       className="mt-2 w-full text-[10px] py-1.5 rounded bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20 transition-colors font-medium"
                     >
-                      Beat {entry.votes} pts
+                      Duet @{entry.creator} · Beat {entry.votes} pts
                     </button>
                   </motion.div>
                 ))}
@@ -690,12 +727,12 @@ export default function Leaderboard() {
 
         {/* CTA */}
         <div className="text-center mt-8">
-          <button
+          <MagneticButton
             onClick={() => router.push('/remix')}
             className="px-8 py-3 bg-yellow-400 text-black rounded-lg font-semibold hover:bg-yellow-500 transition-colors inline-flex items-center gap-2"
           >
             <Zap className="h-5 w-5" /> Create Your Remix
-          </button>
+          </MagneticButton>
         </div>
       </div>
       </div>

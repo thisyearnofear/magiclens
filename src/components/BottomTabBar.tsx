@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { Home, Trophy, Sparkles, Zap, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -31,14 +32,20 @@ export function BottomTabBar() {
               key={tab.href}
               onClick={() => router.push(tab.href)}
               className={cn(
-                'flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg transition-colors min-w-0',
-                isActive
-                  ? 'text-yellow-400'
-                  : 'text-gray-400 hover:text-gray-200'
+                'relative flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg transition-colors min-w-0',
+                isActive ? 'text-yellow-400' : 'text-gray-400 hover:text-gray-200'
               )}
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
+              {isActive && (
+                <motion.span
+                  layoutId="gooey-tab-pill"
+                  aria-hidden="true"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  className="absolute inset-0 rounded-xl bg-yellow-400/15 border border-yellow-400/30"
+                />
+              )}
+              <Icon className="h-5 w-5 relative" />
+              <span className="text-[10px] font-medium leading-tight relative">{tab.label}</span>
             </button>
           )
         })}

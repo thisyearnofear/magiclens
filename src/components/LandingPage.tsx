@@ -9,6 +9,11 @@ import { StatsBar } from '@/components/StatsBar';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { ScrollRevealSection } from '@/components/ScrollRevealSection';
 import { useSound } from '@/hooks/useSound';
+import { KineticHeroTitle } from '@/components/KineticHeroTitle';
+import { MeltDivider } from '@/components/MeltDivider';
+import { HollowStage } from '@/components/HollowStage';
+import { FerroSoundToggle } from '@/components/FerroSoundToggle';
+import { MagneticButton } from '@/components/ui/MagneticButton';
 
 const HERO_CLIPS = [
   { src: '/clips/demo1.mp4', label: 'Match-winning Goal' },
@@ -19,6 +24,21 @@ const HERO_CLIPS = [
 export default function LandingPage() {
   const { continueAsGuest } = useAuthContext();
   const sound = useSound();
+  const [inviter, setInviter] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref) {
+        localStorage.setItem('magiclens_referrer', ref);
+        setInviter(ref);
+      } else {
+        const stored = localStorage.getItem('magiclens_referrer');
+        if (stored) setInviter(stored);
+      }
+    } catch {}
+  }, []);
 
   // Play ambient stadium rumble once on mount
   useEffect(() => {
@@ -86,7 +106,8 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-12 pb-20 text-center relative overflow-hidden">
+      <section className="container mx-auto px-4 pt-12 pb-10 text-center relative overflow-hidden">
+        <KineticHeroTitle />
         <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 bg-yellow-400/10 border border-yellow-400/30 rounded-full">
           <Trophy className="h-4 w-4 text-yellow-400" />
           <span className="text-yellow-400 text-sm font-medium">OKX X Cup Hackathon — World Cup 2026</span>
@@ -94,9 +115,21 @@ export default function LandingPage() {
         <h2 className="text-4xl sm:text-6xl font-bold text-white mb-4 max-w-4xl mx-auto leading-tight">
           The <span className="text-yellow-400">AR Remix Layer</span> for Live Sports
         </h2>
+        <div className="mb-6 flex items-center justify-center gap-2 text-[11px] text-gray-400">
+          <span>Stadium sound</span>
+          <FerroSoundToggle />
+        </div>
         <p className="text-lg sm:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
           Drop pose-aware AR overlays on match clips. Mint as NFTs on X Layer. Earn daily rewards. Top remixes become Flow Iconic Moments.
         </p>
+        {inviter && (
+          <div className="mx-auto mb-6 flex max-w-md items-center justify-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-xs text-yellow-200">
+            <span aria-hidden="true">🎟️</span>
+            <span className="truncate">
+              Invited by {inviter.slice(0, 6)}…{inviter.slice(-4)} — mint to give them +200 votes, you keep 100% of rewards
+            </span>
+          </div>
+        )}
         <div className="flex gap-4 justify-center flex-wrap mb-12">
           <ConnectWallet />
           <Button onClick={continueAsGuest} variant="ghost" size="lg" className="text-white hover:bg-white/10">
@@ -107,6 +140,7 @@ export default function LandingPage() {
         {/* Hero video player */}
         <HeroVideoPlayer />
       </section>
+      <MeltDivider />
 
       <StatsBar />
 
@@ -199,18 +233,23 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <div className="bg-gradient-to-r from-yellow-400/20 to-purple-400/20 rounded-3xl p-12">
-          <h3 className="text-3xl sm:text-4xl font-bold text-white mb-6">Ready to Create Iconic Moments?</h3>
-          <p className="text-xl text-gray-300 mb-8">
-            Launching with FIFA World Cup 2026. Next: Wimbledon, NBA Finals, F1, Olympics LA 2028.
-          </p>
-          <div className="flex gap-4 justify-center flex-wrap">
-            <ConnectWallet />
-            <Button onClick={continueAsGuest} variant="ghost" size="lg" className="text-white hover:bg-white/10">
-              Explore as Guest
-            </Button>
+        <HollowStage>
+          <div className="p-12">
+            <h3 className="text-3xl sm:text-4xl font-bold text-white mb-6">Ready to Create Iconic Moments?</h3>
+            <p className="text-xl text-gray-300 mb-8">
+              Launching with FIFA World Cup 2026. Next: Wimbledon, NBA Finals, F1, Olympics LA 2028.
+            </p>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <MagneticButton
+                onClick={continueAsGuest}
+                className="px-8 py-3 bg-yellow-400 text-black rounded-lg font-semibold hover:bg-yellow-500 transition-colors inline-flex items-center gap-2"
+              >
+                Explore as Guest
+              </MagneticButton>
+              <ConnectWallet />
+            </div>
           </div>
-        </div>
+        </HollowStage>
       </section>
 
       {/* Footer */}

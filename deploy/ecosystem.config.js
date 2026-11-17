@@ -3,11 +3,12 @@ module.exports = {
     name: 'magiclens-api',
     cwd: '/opt/magiclens/current',
     script: '/opt/magiclens/venv/bin/python',
-    args: '-m uvicorn api.bootstrap:app --host 0.0.0.0 --port 8000 --workers 4 --proxy-headers --loop uvloop --http httptools --limit-concurrency 1000 --limit-max-requests 10000 --timeout-keep-alive 5',
+    args: '-m uvicorn api.bootstrap:app --host 0.0.0.0 --port 8200 --workers 4 --proxy-headers --loop uvloop --http httptools --limit-concurrency 1000 --limit-max-requests 10000 --timeout-keep-alive 5',
     interpreter: 'none',
     env: {
       ENV: 'production',
       LOG_LEVEL: 'info',
+      SERVER_PORT: '8200',
     },
     max_restarts: 10,
     restart_delay: 5000,

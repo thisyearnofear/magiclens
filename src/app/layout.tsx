@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import ClientProviders from './ClientProviders';
+import { CursorGlow } from '@/components/CursorGlow';
+import { FilmGrain } from '@/components/FilmGrain';
 import './globals.css';
 
 export const dynamic = 'force-dynamic';
@@ -44,6 +46,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script defer data-domain="magiclens.vercel.app" src="https://plausible.io/js/script.js"></script>
       </head>
       <body>
+        <CursorGlow />
+        <FilmGrain />
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

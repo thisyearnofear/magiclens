@@ -19,15 +19,15 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
 
 ## Server Infrastructure (nuncio-vultr)
 - **Server**: nuncio-vultr (`144.202.117.160`), user `linuxuser`, 109GB disk
-- **Backend port**: 8100 (changed from 8000 to avoid conflict with Coolify on port 8000)
+- **Backend port**: 8200 (changed from 8100 after genblaze-worker took 8100)
 - **Project dir**: `/opt/magiclens/` with `current` symlink → `releases/<timestamp>/`
 - **Python venv**: `/opt/magiclens/venv/` (Python 3.12, shared across releases)
 - **PM2 process**: `magiclens-api` (uvicorn, 4 workers, port 8100)
 - **Flow CLI**: `/home/linuxuser/.local/bin/flow` (installed via install script)
 - **Redis**: `redis://localhost:6379/0` (runs via Coolify's Redis container)
 - **DB**: Neon Postgres (external, connection string in `.env`)
-- **TLS/proxy**: Coolify Traefik routes `magiclens.thisyearnofear.com` → `host.docker.internal:8100` (dynamic config at `/data/coolify/proxy/dynamic/magiclens.yaml`)
-- **UFW**: Docker subnet `10.0.0.0/8` allowed to port 8100
+- **TLS/proxy**: Coolify Traefik routes `magiclens.thisyearnofear.com` → `host.docker.internal:8200` (dynamic config at `/data/coolify/proxy/dynamic/magiclens.yaml`)
+- **UFW**: Docker subnet `10.0.0.0/8` allowed to port 8200
 
 ## Commands
 - **Dev**: `npm run dev` (frontend, Next.js dev server)
@@ -52,6 +52,12 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
 - `src/lib/crossvm-client.ts`: TypeScript client for all cross-VM and leaderboard API calls
 - `deploy/deploy.sh`: Backend deployment script (rsync from local `services/`)
 - `deploy/ecosystem.config.js`: PM2 config with PATH env for flow binary
+
+## Frontend Motion + Engagement Loops (Nov 2026)
+- **Motion system** (Codrops-inspired, zero new deps — framer-motion + rAF + SVG only): `MagneticButton`, `CursorGlow` (desktop pointer only), `GoldCausticOverlay` (rank-1), `LeaderboardHoverReveal`, `KineticHeroTitle`, `IconicFilmstrip` (drag reel + FLIP focus modal), `MeltDivider`, `FilmGrain`, `VinylLoader`, `FerroSoundToggle`, `HollowStage`, gooey sliding tab pill (`BottomTabBar` layoutId), `SeamTransition` (pathname melt wipe)
+- **Engagement loops**: referral `?ref=` → landing banner ("Invited by 0x… — mint to give +200 votes") → `useReferrer` persist → claim on mint; duet deep link `/remix?duet={tokenId}&title=&votes=&creator=` from Beat This cards + duel banner in `RemixFlow`; streak badge (`computeStreak`) in Your Remixes; 9:16 share-card export (canvas PNG) + Post to X + Copy in `IconicMomentFocus`
+- **Backend cost fix**: auto-promote 60s scheduler disabled (was keeping Neon awake 24/7); promotion via "Close Day & Promote" button; `/health` lightweight (no DB probe); DB pool `min_size=0, max_idle=300s`; pose-cache hourly cleanup disabled
+- **Infra**: backend port 8100 → 8200 (genblaze-worker took 8100); `SERVER_PORT=8200` in `.env.example` + ecosystem config
 
 ## Next Steps
 1. ~~Fix metadata URIs — replace `ipfs://demo/...` with API metadata endpoint~~ ✅ Done
