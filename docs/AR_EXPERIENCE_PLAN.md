@@ -4,16 +4,28 @@ Research: Tavily (Nov 2026) — MediaPipe docs, Casiez CHI'12 One Euro paper,
 Snap Lens Studio body-attachment docs, MediaPipe Selfie Segmentation, sports
 broadcast AR (wTVision/Vizrt), CapCut velocity-edit breakdowns.
 
-> **Status (Nov 2026): Phase 1 shipped.** Clip-based pose tracking is live —
-> "Track Player" mode in `ARWorkspace` analyzes the selected clip in-browser
-> (`PoseLandmarker.detectForVideo`, frame-stepped), One-Euro-smooths the
-> trajectory, and drives overlays from body-frame anchors (head/shoulder
-> scale, tilt, visibility fades) rendered with real pack SVG art — no emoji.
-> Verified end-to-end on the close-up `celebration-goal.mp4` fixture:
-> flag halo locks above the striker's head, GOAL banner tilts with his torso.
-> Tilt/roll clamped to ±20°/±18° to survive detection glitches. Live webcam
-> mode shares the same smoothing. Remaining: subject persistence across
-> multi-person frames (Phase 2 #8), occlusion, velocity FX, export baking.
+> **Status (Nov 2026): Phases 1 + 2 (partial) shipped.** Clip-based pose
+> tracking is live — "Track Player" mode in `ARWorkspace` analyzes the
+> selected clip in-browser (`PoseLandmarker.detectForVideo`, frame-stepped),
+> One-Euro-smooths trajectories, and drives overlays from body-frame anchors
+> rendered with real pack SVG art — no emoji. Verified end-to-end on the
+> close-up `celebration-goal.mp4` fixture: flag halo locks onto the scorer's
+> head, GOAL banner tilts with his torso, confetti sprays off the wrists
+> during the celebration scrum.
+>
+> **Phase 2 shipped:** multi-subject tracking (`numPoses: 3`, greedy
+> nearest-anchor assignment into persistent per-subject tracks, prominence
+> × coverage default selection), tap-a-dot subject switching, per-overlay
+> attach-point picker (auto/head/shoulder/hands/feet), and a canvas particle
+> layer (`src/lib/particles.ts`) where wrist/ankle speed drives emission and
+> celebration spikes fire radial bursts.
+>
+> **Phase 2 remaining:** occlusion via segmentation (#6) — deferred; it needs
+> per-frame masks composited behind the subject, which conflicts with the
+> DOM-overlay renderer and is better paired with the Phase 3 canvas/export
+> pipeline. **Phase 3 remaining:** trajectory baking into minted output,
+> face/hand landmarkers, optional server-side track preprocessing.
+> Live webcam mode shares the same One Euro smoothing.
 
 ## What "AR" means in MagicLens today
 

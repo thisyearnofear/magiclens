@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { LiveDemoView } from './LiveDemoView';
 import { EditorOverlay, InlineTextEditor, OverlayStyle } from './EditorOverlay';
-import { TrackedOverlayLayer } from './TrackedOverlayLayer';
+import { TrackedOverlayLayer, ANCHOR_OPTIONS, type AnchorId } from './TrackedOverlayLayer';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
@@ -90,7 +90,18 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   const [editingOverlayId, setEditingOverlayId] = useState<string | null>(null);
   const [mode, setMode] = useState<'preview' | 'live' | 'track'>('preview');
   const tracker = useClipPoseTracker(clipVideoUrl || null);
-  const { status: trackStatus, progress: trackProgress, error: trackError, poseAt, track: startTracking } = tracker;
+  const {
+    status: trackStatus,
+    progress: trackProgress,
+    error: trackError,
+    poseAt,
+    subjectsAt,
+    tracks,
+    selectedTrackId,
+    setSelectedTrackId,
+    track: startTracking,
+  } = tracker;
+  const [anchorOverrides, setAnchorOverrides] = useState<Record<string, AnchorId>>({});
   const trackVideoRef = React.useRef<HTMLVideoElement | null>(null);
 
   // Kick off clip pose analysis when Track mode is entered
@@ -696,8 +707,12 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                   <TrackedOverlayLayer
                     videoRef={trackVideoRef}
                     poseAt={poseAt}
+                    subjectsAt={subjectsAt}
+                    selectedSubjectId={selectedTrackId}
+                    onSelectSubject={setSelectedTrackId}
                     overlays={selected}
                     opacities={Object.fromEntries(selected.map(o => [o.id, styles[o.id]?.opacity ?? 1]))}
+                    anchors={anchorOverrides}
                   />
                 )}
 
@@ -727,6 +742,38 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                   </div>
                 )}
               </div>
+
+              {/* Subject + anchor controls */}
+              {trackStatus === 'ready' && selected.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  {tracks.length > 1 && (
+                    <span className="text-purple-300 bg-purple-500/10 border border-purple-500/20 rounded-full px-2.5 py-1">
+                      {tracks.length} players found — tap a dot to switch
+                    </span>
+                  )}
+                  {selected.map((o) => (
+                    <label
+                      key={o.id}
+                      className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-2.5 py-1 text-gray-300"
+                    >
+                      <span className="text-gray-500">{o.name.split(' ')[0]}</span>
+                      <select
+                        value={anchorOverrides[o.id] ?? 'auto'}
+                        onChange={(e) =>
+                          setAnchorOverrides((prev) => ({ ...prev, [o.id]: e.target.value as AnchorId }))
+                        }
+                        className="bg-transparent text-purple-300 font-medium outline-none cursor-pointer [&>option]:bg-gray-900"
+                      >
+                        {ANCHOR_OPTIONS.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <LiveDemoView
