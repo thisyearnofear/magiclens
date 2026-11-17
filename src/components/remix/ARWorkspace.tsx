@@ -15,6 +15,7 @@ import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
 import { exportRemixVideo } from '@/lib/remix-exporter';
+import { useReferrer } from '@/hooks/useReferrer';
 import { toast } from 'sonner';
 
 const DEFAULT_STYLES: Record<string, OverlayStyle> = {
@@ -115,6 +116,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   const [anchorOverrides, setAnchorOverrides] = useState<Record<string, AnchorId>>({});
   const [exportState, setExportState] = useState<'idle' | 'recording' | 'done' | 'error'>('idle');
   const replayMode: 'track' | 'static' = mode === 'track' ? 'track' : 'static';
+  const { referrerAddress } = useReferrer();
   const [exportProgress, setExportProgress] = useState(0);
   const trackVideoRef = React.useRef<HTMLVideoElement | null>(null);
 
@@ -132,6 +134,8 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
         opacities: Object.fromEntries(selected.map((o) => [o.id, styles[o.id]?.opacity ?? 1])),
         poseAt,
         onProgress: setExportProgress,
+        // Seeded creators (arrived via a ?ref= link) get clean exports — see docs/MONETIZATION.md
+        watermark: !referrerAddress,
       });
       const url = URL.createObjectURL(result.blob);
       const a = document.createElement('a');
@@ -151,7 +155,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
       });
       setTimeout(() => setExportState('idle'), 4000);
     }
-  }, [exportState, selected, anchorOverrides, styles, poseAt, trackVideoRef]);
+  }, [exportState, selected, anchorOverrides, styles, poseAt, trackVideoRef, referrerAddress]);
 
   // Kick off clip pose analysis when Track mode is entered
   React.useEffect(() => {

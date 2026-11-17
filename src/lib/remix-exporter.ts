@@ -17,6 +17,8 @@ export interface RemixExportOptions {
   onProgress?: (p: number) => void;
   /** cap export length (s) — matches the tracker */
   maxDuration?: number;
+  /** draw a small MagicLens mark bottom-right (default true — free-tier distribution) */
+  watermark?: boolean;
 }
 
 export interface RemixExportResult {
@@ -51,6 +53,34 @@ function loadImage(url: string): Promise<HTMLImageElement | null> {
   });
 }
 
+/** Subtle bottom-right brand mark — free-tier distribution, not a lock. */
+function drawWatermark(ctx: CanvasRenderingContext2D, W: number, H: number) {
+  const font = Math.max(10, Math.round(W * 0.016));
+  const pad = Math.round(W * 0.02);
+  const bolt = font * 0.9;
+  ctx.save();
+  ctx.globalAlpha = 0.45;
+  ctx.font = `bold ${font}px sans-serif`;
+  ctx.fillStyle = '#facc15';
+  // bolt glyph
+  const bx = W - pad - ctx.measureText('MAGICLENS').width - bolt * 1.6;
+  const by = H - pad - font;
+  ctx.beginPath();
+  ctx.moveTo(bx + bolt * 0.55, by);
+  ctx.lineTo(bx + bolt * 0.15, by + bolt * 0.55);
+  ctx.lineTo(bx + bolt * 0.42, by + bolt * 0.55);
+  ctx.lineTo(bx + bolt * 0.3, by + bolt);
+  ctx.lineTo(bx + bolt * 0.85, by + bolt * 0.42);
+  ctx.lineTo(bx + bolt * 0.55, by + bolt * 0.42);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('MAGICLENS', W - pad, H - pad);
+  ctx.restore();
+}
+
 function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, r);
@@ -66,6 +96,7 @@ function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: n
  */
 export async function exportRemixVideo(opts: RemixExportOptions): Promise<RemixExportResult> {
   const { video, overlays, anchors, texts, opacities, poseAt, onProgress } = opts;
+  const watermark = opts.watermark !== false;
   const maxDuration = opts.maxDuration ?? 30;
 
   const vw = video.videoWidth;
@@ -373,6 +404,8 @@ export async function exportRemixVideo(opts: RemixExportOptions): Promise<RemixE
         if (!xform.pos || alpha <= 0.02) continue;
         drawArt(ov, xform.pos.x * W, xform.pos.y * H, xform.scale, xform.rotDeg, alpha, wallT);
       }
+
+      if (watermark) drawWatermark(ctx, W, H);
 
       prevT = t;
       onProgress?.(t / end);

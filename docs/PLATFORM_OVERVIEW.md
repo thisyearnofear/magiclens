@@ -2,15 +2,15 @@
 
 This document provides an overview of MagicLens features, benefits, and strategic direction.
 
-> See also: [HACKATHON_STRATEGY.md](./HACKATHON_STRATEGY.md) for the OKX X Cup positioning and [ROADMAP.md](./ROADMAP.md) for the build plan.
+> See also: [ROADMAP.md](./ROADMAP.md) for the build plan, [MONETIZATION.md](./MONETIZATION.md) for the revenue strategy, and [archive/](./archive/) for completed event docs.
 
 ## 🎯 Platform Vision
 
-**MagicLens is the AR remix layer for live sports.** Every iconic moment becomes a mintable, remixable, ownable piece of fan culture. We launch with the **2026 FIFA World Cup** and roll out across Wimbledon, NBA Finals, Champions League, F1, and Olympics LA 2028.
+**MagicLens is the AR remix layer for live sports.** Every iconic moment becomes a mintable, remixable, ownable piece of fan culture — sport-agnostic by design (football today, basketball/fight/tennis packs on the roadmap).
 
 The platform combines pose-aware AR overlays, AI-powered overlay recommendations, and a **dual-chain (Flow + X Layer)** onchain economy so fans can capture, remix, mint, and earn from the sports moments they already share.
 
-**One-liner:** Prediction markets monetize *opinions* about sports. MagicLens monetizes the *content* — every fan edit becomes an onchain asset.
+**One-liner:** CapCut's monetization shape applied to sports fandom — fans create pose-tracked AR remixes, the crowd crowns one Iconic Moment a day, and every remix is an onchain asset.
 
 ## 🧱 Core Product Primitive: the Event
 
@@ -21,7 +21,7 @@ Each sports Event ships:
 - **Iconic Moments** (Cadence NFTs on Flow) — premium, curator-tier drops
 - **Sponsor slot** — broadcaster / federation / brand integration
 
-Launch Event: **FIFA World Cup 2026**.
+Events are pack + leaderboard-day units, not single-sport commitments — see [MONETIZATION.md](./MONETIZATION.md) for the expansion model.
 
 ## 💡 Key Features
 
@@ -86,7 +86,7 @@ Launch Event: **FIFA World Cup 2026**.
 **Solution:** One-click AR remix + onchain mint. Your edit is yours, ownable, tradeable, and eligible for event rewards.
 
 **Real Examples:**
-- **World Cup 2026:** Drop a country-flag halo + "GOAL!" lower-third on a 10-second goal clip → mint on X Layer → climb the daily leaderboard → earn USDT
+- **Match day:** Drop a country-flag halo + "GOAL!" lower-third on a 10-second goal clip → mint on X Layer → climb the daily leaderboard → earn USDT
 - **Wimbledon:** Add a "Match Point" overlay + crowd-roar sticker on an ace → top edits get auto-minted as Flow Iconic Moments
 - **NBA Finals:** Team-color halos + dunk FX → fastest viral remix wins the daily treasury
 
@@ -157,7 +157,7 @@ Launch Event: **FIFA World Cup 2026**.
 - Pose-compatible NFT assets command premium prices
 - Efficient workflows mean more projects completed
 
-## 🚀 Hackathon Status (OKX X Cup, May 2026)
+## 🚀 Current Status (Nov 2026 — TapeOut Accelerate)
 
 ### Production Ready Features
 - **Full Flow Integration**: 516 lines of production code (no more TODO stubs)
@@ -173,14 +173,12 @@ Launch Event: **FIFA World Cup 2026**.
 - **Logging Server** (Python/FastAPI) - Log aggregation and error reporting  
 - **Collaboration Server** (Node.js/Socket.IO) - Real-time WebSocket collaboration
 
-### Hackathon Deliverables (7-day sprint)
+### Shipped Deliverables
 - **X Layer Solidity contracts**: `WorldCupPack` (ERC-1155), `RemixNFT` (ERC-721), `FanCastRewards` (USDT/OKB)
 - **Cross-VM mint flow**: top-3 daily X Layer remixes auto-mint as Flow "Iconic Moment" NFTs
 - **OKX Wallet integration** via wagmi + FCL RainbowKit adapter — one connect button
-- **World Cup overlay pack** — 10–20 curated AR assets (32 country flag halos, "GOAL!" lower-thirds, trophy confetti, ref cards)
-- **2-min demo video** + daily @magiclensx social posts tagging @XLayerOfficial + @flow_blockchain
-
-See [HACKATHON_STRATEGY.md](./HACKATHON_STRATEGY.md) for the full plan.
+- **Match-day overlay pack** — pose-tracked AR assets (flag halos, "GOAL!" lower-thirds, trophy confetti, ref cards, ghost trail, stat cards)
+- **Pose-tracked AR remixing** — clip-based athlete tracking, multi-subject switching, velocity particles, video export, public replay (see [AR_EXPERIENCE_PLAN.md](./AR_EXPERIENCE_PLAN.md))
 
 ## 🗺️ Onchain Roadmap (Flow + X Layer)
 
@@ -189,7 +187,7 @@ See [HACKATHON_STRATEGY.md](./HACKATHON_STRATEGY.md) for the full plan.
 - ✅ Cadence contracts: `ARAssetNFT.cdc`, `CollaborationHub.cdc`, `ForteAutomation.cdc`
 - ✅ NFT minting for AR assets
 
-### Phase 2: X Layer Onchain Economy (Hackathon)
+### Phase 2: X Layer Onchain Economy (shipped — X Cup, May 2026)
 - 🚧 `WorldCupPack` ERC-1155 — curated AR overlay packs on X Layer
 - 🚧 `RemixNFT` ERC-721 — user-minted fan remixes on X Layer
 - 🚧 `FanCastRewards` — USDT/OKB rewards treasury on X Layer
