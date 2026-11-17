@@ -488,7 +488,9 @@ class CrossVMService:
             f"SELECT * FROM iconic_moments {where} ORDER BY day DESC, rank ASC",
             tuple(params) if params else None,
         )
-        return [self._row_to_dict(r) for r in (rows or [])]
+        moments = [self._row_to_dict(r) for r in (rows or [])]
+        self._attach_tapeout_verdicts(moments)
+        return moments
 
     async def get_iconic_moment(
         self, xlayer_token_id: int, day: int
@@ -500,8 +502,30 @@ class CrossVMService:
             (xlayer_token_id, day),
         )
         if rows:
-            return self._row_to_dict(rows[0])
+            moment = self._row_to_dict(rows[0])
+            self._attach_tapeout_verdicts([moment])
+            return moment
         return None
+
+    @staticmethod
+    def _attach_tapeout_verdicts(moments: List[dict]) -> None:
+        """Attach the latest TapeOut ICONIC-GATE verdict to each moment."""
+        try:
+            from core import tapeout
+            for m in moments:
+                v = tapeout.get_verification(m["day"], m["xlayer_token_id"])
+                if v:
+                    m["tapeout"] = {
+                        "circuit_id": v["circuit_id"],
+                        "processor": v["processor"],
+                        "inputs_hex": v["inputs_hex"],
+                        "output_hex": v["output_hex"],
+                        "promote": v["promote"],
+                        "score": v["score"],
+                        "verified": True,
+                    }
+        except Exception as e:
+            logger.warning(f"TapeOut verdict attach failed: {e}")
 
     def _row_to_dict(self, row: dict) -> dict:
         return {

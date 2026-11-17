@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { GiltPlayer } from '@/components/gilt/GiltPlayer';
+import { Badge } from '@/components/ui/badge';
 import { getIconicMoments } from '@/lib/crossvm-client';
 import { cn } from '@/lib/utils';
 
@@ -74,6 +75,20 @@ export function ScreeningRoomView() {
                 >
                   Flow NFT #{featured.flow_nft_id}
                   <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              {featured.tapeout?.verified && (
+                <a
+                  href={`https://www.oklink.com/xlayer/address/${featured.tapeout.processor}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-amber-300/90 hover:text-amber-200"
+                  title={`ICONIC-GATE circuit #${featured.tapeout.circuit_id} — ${featured.tapeout.promote ? 'promote ✓' : 'promote ✗'}, score ${featured.tapeout.score}/15`}
+                >
+                  <Badge variant="outline" className="border-amber-400/40 text-amber-300 px-1 py-0 text-[9px]">
+                    Si
+                  </Badge>
+                  {featured.tapeout.promote ? 'Cleared' : 'Audited'} by TapeOut #{featured.tapeout.circuit_id} · {featured.tapeout.score}/15
                 </a>
               )}
             </p>

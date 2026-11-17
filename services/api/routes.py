@@ -1716,6 +1716,20 @@ async def get_iconic_moments(day: Optional[int] = None, status: Optional[str] = 
         return {"success": False, "error": str(e), "iconic_moments": []}
 
 
+@app.get("/api/tapeout/status")
+async def tapeout_status():
+    """Public TapeOut integration status — the on-chain promotion judge."""
+    from core import tapeout
+    return {
+        "enabled": tapeout.TAPEOUT_ENABLED,
+        "processor": tapeout.TAPEOUT_PROCESSOR,
+        "circuit_id": tapeout.TAPEOUT_CIRCUIT_ID,
+        "circuit_name": "ICONIC-GATE",
+        "chain": "xlayer",
+        "chain_id": 196,
+    }
+
+
 @app.get("/api/crossvm/check/{day}/{token_id}")
 async def check_iconic_status(day: int, token_id: int):
     """Check if a specific X Layer remix has been promoted to Flow."""
@@ -1960,6 +1974,13 @@ DEMO_ENTRIES_TEMPLATE = [
 
 DUMMY_ADDRESS = "0xCAfEcAfeCAfECaFeCaFecaFecaFECafECafeCaFe"
 
+# Shared clip for demo Iconic Moments — the same Mux asset the Screening Room
+# uses as its house reel, so seeded premieres are actually playable.
+DEMO_MEDIA_URL = (
+    "https://stream.mux.com/"
+    "CeJ21NaY0040199ak00r01fJbsERZvOqzYlfWtETjrJP5RE.m3u8"
+)
+
 
 @app.post("/api/demo/seed")
 async def seed_demo_data():
@@ -1990,6 +2011,9 @@ async def seed_demo_data():
                 "xlayer_token_id": 1000 + e["rank"],
                 "xlayer_tx_hash": "0x" + format(e["rank"] * 12345, "064x"),
                 "xlayer_creator_address": DUMMY_ADDRESS,
+                # ICONIC-GATE requires MEDIA=1 for promotion — demo moments
+                # premiere the Mux house reel so the Screening Room plays them.
+                "media_url": DEMO_MEDIA_URL,
             })
 
         close_result = leaderboard_service.submit_day_results(day=day, entries=entries)

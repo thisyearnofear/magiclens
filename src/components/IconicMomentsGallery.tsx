@@ -145,6 +145,24 @@ function MomentCard({ moment }: { moment: CrossVMPromotion }) {
             </div>
           )}
 
+          {moment.tapeout?.verified && (
+            <div className="pt-2 border-t border-white/10">
+              <a
+                href={`https://www.oklink.com/xlayer/address/${moment.tapeout.processor}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-amber-300/90 hover:text-amber-200 flex items-center gap-1"
+                title={`ICONIC-GATE circuit #${moment.tapeout.circuit_id} on OrderGuard — ${moment.tapeout.promote ? 'promote ✓' : 'promote ✗'}, score ${moment.tapeout.score}/15, inputs ${moment.tapeout.inputs_hex}`}
+              >
+                <Badge variant="outline" className="border-amber-400/40 text-amber-300 text-[10px] px-1.5 py-0">
+                  Si
+                </Badge>
+                {moment.tapeout.promote ? 'Cleared' : 'Audited'} by TapeOut #{moment.tapeout.circuit_id} · {moment.tapeout.score}/15
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+
           {moment.status === 'minted' && (
             <div className="pt-2 border-t border-white/10 flex gap-2">
               <Link

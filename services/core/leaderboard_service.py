@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 
 from core.database import execute_query, execute_update, get_db_connection, return_db_connection
 from core.crossvm_service import crossvm_service, CrossVMMintRequest
+from core import tapeout
 
 logger = logging.getLogger(__name__)
 
@@ -183,6 +184,7 @@ class LeaderboardService:
         already_promoted = 0
         promoted_count = 0
         skipped_guests = 0
+        gate_rejected = 0
         errors = []
 
         for entry in entries:
@@ -212,6 +214,31 @@ class LeaderboardService:
                 continue
 
             try:
+                # ── TapeOut gate: ICONIC-GATE circuit on X Layer decides ──
+                # Guests were filtered above, so minted=1 here. The circuit
+                # also requires a playable clip and a nonzero vote bucket.
+                tapeout_verdict = None
+                if tapeout.TAPEOUT_ENABLED:
+                    verdict = tapeout.eval_iconic_gate(
+                        minted=1,
+                        media=1 if entry.get("media_url") else 0,
+                        rank=entry["rank"],
+                        votes=entry.get("votes") or 0,
+                    )
+                    if verdict is None:
+                        errors.append(
+                            f"Rank #{entry['rank']}: TapeOut eval unreachable"
+                        )
+                        continue
+                    tapeout_verdict = verdict
+                    if not verdict["promote"]:
+                        tapeout.record_verification(
+                            day, entry["rank"], entry["xlayer_token_id"],
+                            verdict, promoted=False,
+                        )
+                        gate_rejected += 1
+                        continue
+
                 request = CrossVMMintRequest(
                     xlayer_token_id=entry["xlayer_token_id"],
                     xlayer_tx_hash=entry["xlayer_tx_hash"],
@@ -224,6 +251,12 @@ class LeaderboardService:
                     media_url=entry.get("media_url"),
                 )
                 result = await crossvm_service.promote_to_iconic(request)
+                if tapeout_verdict is not None:
+                    tapeout.record_verification(
+                        day, entry["rank"], entry["xlayer_token_id"],
+                        tapeout_verdict,
+                        promoted=bool(result.get("flow_mint", {}).get("success")),
+                    )
                 if result.get("flow_mint", {}).get("success"):
                     promoted_count += 1
                 else:
@@ -246,6 +279,8 @@ class LeaderboardService:
             "promoted": promoted_count,
             "already_promoted": already_promoted,
             "skipped_guests": skipped_guests,
+            "gate_rejected": gate_rejected,
+            "tapeout_enabled": tapeout.TAPEOUT_ENABLED,
             "errors": errors,
         }
 

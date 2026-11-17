@@ -13,6 +13,18 @@ export interface CrossVMPromotion {
   promoted_by: string;
   /** Source clip URL for Screening Room premieres; null falls back to the house reel. */
   media_url?: string | null;
+  /** TapeOut ICONIC-GATE verdict — the on-chain circuit that approved promotion. */
+  tapeout?: {
+    circuit_id: number;
+    processor: string;
+    inputs_hex: string;
+    output_hex: string;
+    promote: number;
+    score: number;
+    /** True when the circuit approved promotion (1) or rejected it (0). */
+    promoted_by_circuit?: boolean;
+    verified: boolean;
+  } | null;
   status: 'pending' | 'minted' | 'failed';
   created_at: string;
   flow_mint?: {
