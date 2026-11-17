@@ -1,8 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { PoseLandmarker, FilesetResolver, type NormalizedLandmark } from '@mediapipe/tasks-vision';
-
-const WASM_BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.17/wasm';
-const MODEL_PATH = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task';
+import { PoseLandmarker, type NormalizedLandmark } from '@mediapipe/tasks-vision';
+import { loadPoseLandmarker } from '@/lib/pose-model';
+import { PoseSmoother } from '@/lib/one-euro';
 
 export interface PoseData {
   landmarks: NormalizedLandmark[];
@@ -26,6 +25,7 @@ export function usePoseLandmarker(): UsePoseLandmarkerReturn {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const landmarkerRef = useRef<PoseLandmarker | null>(null);
+  const smootherRef = useRef(new PoseSmoother());
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number>(0);
   const runningRef = useRef(false);
@@ -53,20 +53,10 @@ export function usePoseLandmarker(): UsePoseLandmarkerReturn {
       setStatus('loading-model');
       setError(null);
 
-      // 1. Load WASM runtime
-      const wasmFileset = await FilesetResolver.forVisionTasks(WASM_BASE);
-
-      // 2. Create pose landmarker
-      const landmarker = await PoseLandmarker.createFromOptions(wasmFileset, {
-        baseOptions: {
-          modelAssetPath: MODEL_PATH,
-          delegate: 'GPU',
-        },
-        runningMode: 'VIDEO',
-        minPoseDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5,
-      });
+      // 1. Load pose landmarker (shared WASM fileset)
+      const landmarker = await loadPoseLandmarker();
       landmarkerRef.current = landmarker;
+      smootherRef.current.reset();
 
       // 3. Start webcam
       setStatus('loading-camera');
@@ -91,13 +81,15 @@ export function usePoseLandmarker(): UsePoseLandmarkerReturn {
         const result = landmarkerRef.current.detectForVideo(videoRef.current, now);
 
         if (result.landmarks && result.landmarks.length > 0) {
+          // One Euro smoothing — raw landmarks jitter on every frame
+          const smoothed = smootherRef.current.smooth(result.landmarks[0], now);
           setCurrentPose({
-            landmarks: result.landmarks[0],
+            landmarks: smoothed,
             timestamp: now,
           });
 
           // Draw on canvas
-          drawPose(result.landmarks[0]);
+          drawPose(smoothed);
         } else {
           // Clear canvas when no pose detected
           clearCanvas();
@@ -145,7 +137,7 @@ export function usePoseLandmarker(): UsePoseLandmarkerReturn {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw landmarks
-    landmarks.forEach((lm, i) => {
+    landmarks.forEach((lm) => {
       const x = lm.x * canvas.width;
       const y = lm.y * canvas.height;
 

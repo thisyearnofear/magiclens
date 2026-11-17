@@ -1,0 +1,125 @@
+# MagicLens AR Experience — Honest Assessment & Best-in-Class Plan
+
+Research: Tavily (Nov 2026) — MediaPipe docs, Casiez CHI'12 One Euro paper,
+Snap Lens Studio body-attachment docs, MediaPipe Selfie Segmentation, sports
+broadcast AR (wTVision/Vizrt), CapCut velocity-edit breakdowns.
+
+> **Status (Nov 2026): Phase 1 shipped.** Clip-based pose tracking is live —
+> "Track Player" mode in `ARWorkspace` analyzes the selected clip in-browser
+> (`PoseLandmarker.detectForVideo`, frame-stepped), One-Euro-smooths the
+> trajectory, and drives overlays from body-frame anchors (head/shoulder
+> scale, tilt, visibility fades) rendered with real pack SVG art — no emoji.
+> Verified end-to-end on the close-up `celebration-goal.mp4` fixture:
+> flag halo locks above the striker's head, GOAL banner tilts with his torso.
+> Tilt/roll clamped to ±20°/±18° to survive detection glitches. Live webcam
+> mode shares the same smoothing. Remaining: subject persistence across
+> multi-person frames (Phase 2 #8), occlusion, velocity FX, export baking.
+
+## What "AR" means in MagicLens today
+
+Three disconnected pieces:
+
+| Piece | What it does | The gap |
+|-------|--------------|---------|
+| `LiveDemoView` (webcam) | MediaPipe lite → raw landmarks → 4 emoji overlays pinned to nose/shoulders/wrists | **Demo, not product.** Tracks the *viewer*, not the clip's athletes |
+| `ARWorkspace` (editor) | Static DOM sticker drag/drop on the video preview | No temporal behavior — overlays can't follow motion |
+| Backend `computer_vision.py` | Real MediaPipe pose extraction per clip (7 upper-body landmarks, cached) | Used only for **safe-zone suggestions** and pose similarity — no per-frame trajectory reaches the output |
+
+**The promised experience doesn't exist end-to-end:** an overlay that tracks a
+celebrating athlete through the clip. Pose data is extracted per frame, but no
+per-frame trajectory ever drives overlay placement in the rendered remix. The
+minted output is just static `styles` — whatever x/y the sticker had at export
+time (or the last webcam pose frame in live mode, which is worse).
+
+## Specific deficiencies vs. best-in-class
+
+1. **No smoothing.** Raw landmarks → CSS `left/top` every rAF frame = jitter city.
+   The standard is the **One Euro filter** (Casiez, CHI 2012): a velocity-adaptive
+   low-pass — smooth when still, responsive when moving. ~50 lines, zero deps.
+   Every production lens does velocity-adaptive smoothing.
+2. **Absolute pixel anchoring.** `head.x - 56` hardcoded offsets on a fixed
+   640×480 canvas — breaks on any other size/aspect. Snap's body-attachment model
+   derives the full transform from the **body frame**: shoulder width → scale,
+   shoulder line tilt → rotation, normalized coords → any canvas size.
+3. **Emoji art in "AR" mode.** Live mode renders `🏆` circles and a CSS "GOAL!"
+   banner while the actual pack SVGs go unused — quality drops exactly when the
+   feature is supposed to impress.
+4. **Skeleton debug always on.** Yellow dots + blue bones read as dev tooling.
+   Best-in-class shows a clean tracked result; skeleton is an opt-in debug layer.
+5. **No occlusion.** Overlays always paint on top. MediaPipe Selfie Segmentation
+   (or `outputSegmentationMasks` on PoseLandmarker) gives a person mask — the
+   signature "effect wraps behind the athlete" moment.
+6. **No velocity-reactive FX.** CapCut edits live on velocity/shake/blur. Wrist
+   speed should drive particle emission and trail length — currently two pulsing
+   dots regardless of motion.
+7. **No tracking persistence.** The live demo evaporates; nothing tracked reaches
+   the minted remix.
+
+## The big unlock — track the clip, not just the webcam
+
+`PoseLandmarker.detectForVideo` accepts **any** `<video>` element. The same lite
+model we already load can run over the uploaded clip itself, in-browser, at edit
+time:
+
+```
+clip video element → detectForVideo per frame → {landmarks, t} per frame
+  → per-landmark trajectory → One-Euro smooth → attach overlays to trajectory
+  → RemixPreview scrubs/plays with overlays following the athlete
+```
+
+For 8–15s highlight clips this is a few hundred frames — a second or two of
+processing, all client-side, no backend change. **This converts MagicLens from
+"sticker editor + webcam demo" into actual pose-aware remixing.**
+
+## Implementation plan (priority order)
+
+### Phase 1 — make tracking feel real (frontend only)
+
+1. **`useSmoothedPose`** — One Euro filter per landmark
+   (`minCutoff ~1.0`, `beta ~0.007`, `dCutoff 1.0` as starting tune, in
+   `src/hooks/`). Apply in both live mode and clip tracking.
+2. **Clip tracking mode** — `useClipPoseTracker(clipVideoUrl)`: load video
+   element offscreen, `detectForVideo` frame-stepped (match clip fps, cap ~10s),
+   produce `Map<landmark, Array<{x,y,t,vis}>>` + progress UI.
+3. **Body-frame transforms** — replace absolute offsets with:
+   `scale = shoulderDist / baseline`, `rotation = atan2(shoulderΔy, shoulderΔx)`,
+   head anchor = midpoints of eyes/ears, not raw nose.
+4. **Use pack SVG art** in tracked mode (the `match-day` thumbs already exist) —
+   kill the emoji circles.
+5. **Visibility-gated fade** — opacity follows landmark `visibility`; overlays
+   dissolve when the athlete leaves frame instead of freezing mid-air.
+
+### Phase 2 — the "wow" layer
+
+6. **Occlusion via segmentation** — `outputSegmentationMasks: true` on
+   PoseLandmarker (or Selfie Segmentation on clip frames); canvas-composite
+   overlay layers so art can sit *behind* the subject's silhouette.
+7. **Velocity-reactive particles** — wrist/ankle speed → emission rate, trail
+   length, shake amplitude. Canvas particle layer (reuse `ParticleBurst`
+   concepts, not DOM).
+8. **Multi-subject pick** — detect `numPoses: 2+`, "tap the player to track"
+   (nearest-click assignment), per-subject trajectories.
+9. **Attach-point picker** — tap a body part to re-anchor an overlay; visual
+   joint map instead of the debug skeleton.
+
+### Phase 3 — export + richer landmarks
+
+10. **Bake trajectory into output** — the tracked path must reach the rendered
+    remix (extend `styles` → per-frame keyframes at render, or canvas-recorded
+    composite). Without this, tracking stays a preview toy.
+11. **Face + hand landmarkers** — FaceLandmarker (478 pts) for celebration-face
+    triggers, HandLandmarker (21 pts) for held props. Same `FilesetResolver`,
+    lazily loaded.
+12. **Backend option** — `computer_vision.py` already extracts per-frame pose on
+    clips; extend to per-subject trajectories (add ankles/knees, subject IDs) so
+    placement is precomputed once server-side and the client just scrubs.
+
+## Sources
+
+- One Euro filter — Casiez et al., CHI 2012 (`gery.casiez.net/publications/CHI2012-casiez.pdf`)
+- MediaPipe Holistic / landmarkers — `developers.google.com/edge/mediapipe/solutions/vision/holistic_landmarker`
+- `detectForVideo` on file video — MediaPipe JS render-loop pattern (webai.show/models/pose-landmarker)
+- Snap Lens Studio — `developers.snap.com/lens-studio` body/hand tracking templates (18-point attachment, match-hierarchy rigs)
+- MediaPipe Selfie Segmentation — person mask for occlusion/background effects
+- Broadcast AR anchoring — SVG/FEED on wTVision + Vizrt (field-anchored vs player-anchored graphics)
+- Velocity-edit aesthetic — CapCut velocity/shake/directional-blur breakdowns

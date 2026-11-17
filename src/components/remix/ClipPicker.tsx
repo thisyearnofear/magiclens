@@ -17,9 +17,9 @@ const DEMO_CLIPS: { id: string; title: string; description: string; icon: React.
   {
     id: 'demo-goal',
     title: 'Match-winning Goal',
-    description: 'Last-minute goal celebration — great for confetti + flag halos',
+    description: 'Close-up goal action — ideal for pose-tracked flag halos + GOAL banner',
     icon: <Flag className="h-10 w-10 text-green-400" />,
-    videoUrl: '/clips/demo1.mp4',
+    videoUrl: '/clips/celebration-goal.mp4',
   },
   {
     id: 'demo-trophy',

@@ -6,12 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import {
   Flag, Sparkles, Image, MessageCircle, AlertTriangle,
   Check, Eye, Trophy, ChevronRight, Undo2, Redo2, Sun,
-  Maximize2, Minimize
+  Maximize2, Minimize, Crosshair, Loader2
 } from 'lucide-react';
 import { LiveDemoView } from './LiveDemoView';
 import { EditorOverlay, InlineTextEditor, OverlayStyle } from './EditorOverlay';
+import { TrackedOverlayLayer } from './TrackedOverlayLayer';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 import { useFullscreen } from '@/hooks/use-fullscreen';
+import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
 
 const DEFAULT_STYLES: Record<string, OverlayStyle> = {
   'flag-halos': { x: 240, y: 120, scale: 1, rotation: 0, opacity: 1 },
@@ -86,7 +88,15 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   const [styles, setStyles] = useState<Record<string, OverlayStyle>>({});
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
   const [editingOverlayId, setEditingOverlayId] = useState<string | null>(null);
-  const [mode, setMode] = useState<'preview' | 'live'>('preview');
+  const [mode, setMode] = useState<'preview' | 'live' | 'track'>('preview');
+  const tracker = useClipPoseTracker(clipVideoUrl || null);
+  const { status: trackStatus, progress: trackProgress, error: trackError, poseAt, track: startTracking } = tracker;
+  const trackVideoRef = React.useRef<HTMLVideoElement | null>(null);
+
+  // Kick off clip pose analysis when Track mode is entered
+  React.useEffect(() => {
+    if (mode === 'track' && trackStatus === 'idle') startTracking();
+  }, [mode, trackStatus, startTracking]);
 
   // Bridge pose tracking → editor styles when in Live Demo mode
   const handlePoseUpdate = useCallback(
@@ -287,6 +297,16 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
               >
                 <span className={`w-2 h-2 rounded-full ${mode === 'live' ? 'bg-green-400 animate-pulse' : 'bg-gray-600'}`} />
                 Live Demo
+              </button>
+              <button
+                onClick={() => setMode('track')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 relative ${
+                  mode === 'track' ? 'bg-purple-500/20 text-purple-300 shadow-sm ring-1 ring-purple-500/30' : 'text-gray-300 hover:text-gray-300'
+                }`}
+                title="Overlays follow the player through the clip"
+              >
+                <Crosshair className={`h-3 w-3 ${mode === 'track' ? 'text-purple-400' : 'text-gray-600'}`} />
+                Track Player
               </button>
               {/* Fullscreen toggle */}
               <button
@@ -606,6 +626,108 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 />
               )}
             </motion.div>
+          ) : mode === 'track' ? (
+            <div className="space-y-3">
+              {/* Track status bar */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {trackStatus === 'ready' ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                      <span className="text-sm font-medium text-purple-300">Pose tracking active — overlays follow the player</span>
+                    </>
+                  ) : trackStatus === 'tracking' || trackStatus === 'loading' ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-purple-300" />
+                      <span className="text-sm font-medium text-purple-300">
+                        {trackStatus === 'loading' ? 'Loading pose model...' : `Analyzing poses… ${Math.round(trackProgress * 100)}%`}
+                      </span>
+                    </>
+                  ) : trackStatus === 'error' ? (
+                    <>
+                      <AlertTriangle className="h-4 w-4 text-red-400" />
+                      <span className="text-sm font-medium text-red-300">{trackError}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Crosshair className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm font-medium text-gray-400">Track a player in this clip</span>
+                    </>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  {trackStatus === 'error' && (
+                    <Button onClick={startTracking} size="sm" className="bg-yellow-400 text-black hover:bg-yellow-500">
+                      Retry
+                    </Button>
+                  )}
+                  {trackStatus === 'ready' && (
+                    <Button onClick={startTracking} size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                      Re-analyze
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Analysis progress */}
+              {trackStatus === 'tracking' && (
+                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-purple-500 to-fuchsia-400"
+                    animate={{ width: `${trackProgress * 100}%` }}
+                    transition={{ ease: 'easeOut', duration: 0.3 }}
+                  />
+                </div>
+              )}
+
+              <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-purple-500/20">
+                {clipVideoUrl ? (
+                  <video
+                    ref={trackVideoRef}
+                    src={clipVideoUrl}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    muted loop playsInline autoPlay controls={trackStatus === 'ready'}
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-green-900/20 to-green-900/40" />
+                )}
+
+                {trackStatus === 'ready' && selected.length > 0 && (
+                  <TrackedOverlayLayer
+                    videoRef={trackVideoRef}
+                    poseAt={poseAt}
+                    overlays={selected}
+                    opacities={Object.fromEntries(selected.map(o => [o.id, styles[o.id]?.opacity ?? 1]))}
+                  />
+                )}
+
+                {/* Empty state */}
+                {trackStatus === 'ready' && selected.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+                    <p className="text-gray-300 text-sm">Select an overlay — it will follow the player</p>
+                  </div>
+                )}
+
+                {/* Loading overlay */}
+                {(trackStatus === 'loading' || trackStatus === 'tracking') && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+                    <div className="text-center">
+                      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}>
+                        <Crosshair className="h-10 w-10 text-purple-400 mx-auto mb-3" />
+                      </motion.div>
+                      <p className="text-white text-sm font-medium">
+                        {trackStatus === 'loading' ? 'Loading Pose AI...' : 'Tracking player...'}
+                      </p>
+                      <p className="text-gray-400 text-xs mt-1 max-w-[260px]">
+                        {trackStatus === 'loading'
+                          ? 'Downloading MediaPipe model (one-time)'
+                          : 'Scanning each frame for pose landmarks — overlays will lock on'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           ) : (
             <LiveDemoView
               selectedOverlayIds={selected.map(s => s.id)}
