@@ -77,3 +77,12 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
    - `MintIconicMoment.cdc` uses 3 params (no mediaURI)
    - `crossvm_service.py` sends 3 args (no media_uri)
    - New `GET /api/metadata/IconicMoment/{token_id}` endpoint on backend
+
+## Positioning & Landscape (Nov 2026 research)
+
+- **Rating:** Skins Challenge entry 8/10 (live URL, integrated premieres); product overall 7.5/10 (needs real users, mainnet).
+- **Landscape:** speculation died, free-to-play won (Sorare Arcade: 1M+ users/18mo, +85% revenue H1 2026; Top Shot -95%, Chiliz -96%). Mint infra commoditized (Zora/Manifold/Highlight) — we are the experience layer, not infra.
+- **Wedge vs Top Shot (also on Flow):** they sell top-down licensed packs; we crown bottom-up fan remixes daily. Line: "Top Shot sells you the moment. MagicLens lets you make it."
+- **Rights rule:** UGC remixes of your own clips only — never imply licensed league footage (Top Shot buyers get a personal licence, not footage).
+- **Positioning statement:** "MagicLens — the free-to-play AR remix battle for live sports. Fans create, the crowd crowns one Iconic Moment a day, premiered in the Screening Room, minted free on X Layer and elevated to Flow."
+- **Next window:** X Cup + Hook x World Cup are over; TapeOut Accelerate live until Dec 7, 2026 (+ continuous Super Nova track).

@@ -4,7 +4,7 @@ import { useAuthContext } from '@/auth/AuthProvider';
 import { ConnectWallet } from '@/components/ConnectWallet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, X, Zap, Play, Pause, TrendingUp, Trophy, Medal, ArrowRight } from 'lucide-react';
+import { Check, Zap, Play, Pause, TrendingUp, Trophy, Medal, ArrowRight } from 'lucide-react';
 import { StatsBar } from '@/components/StatsBar';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
 import { ScrollRevealSection } from '@/components/ScrollRevealSection';
@@ -120,9 +120,20 @@ export default function LandingPage() {
           <FerroSoundToggle />
         </div>
         <p className="text-lg sm:text-xl text-gray-300 mb-3 max-w-2xl mx-auto">
-          Drop pose-aware AR overlays on match clips. Mint as NFTs on X Layer. Earn daily rewards. Top remixes become Flow Iconic Moments.
+          Remix your clips with pose-aware AR overlays. The crowd crowns one Iconic Moment a day — premiered in the Screening Room, minted free on X Layer, elevated to Flow.
         </p>
-        <p className="text-sm text-green-300 mb-10">Free to play. No wallet needed. Mint only if you win.</p>
+        <p className="text-sm text-green-300 mb-6">Free to play. No wallet needed. Mint only if you win.</p>
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-10 text-[11px]">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-gray-200">
+            <Zap className="h-3 w-3 text-green-400" /> Free to play — no wallet to start
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-gray-200">
+            <Trophy className="h-3 w-3 text-yellow-400" /> You make the moment — no packs to buy
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-gray-200">
+            <Play className="h-3 w-3 text-blue-400" /> Daily winners premiere in the Screening Room
+          </span>
+        </div>
         {inviter && (
           <div className="mx-auto mb-6 flex max-w-md items-center justify-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-xs text-yellow-200">
             <span aria-hidden="true">🎟️</span>
@@ -219,9 +230,9 @@ export default function LandingPage() {
             <div>
               <h5 className="text-lg font-semibold text-gray-300 mb-3">Guest Mode</h5>
               <ul className="text-gray-300 text-left space-y-2">
-                <li className="flex items-start"><X className="h-4 w-4 text-red-400 mt-1 mr-2 flex-shrink-0" />No minting or rewards</li>
-                <li className="flex items-start"><X className="h-4 w-4 text-red-400 mt-1 mr-2 flex-shrink-0" />No onchain ownership</li>
-                <li className="flex items-start"><Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />Browse and explore</li>
+                <li className="flex items-start"><Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />Save remix entries free, no wallet</li>
+                <li className="flex items-start"><Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />Earn referral rewards</li>
+                <li className="flex items-start"><Check className="h-4 w-4 text-green-400 mt-1 mr-2 flex-shrink-0" />Claim onchain when you connect</li>
               </ul>
             </div>
           </div>
@@ -260,6 +271,7 @@ export default function LandingPage() {
           <p className="text-sm">
             Built for the <a href="https://web3.okx.com/xlayer/build-x-hackathon/xcup" target="_blank" rel="noopener noreferrer" className="text-yellow-400 hover:underline">OKX X Cup</a> on X Layer + Flow
           </p>
+          <p className="text-xs text-gray-500">Remix your own clips — league footage rights belong to their owners.</p>
         </div>
       </footer>
       </div>
