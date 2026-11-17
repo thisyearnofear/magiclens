@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Archive, Clapperboard, ExternalLink, Trophy } from 'lucide-react';
 import Link from 'next/link';
 
-import { Badge } from '@/components/ui/badge';
+import { TapeoutBadge } from '@/components/gilt/TapeoutBadge';
 import type { CrossVMPromotion } from '@/types/crossvm';
 import { cn } from '@/lib/utils';
 
@@ -115,20 +115,7 @@ export function ScreeningRoomArchive({ moments }: { moments: CrossVMPromotion[] 
                         FlowScan <ExternalLink className="h-3 w-3" />
                       </a>
                     )}
-                    {m.tapeout?.verified && (
-                      <a
-                        href={`https://www.oklink.com/xlayer/address/${m.tapeout.processor}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-amber-300/90 hover:text-amber-200"
-                        title={`ICONIC-GATE #${m.tapeout.circuit_id} — ${m.tapeout.promote ? 'promote ✓' : 'promote ✗'}, score ${m.tapeout.score}/15, inputs ${m.tapeout.inputs_hex}`}
-                      >
-                        <Badge variant="outline" className="border-amber-400/40 px-1 py-0 text-[9px] text-amber-300">
-                          Si
-                        </Badge>
-                        {m.tapeout.promote ? 'Cleared' : 'Audited'} · {m.tapeout.score}/15
-                      </a>
-                    )}
+                    {m.tapeout?.verified && <TapeoutBadge tapeout={m.tapeout} compact />}
                   </div>
                   <div className="mt-3 flex gap-2">
                     {m.status === 'minted' && m.media_url ? (
