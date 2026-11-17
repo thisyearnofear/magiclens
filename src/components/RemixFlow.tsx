@@ -101,7 +101,7 @@ function RemixWorkflowRail({
   const items = [
     { label: 'Choose moment', value: clipTitle || 'No clip selected', icon: Wand2 },
     { label: 'Apply AR layer', value: overlayCount > 0 ? `${overlayCount} overlay${overlayCount > 1 ? 's' : ''}` : 'Pick overlays', icon: Sparkles },
-    { label: 'Mint remix', value: mintStage === 'complete' ? 'Minted' : mintStage === 'idle' ? 'Ready after preview' : 'In progress', icon: Zap },
+    { label: 'Share remix', value: mintStage === 'complete' ? 'Minted' : mintStage === 'idle' ? 'Export or mint' : 'In progress', icon: Zap },
     { label: 'Compete', value: 'Leaderboard next', icon: Trophy },
   ];
 

@@ -356,15 +356,6 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 <span>🎬</span> Editor
               </button>
               <button
-                onClick={() => setMode('live')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 relative ${
-                  mode === 'live' ? 'bg-green-500/20 text-green-300 shadow-sm ring-1 ring-green-500/30' : 'text-gray-300 hover:text-gray-300'
-                }`}
-              >
-                <span className={`w-2 h-2 rounded-full ${mode === 'live' ? 'bg-green-400 animate-pulse' : 'bg-gray-600'}`} />
-                Webcam
-              </button>
-              <button
                 onClick={() => setMode('track')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 relative ${
                   mode === 'track' ? 'bg-purple-500/20 text-purple-300 shadow-sm ring-1 ring-purple-500/30' : 'text-gray-300 hover:text-gray-300'
@@ -383,6 +374,16 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
               </button>
             </div>
+
+            {/* Webcam mode — secondary affordance, not equal tab billing */}
+            <button
+              onClick={() => setMode(mode === 'live' ? 'preview' : 'live')}
+              className={`text-[11px] transition-colors ${
+                mode === 'live' ? 'text-green-300' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              {mode === 'live' ? '← Exit webcam' : 'Try on webcam →'}
+            </button>
 
             {/* Opacity slider for selected overlay */}
             {selectedOverlayId && selectedStyle && (
