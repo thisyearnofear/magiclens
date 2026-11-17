@@ -362,7 +362,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 }`}
               >
                 <span className={`w-2 h-2 rounded-full ${mode === 'live' ? 'bg-green-400 animate-pulse' : 'bg-gray-600'}`} />
-                Live Demo
+                Webcam
               </button>
               <button
                 onClick={() => setMode('track')}
@@ -850,9 +850,18 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 )}
 
                 {/* Empty state */}
-                {trackStatus === 'ready' && selected.length === 0 && (
+                {trackStatus === 'ready' && selected.length === 0 && tracks.length > 0 && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
-                    <p className="text-gray-300 text-sm">Select an overlay — it will follow the player</p>
+                    <p className="text-gray-300 text-sm">
+                      {tracks.length > 1
+                        ? `${tracks.length} players found — select an overlay, it locks onto one`
+                        : 'Select an overlay — it will follow the player'}
+                    </p>
+                  </div>
+                )}
+                {trackStatus === 'ready' && tracks.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+                    <p className="text-gray-300 text-sm">No player detected — switch to Editor to place overlays manually</p>
                   </div>
                 )}
 
