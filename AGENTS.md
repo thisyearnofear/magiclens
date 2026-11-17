@@ -24,7 +24,8 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
 - **Python venv**: `/opt/magiclens/venv/` (Python 3.12, shared across releases)
 - **PM2 process**: `magiclens-api` (uvicorn, 4 workers, port 8100)
 - **Flow CLI**: `/home/linuxuser/.local/bin/flow` (installed via install script)
-- **Redis**: `redis://localhost:6379/0` (runs via Coolify's Redis container)
+- **Redis**: `redis://localhost:6379/0` via dedicated `magiclens-redis` container (`-p 127.0.0.1:6379:6379`, unless-stopped). Do NOT rely on `coolify-redis` — it publishes no host port. If render-dequeue 111s appear, check the container is up.
+- **Deploy gotcha (Nov 2026):** the wheel only installs declared deps — `core/computer_vision.py` imports `mediapipe`, now pinned in `services/pyproject.toml`. Any new third-party import must be added there or prod crash-loops.
 - **DB**: Neon Postgres (external, connection string in `.env`)
 - **TLS/proxy**: Coolify Traefik routes `magiclens.thisyearnofear.com` → `host.docker.internal:8200` (dynamic config at `/data/coolify/proxy/dynamic/magiclens.yaml`)
 - **UFW**: Docker subnet `10.0.0.0/8` allowed to port 8200
