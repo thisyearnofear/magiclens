@@ -174,7 +174,8 @@ Events are pack + leaderboard-day units, not single-sport commitments — see [M
 - **Collaboration Server** (Node.js/Socket.IO) - Real-time WebSocket collaboration
 
 ### Shipped Deliverables
-- **X Layer Solidity contracts**: `WorldCupPack` (ERC-1155), `RemixNFT` (ERC-721), `FanCastRewards` (USDT/OKB)
+- **X Layer Solidity contracts**: `WorldCupPack` (ERC-1155), `RemixNFT` (ERC-721), `FanCastRewards` (USDT/OKB), `CreatorPass` (priced ERC-1155 Pro pass, 0.01 OKB — watermark-free exports + 60s clips)
+- **ICONIC-GATE (TapeOut circuit #20)**: 46-gate NAND circuit on X Layer mainnet 196 gates Flow promotion — `process_day()` fails closed on rejection; verdicts shown in Screening Room + browser-verifiable via `eth_call` ([TAPEOUT_SUBMISSION.md](./TAPEOUT_SUBMISSION.md))
 - **Cross-VM mint flow**: top-3 daily X Layer remixes auto-mint as Flow "Iconic Moment" NFTs
 - **OKX Wallet integration** via wagmi + FCL RainbowKit adapter — one connect button
 - **Match-day overlay pack** — pose-tracked AR assets (flag halos, "GOAL!" lower-thirds, trophy confetti, ref cards, ghost trail, stat cards)

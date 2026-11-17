@@ -76,18 +76,25 @@ the same trust model as a smart contract, but for off-chain media judgment.
 
 ## Revenue model
 
-- **Flow Iconic Moments** — premium minted NFTs (primary sale + royalties).
-- **Creator tools** — pose-aware AR remix overlays, premium templates.
+- **CreatorPass** — priced ERC-1155 Pro pass (0.01 OKB, X Layer) live in
+  product today: watermark-free exports + 60s clip cap. Testnet now;
+  `deploy-mainnet.ts` ready for chain 196. See `docs/MONETIZATION.md`.
+- **Premium overlay packs** — priced-mint pattern identical to
+  CreatorPass; ships when pack envy exists.
+- **Flow Iconic Moments** — currently free auto-promotion by design;
+  monetization options documented in `docs/MONETIZATION.md` (no
+  pay-to-win).
 - **TapeOut flywheel** — MagicLens is a reference consumer of `eval()`;
   other builders adopting the same pattern grow the TapeOut ecosystem.
 
 ## Why users pay and keep using it
 
-Paying for an Iconic Moment buys *verified iconic status*: the circuit's
-score is permanent, public, and re-checkable — a provenance layer no
-server-side leaderboard can offer. Creators keep remixing because each daily
-cycle is a fresh shot at a silicon-cleared premiere; the archive compounds
-as a permanent record of who the circuit crowned.
+Creators pay for **CreatorPass** to ship cleaner, longer work — the video
+file is the prize, and Pro removes the watermark and doubles the clip cap.
+The retention loop is free: each daily cycle is a fresh shot at a
+silicon-cleared premiere, and the circuit's verdict is permanent, public,
+and re-checkable — provenance no server-side leaderboard can offer. The
+archive compounds as a permanent record of who the circuit crowned.
 
 ## Substantial new development during the event
 
@@ -102,33 +109,35 @@ as a permanent record of who the circuit crowned.
   `/api/tapeout/status`) and three new UI surfaces: badges, live browser
   `eval` verification, Screening Room Marathon/Archive modes.
 - Backfilled verdicts for all pre-gate moments.
+- Rebuilt the AR layer end-to-end: clip pose tracking (MediaPipe + One
+  Euro smoothing), multi-subject tracks with tap-to-switch, body-relative
+  anchors, velocity-reactive particles — on desktop AND mobile.
+- Canvas-composited video export (`captureStream` + `MediaRecorder`) with
+  a free-tier watermark; public replay (`/remix/[txHash]`) renders the
+  actual tracked AR state, not placeholders.
+- CreatorPass: priced ERC-1155 Pro pass (0.01 OKB) with on-chain
+  entitlement gating export perks.
+- `scripts/export_deweb_archive.py` — DeWEB archive generator (14 days,
+  SHA-256 manifest) + `tapeout/container/index.html` circuit spec page.
 
 ## Demo video outline (≤3 min)
 
-1. **Hook (0:00–0:20)** — "Who decides what's iconic? A NAND circuit."
-   Show ICONIC-GATE netlist + tapeout tx on the explorer.
-2. **The gate (0:20–1:00)** — leaderboard day closes → backend calls
-   `eval(20, inputs)` on X Layer → journal entry written.
-3. **The premiere (1:00–1:40)** — cleared moments mint on Flow, appear in
-   the Screening Room with "Cleared by TapeOut #20 · score 9/15."
-4. **The audit (1:40–2:20)** — click **Verify**: live `eth_call` re-runs the
-   circuit in-browser, output matches. Open Archive: legacy moments show
-   `promote=0` — the circuit audits history too.
-5. **The loop (2:20–3:00)** — Marathon mode plays the channel; CTA to
-   create a remix. End card: processor + circuit addresses.
+Full shot list: **`docs/DEMO_VIDEO_SCRIPT.md`** (2:35, mobile-first).
+Product-led cold open on the exported .webm → live create loop →
+Screening Room "Cleared by TapeOut #20" → live `eth_call` re-verify on
+camera → DeWEB archive + container spec page → CreatorPass revenue beat.
 
-## Container receipts (ERC-6551 + tape://) — planned
+## Container receipts (ERC-6551 + tape://)
+
+**v1 spec page built:** `tapeout/container/index.html` — a self-contained
+"I am ICONIC-GATE" page (deployment table, gating scope, live-verify
+links) ready for upload to circuit #20's container via HashPort, or
+bundled into the DeWEB archive site as fallback.
 
 TapeOut containers are token-bound accounts (ERC-6551) attached to each
 circuit NFT. They can hold assets, receive TapeSend messages, and host
 permanent `tape://` websites — content stored inside the account contract on
 X Layer, independent of our hosting.
-
-**v1 (submission):** circuit #20's own container hosts a permanent spec page
-— "I am ICONIC-GATE, 46 NAND gates, taped out by MagicLens" — with the
-tapeout tx, processor address, and truth table. The judge artifact gets its
-own on-chain home; if magiclens.vercel.app disappears, the circuit's page
-doesn't.
 
 **v2 (post-submission, designed now):** every Iconic Moment gets its own
 container-bound receipt — "Moment X cleared by circuit #20, inputs `0x4b02`,
@@ -149,7 +158,16 @@ Implementation notes:
 
 ## Open items before submitting
 
-- ⟦ Record the ≤3-min demo video ⟧
-- ⟦ Deploy circuit #20's container spec page (v1 above) — optional but
-      recommended ecosystem flex ⟧
-- ⟦ Submit via the TapeOut portal with this doc ⟧
+Tracked in `docs/TAPEOUT_PLAN.md` (Phase B = wallet steps):
+
+- ⟦ Fund mainnet deployer `0xc8d8EbCB…F7A5` on chain 196 → run
+      `deploy-mainnet.ts` → wire prod env to mainnet ⟧
+- ⟦ `id.tapeout.link` container; upload DeWEB archive via HashPort;
+      bind `tape://` name ⟧
+- ⟦ Deploy circuit #20's container spec page (built) ⟧
+- ⟦ Register on the hackathon voting page ⟧
+- ⟦ Record the ≤3-min demo video per `docs/DEMO_VIDEO_SCRIPT.md` ⟧
+- ⟦ First mainnet CreatorPass purchase (dogfood + vote eligibility) ⟧
+- ⟦ Seed 10–20 creators via `?ref=` links; collect real mint/vote
+      metrics for the form ⟧
+- ⟦ Submit via the TapeOut portal — target Dec 4, deadline Dec 7 23:59 UTC ⟧
