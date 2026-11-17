@@ -606,7 +606,7 @@ export default function Leaderboard() {
                             {showPromote && (
                               <>
                                 {iconic ? (
-                                  <Badge className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-300 text-[10px] border border-blue-400/30">
+                                  <Badge className="bg-blue-500/20 text-blue-300 text-[10px] border border-blue-400/30">
                                     <Sparkles className="h-3 w-3 mr-0.5" /> Minted on Flow
                                   </Badge>
                                 ) : (
@@ -693,7 +693,7 @@ export default function Leaderboard() {
 
                       <div className="w-28 text-right shrink-0">
                         {iconic ? (
-                          <Badge className="bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-blue-300 text-[10px] border border-blue-400/30">
+                          <Badge className="bg-blue-500/20 text-blue-300 text-[10px] border border-blue-400/30">
                             <Sparkles className="h-3 w-3 mr-0.5" />
                             Minted
                           </Badge>

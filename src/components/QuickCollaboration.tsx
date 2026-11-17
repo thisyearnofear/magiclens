@@ -228,7 +228,7 @@ export default function QuickCollaboration({ videoId }: QuickCollaborationProps)
         <div className="max-w-6xl mx-auto">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-white mb-4">Video Not Found</h1>
-            <Button onClick={() => router.push('/dashboard')} className="bg-yellow-400 text-black">
+            <Button onClick={() => router.push('/dashboard')} className="bg-yellow-400 text-black hover:bg-yellow-500">
               Return to Dashboard
             </Button>
           </div>

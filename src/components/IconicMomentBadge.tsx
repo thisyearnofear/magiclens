@@ -30,7 +30,7 @@ export function IconicMomentBadge({
         className="inline-flex items-center gap-1"
       >
         <Badge
-          className={`${sizeClasses[size]} bg-gradient-to-r from-blue-600/40 to-purple-600/40 text-blue-300 border border-blue-400/30 shadow-lg shadow-blue-500/10 font-semibold`}
+          className={`${sizeClasses[size]} bg-blue-500/20 text-blue-300 border border-blue-400/30 shadow-lg shadow-blue-500/10 font-semibold`}
         >
           <Sparkles className={size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
           <span className="ml-1">Iconic Moment</span>

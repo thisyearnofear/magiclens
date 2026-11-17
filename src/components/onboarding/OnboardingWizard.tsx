@@ -328,7 +328,7 @@ export function OnboardingWizard() {
       events.forEach((ev) => window.removeEventListener(ev, show));
     };
     events.forEach((ev) => window.addEventListener(ev, show, { once: true, passive: true }));
-    const timer = setTimeout(show, 5000);
+    const timer = setTimeout(show, 12000);
     return cleanup;
   }, []);
 

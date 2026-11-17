@@ -14,6 +14,20 @@ ThemeProvider defaulted to `system`, so light-mode users got a white body under
 `bg-white/5` cards. The app ships dark-only: `getEffectiveMode` is pinned to `"dark"`
 (`src/components/ThemeProvider.tsx`) and `<html>` carries `className="dark"`.
 
+**Follow-up UX pass (Nov 2026):**
+
+- **Tinted-badge washout, root cause:** `cn()` used stock `tailwind-merge`, which doesn't
+  recognize theme-var utilities (`bg-primary`, `text-muted-foreground`, …) as colors, so a
+  `bg-primary` base survived `bg-green-500/20` overrides and every tinted `Badge` rendered
+  near-white. Fixed centrally in `src/lib/utils.ts` via `extendTailwindMerge` class-group
+  entries; dropped the variant hover-bgs in `ui/badge.tsx` (badges aren't interactive).
+- `WavingFlag` draws striped pennants in SVG (`colors` prop + `feTurbulence` displacement)
+  — the pack `flag-*.svg` assets are circular badges, not cloth.
+- `ActivityTicker` pinned `bottom-4 right-4` (was overlapping the top-right nav).
+- Onboarding fallback timer 5s → 12s; first interaction still reveals instantly.
+- `IconicMomentFocus` metadata rail gets `sm:pt-11` so the close button clears the Flow
+  NFT row.
+
 Research: browsed the Codrops hub (`tympanus.net/codrops/hub/all/`, ~25 pages), ran the
 top demos live, and read the upstream source (all `github.com/codrops/*`, MIT licensed —
 snippets below are real, attributed upstream code).

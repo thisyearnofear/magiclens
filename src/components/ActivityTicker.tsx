@@ -53,7 +53,7 @@ export function ActivityTicker() {
       <button
         onClick={() => setVisible(true)}
         aria-label="Show live activity"
-        className="fixed top-4 right-4 z-50 hidden md:flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-gray-900/80 backdrop-blur-xl shadow-lg shadow-black/30 hover:border-green-400/40 transition-colors"
+        className="fixed bottom-4 right-4 z-50 hidden md:flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-gray-900/80 backdrop-blur-xl shadow-lg shadow-black/30 hover:border-green-400/40 transition-colors"
       >
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
@@ -64,7 +64,7 @@ export function ActivityTicker() {
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50 max-w-sm hidden md:block">
+    <div className="fixed bottom-4 right-4 z-50 max-w-sm hidden md:block">
       <div className="bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-xl p-3 shadow-2xl shadow-black/30">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">

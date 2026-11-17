@@ -5,23 +5,25 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 /**
- * Cloth-simulation homage (2D version): a flag image displaced by animated
- * SVG turbulence — waves like fabric. Drifts slowly over the hero.
+ * Cloth-simulation homage (2D version): a striped pennant drawn in SVG and
+ * displaced by animated turbulence — waves like fabric. Drifts over the hero.
  * Full WebGPU cloth (domgl-cloth) stays the L-effort upgrade path.
  */
 export function WavingFlag({
-  src,
+  colors = ['#facc15', '#0a0a0a', '#facc15'],
   className,
   driftDuration = 14,
   delay = 0,
 }: {
-  /** flag image URL — pack flag SVGs work great */
-  src: string;
+  /** horizontal stripes, top → bottom */
+  colors?: string[];
   className?: string;
   driftDuration?: number;
   delay?: number;
 }) {
   const filterId = useId().replace(/:/g, 'flag-');
+  const H = 100;
+  const stripe = H / colors.length;
 
   return (
     <motion.div
@@ -31,11 +33,11 @@ export function WavingFlag({
       transition={{ duration: driftDuration, repeat: Infinity, ease: 'easeInOut', delay }}
       className={cn('pointer-events-none select-none', className)}
     >
-      <svg viewBox="0 0 160 100" className="h-full w-full overflow-visible">
+      <svg viewBox="-10 -10 180 120" className="h-full w-full overflow-visible">
         <defs>
-          <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
-            {/* Animated turbulence = cloth ripple. The displacement scale is
-                modest so the flag still reads as a flag. */}
+          <filter id={filterId} x="-30%" y="-30%" width="160%" height="160%">
+            {/* Animated turbulence = cloth ripple. Modest scale so the flag
+                still reads as a flag. */}
             <feTurbulence
               type="fractalNoise"
               baseFrequency="0.012 0.05"
@@ -53,21 +55,24 @@ export function WavingFlag({
             <feDisplacementMap
               in="SourceGraphic"
               in2="noise"
-              scale="14"
+              scale="16"
               xChannelSelector="R"
               yChannelSelector="G"
             />
           </filter>
+          {/* Soft top-light so the cloth has some sheen */}
+          <linearGradient id={`${filterId}-sheen`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#fff" stopOpacity="0.22" />
+            <stop offset="0.5" stopColor="#fff" stopOpacity="0" />
+            <stop offset="1" stopColor="#000" stopOpacity="0.18" />
+          </linearGradient>
         </defs>
-        <image
-          href={src}
-          x="4"
-          y="4"
-          width="152"
-          height="92"
-          preserveAspectRatio="xMidYMid meet"
-          filter={`url(#${filterId})`}
-        />
+        <g filter={`url(#${filterId})`}>
+          {colors.map((c, i) => (
+            <rect key={i} x="0" y={i * stripe} width="160" height={stripe + 1} fill={c} />
+          ))}
+          <rect x="0" y="0" width="160" height={H} fill={`url(#${filterId}-sheen)`} />
+        </g>
       </svg>
     </motion.div>
   );

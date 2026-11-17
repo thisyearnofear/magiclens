@@ -29,10 +29,10 @@ const TRAIL_IMAGES = [
   '/packs/match-day/thumb-ref-card.svg',
 ];
 
-const FLAGS = [
-  '/packs/match-day/assets/flag-argentina.svg',
-  '/packs/match-day/assets/flag-brazil.svg',
-  '/packs/match-day/assets/flag-france.svg',
+const FLAGS: string[][] = [
+  ['#facc15', '#0a0a0a', '#facc15'],
+  ['#7c3aed', '#facc15', '#7c3aed'],
+  ['#3b82f6', '#e2e8f0', '#3b82f6'],
 ];
 
 const HERO_CLIPS = [
@@ -132,9 +132,9 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 pt-12 pb-10 text-center relative overflow-hidden">
         {/* Waving match flags drifting at the hero edges (2D cloth homage) */}
         <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden="true">
-          <WavingFlag src={FLAGS[0]} className="absolute left-[2%] top-[8%] h-24 w-40 opacity-70" driftDuration={13} />
-          <WavingFlag src={FLAGS[1]} className="absolute right-[3%] top-[16%] h-20 w-32 opacity-60" driftDuration={17} delay={1.2} />
-          <WavingFlag src={FLAGS[2]} className="absolute left-[8%] bottom-[12%] h-16 w-28 opacity-50" driftDuration={15} delay={2.4} />
+          <WavingFlag colors={FLAGS[0]} className="absolute left-[2%] top-[8%] h-24 w-40 opacity-70" driftDuration={13} />
+          <WavingFlag colors={FLAGS[1]} className="absolute right-[3%] top-[16%] h-20 w-32 opacity-60" driftDuration={17} delay={1.2} />
+          <WavingFlag colors={FLAGS[2]} className="absolute left-[8%] bottom-[12%] h-16 w-28 opacity-50" driftDuration={15} delay={2.4} />
         </div>
         <KineticHeroTitle />
         <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 bg-yellow-400/10 border border-yellow-400/30 rounded-full">

@@ -123,8 +123,8 @@ export function IconicMomentFocus({
                 </div>
               </div>
 
-              {/* Metadata rail */}
-              <div className="flex flex-col border-t border-white/10 p-5 text-sm sm:border-l sm:border-t-0">
+              {/* Metadata rail — extra top room clears the floating close button */}
+              <div className="flex flex-col border-t border-white/10 p-5 text-sm sm:border-l sm:border-t-0 sm:pt-11">
                 <div className="space-y-2 flex-1">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Flow NFT</span>
