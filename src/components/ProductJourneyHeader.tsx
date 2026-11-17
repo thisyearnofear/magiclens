@@ -2,10 +2,10 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ArrowRight, Sparkles, Trophy, Wand2, ChevronDown } from 'lucide-react';
+import { ArrowRight, Sparkles, Trophy, Wand2, ChevronDown, Clapperboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type JourneyStage = 'create' | 'compete' | 'promote';
+type JourneyStage = 'create' | 'compete' | 'promote' | 'screen';
 
 const stages: Array<{
   id: JourneyStage;
@@ -17,6 +17,7 @@ const stages: Array<{
   { id: 'create', label: 'Create', description: 'Remix a match clip', href: '/remix', icon: Wand2 },
   { id: 'compete', label: 'Compete', description: 'Climb the daily board', href: '/leaderboard', icon: Trophy },
   { id: 'promote', label: 'Promote', description: 'Become a Flow NFT', href: '/iconic-moments', icon: Sparkles },
+  { id: 'screen', label: 'Screen', description: 'Premiere iconic cuts', href: '/screening-room', icon: Clapperboard },
 ];
 
 const SEEN_KEY = 'magiclens:journey-seen';
@@ -42,7 +43,7 @@ export function ProductJourneyHeader({ active, title, subtitle, metric, metricLa
       stored[active] = true;
       localStorage.setItem(SEEN_KEY, JSON.stringify(stored));
     }
-    setSeen(Object.keys(stored).length >= 3);
+    setSeen(Object.keys(stored).length >= 4);
   }, [active]);
 
   return (
@@ -69,12 +70,12 @@ export function ProductJourneyHeader({ active, title, subtitle, metric, metricLa
           className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-md border border-white/10 bg-white/[0.03] py-2 text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
         >
           <ChevronDown className="h-3.5 w-3.5" />
-          Journey stages — Create → Compete → Promote
+          Journey stages — Create → Compete → Promote → Screen
         </button>
       )}
 
       {(!seen || expanded) && (
-        <div className="mt-5 grid gap-2 md:grid-cols-3">
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {stages.map((stage, index) => {
             const Icon = stage.icon;
             const isActive = stage.id === active;

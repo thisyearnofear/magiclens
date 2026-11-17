@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Trophy, Medal, Zap, DollarSign, Sparkles, ArrowRight, Clock, Database, Timer } from 'lucide-react';
 import { useAuthContext } from '@/auth/AuthProvider';
 import { getUserRemixes } from '@/lib/remix-store';
+import { getGuestAddress, guestTokenId, isGuestTxHash } from '@/lib/guest-identity';
 import { computeStreak, getStreakBadge } from '@/lib/streak';
 import { Flame } from 'lucide-react';
 
@@ -81,7 +82,7 @@ interface LeaderboardEntry {
 export default function Leaderboard() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { isConnected, evmAddress, isGuest } = useAuthContext();
+  const { isConnected, evmAddress, isGuest, connectEVM } = useAuthContext();
   const { moments, promote, isPromoting, loading: momentsLoading } = useIconicMoments({ day: 1 });
   const [entries, setEntries] = useState<LeaderboardEntry[]>(DEMO_LEADERBOARD);
   const [cycleStatus, setCycleStatus] = useState<'open' | 'closed' | 'promoting' | 'completed'>('open');
@@ -206,7 +207,11 @@ export default function Leaderboard() {
       votes: r.votes,
       reward: '',
       color: 'text-gray-300',
-      tokenId: parseInt(r.txHash.slice(-8), 16) % 10000 + 2000,
+      // Guest saves have no mint: negative placeholder ids keep them out
+      // of Flow promotion until the owner connects and mints.
+      tokenId: isGuestTxHash(r.txHash)
+        ? guestTokenId(r.txHash)
+        : parseInt(r.txHash.slice(-8), 16) % 10000 + 2000,
       txHash: r.txHash,
       isUser: true,
     }));
@@ -243,11 +248,12 @@ export default function Leaderboard() {
   }, [cycleStatus]);
 
   const handleCloseDay = async () => {
-    const GUEST_ADDR = '0x00000000000000000000000000000000000d3m0';
+    const guestAddress = getGuestAddress();
     const userRemixes = getUserRemixes();
     const referredTxHashes = new Set(
       userRemixes.filter(r => r.referredBy).map(r => r.txHash)
     );
+    const clipUrlByTx = new Map(userRemixes.map(r => [r.txHash, r.clipUrl ?? null]));
     const top10 = entries.slice(0, 10).map(e => ({
       rank: e.rank,
       title: e.title,
@@ -256,7 +262,8 @@ export default function Leaderboard() {
       reward: e.reward,
       xlayer_token_id: e.tokenId,
       xlayer_tx_hash: e.txHash,
-      xlayer_creator_address: evmAddress || GUEST_ADDR,
+      xlayer_creator_address: evmAddress || guestAddress,
+      media_url: clipUrlByTx.get(e.txHash) ?? null,
     }));
     closeDayMutation.mutate(top10);
   };
@@ -268,11 +275,10 @@ export default function Leaderboard() {
   const handlePromote = async (entry: LeaderboardEntry) => {
     try {
       setActionStatus(`Promoting "${entry.title}" to a Flow Iconic Moment...`);
-      const GUEST_ADDR = '0x00000000000000000000000000000000000d3m0';
       await promote({
         xlayerTokenId: entry.tokenId,
         xlayerTxHash: entry.txHash,
-        xlayerCreatorAddress: evmAddress || GUEST_ADDR,
+        xlayerCreatorAddress: evmAddress || getGuestAddress(),
         title: entry.title,
         day: 1,
         rank: entry.rank,
@@ -458,6 +464,9 @@ export default function Leaderboard() {
                   <h3 className="text-white text-sm font-semibold">Your Remixes</h3>
                   <StreakBadge />
                 </div>
+                {isGuest && (
+                  <p className="text-[11px] text-gray-300 mb-3">Guests earn the same rewards — connect a wallet only when you&apos;re ready to claim.</p>
+                )}
                 <div className="space-y-2">
                   {entries.filter(e => e.isUser).map(entry => (
                     <div key={entry.tokenId} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
@@ -563,6 +572,9 @@ export default function Leaderboard() {
                               </span>
                             )}
                           </div>
+                          {isGuest && isTop3 && !iconic && (
+                            <p className="text-[10px] text-gray-300 mt-1.5">Top-3 promotes to a Flow collectible — connect only to claim it.</p>
+                          )}
                           <div className="flex items-center gap-2 mt-2">
                             <button
                               onClick={() => handleVote(entry)}
@@ -575,6 +587,14 @@ export default function Leaderboard() {
                             >
                               {votedTokens.has(entry.tokenId) ? '+1 Voted' : '+1 Vote'}
                             </button>
+                            {isGuest && isTop3 && !iconic && (
+                              <button
+                                onClick={() => connectEVM()}
+                                className="text-[10px] px-2 py-1 rounded font-medium bg-green-500/10 text-green-300 border border-green-500/30 hover:bg-green-500/20 transition-colors"
+                              >
+                                Connect to claim
+                              </button>
+                            )}
                             {showPromote && (
                               <>
                                 {iconic ? (
@@ -679,6 +699,13 @@ export default function Leaderboard() {
                           >
                             Promote <ArrowRight className="h-3 w-3 ml-0.5" />
                           </Button>
+                        ) : isGuest && isTop3 ? (
+                          <button
+                            onClick={() => connectEVM()}
+                            className="h-7 text-[11px] px-2 rounded bg-green-500/10 text-green-300 border border-green-500/30 hover:bg-green-500/20 transition-colors whitespace-nowrap"
+                          >
+                            Connect to claim
+                          </button>
                         ) : null}
                       </div>
                     </div>

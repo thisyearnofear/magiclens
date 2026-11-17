@@ -61,3 +61,4 @@ editframe-teaser/
 
 # Rendered videos
 videos/
+.env*

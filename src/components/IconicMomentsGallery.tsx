@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Skeleton } from './ui/skeleton';
-import { Sparkles, ExternalLink, RefreshCw, Trophy, Medal, Share2, Copy, Twitter } from 'lucide-react';
+import { Sparkles, ExternalLink, RefreshCw, Trophy, Medal, Share2, Copy, Twitter, Clapperboard } from 'lucide-react';
+import Link from 'next/link';
 import { toast as sonnerToast } from 'sonner';
 import type { CrossVMPromotion } from '@/types/crossvm';
 import { getIconicMoments, seedDemoData, closeLeaderboardDay, triggerAutoPromote } from '@/lib/crossvm-client';
@@ -146,6 +147,12 @@ function MomentCard({ moment }: { moment: CrossVMPromotion }) {
 
           {moment.status === 'minted' && (
             <div className="pt-2 border-t border-white/10 flex gap-2">
+              <Link
+                href={`/screening-room?premiere=${moment.flow_nft_id}`}
+                className="flex-1 text-[11px] py-1.5 rounded bg-yellow-400/15 text-yellow-300 hover:bg-yellow-400/25 transition-colors flex items-center justify-center gap-1 font-semibold"
+              >
+                <Clapperboard className="h-3 w-3" /> Premiere
+              </Link>
               <button
                 onClick={() => {
                   const url = `https://testnet.flowscan.io/token/${moment.flow_nft_id}`;
@@ -368,6 +375,13 @@ export function IconicMomentsGallery() {
             <RefreshCw className="h-4 w-4 mr-1" />
             Close Day & Promote
           </Button>
+
+          <Link href="/screening-room">
+            <Button variant="outline" size="sm">
+              <Clapperboard className="h-4 w-4 mr-1" />
+              Screening Room
+            </Button>
+          </Link>
         </div>
       </div>
 

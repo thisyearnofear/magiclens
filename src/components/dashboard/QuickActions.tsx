@@ -10,8 +10,6 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({ isGuest, userType, onNavigate }: QuickActionsProps) {
-  const isVideographer = userType === 'videographer' || userType === 'both';
-  const isArtist = userType === 'artist' || userType === 'both';
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6 md:mb-8">
@@ -30,47 +28,51 @@ export function QuickActions({ isGuest, userType, onNavigate }: QuickActionsProp
         </CardContent>
       </Card>
 
-      {!isGuest && (
-        <Card
-          className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
-          onClick={() => onNavigate('/upload-video')}
-        >
-          <CardContent className="p-6 text-center relative">
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <kbd className="px-2 py-1 text-xs bg-black/50 text-white rounded">⌘V</kbd>
-            </div>
-            <Upload className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-            <h3 className="text-white font-semibold">Upload Video</h3>
-            <p className="text-gray-300 text-sm">Share your environmental footage</p>
-            {userType === 'artist' && (
-              <Badge className="mt-2 bg-blue-500/20 text-blue-300 text-xs">
-                Recommended for you
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      <Card
+        className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
+        onClick={() => onNavigate('/upload-video')}
+      >
+        <CardContent className="p-6 text-center relative">
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <kbd className="px-2 py-1 text-xs bg-black/50 text-white rounded">⌘V</kbd>
+          </div>
+          <Upload className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+          <h3 className="text-white font-semibold">Upload Video</h3>
+          <p className="text-gray-300 text-sm">Share your environmental footage</p>
+          {isGuest ? (
+            <Badge className="mt-2 bg-green-500/20 text-green-300 text-xs">
+              Guest preview — connect to publish
+            </Badge>
+          ) : userType === 'artist' && (
+            <Badge className="mt-2 bg-blue-500/20 text-blue-300 text-xs">
+              Recommended for you
+            </Badge>
+          )}
+        </CardContent>
+      </Card>
 
-      {!isGuest && (
-        <Card
-          className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
-          onClick={() => onNavigate('/upload-asset')}
-        >
-          <CardContent className="p-6 text-center relative">
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <kbd className="px-2 py-1 text-xs bg-black/50 text-white rounded">⌘A</kbd>
-            </div>
-            <Palette className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-            <h3 className="text-white font-semibold">Upload Asset</h3>
-            <p className="text-gray-300 text-sm">Add new overlay animations</p>
-            {userType === 'videographer' && (
-              <Badge className="mt-2 bg-purple-500/20 text-purple-300 text-xs">
-                Recommended for you
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      <Card
+        className="bg-white/10 border-white/20 hover:bg-white/15 transition-colors cursor-pointer group"
+        onClick={() => onNavigate('/upload-asset')}
+      >
+        <CardContent className="p-6 text-center relative">
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <kbd className="px-2 py-1 text-xs bg-black/50 text-white rounded">⌘A</kbd>
+          </div>
+          <Palette className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+          <h3 className="text-white font-semibold">Upload Asset</h3>
+          <p className="text-gray-300 text-sm">Add new overlay animations</p>
+          {isGuest ? (
+            <Badge className="mt-2 bg-green-500/20 text-green-300 text-xs">
+              Guest preview — connect to publish
+            </Badge>
+          ) : userType === 'videographer' && (
+            <Badge className="mt-2 bg-purple-500/20 text-purple-300 text-xs">
+              Recommended for you
+            </Badge>
+          )}
+        </CardContent>
+      </Card>
 
       <Card
         className="bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20 transition-colors cursor-pointer group"

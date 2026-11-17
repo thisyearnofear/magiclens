@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { getReferralStats } from '@/lib/crossvm-client';
+import { getGuestAddress } from '@/lib/guest-identity';
 import { getUserRemixes } from '@/lib/remix-store';
 import { computeStreak, getStreakBadge } from '@/lib/streak';
 import { useWeb3Profile } from '@/hooks/useWeb3Profile';
@@ -38,6 +39,9 @@ export default function UserProfile() {
   });
 
   const isOwnProfile = !id || id === user;
+  // Guests get a persistent `guest:<id>` referrer identity so they can
+  // invite friends before ever connecting a wallet.
+  const referrerId = evmAddress || (isOwnProfile ? getGuestAddress() : undefined);
 
   const [streak, setStreak] = useState({ current: 0, longest: 0, todayMinted: false, dayIds: [] as string[] });
   const [refStats, setRefStats] = useState<{
@@ -60,9 +64,9 @@ export default function UserProfile() {
   }, []);
 
   useEffect(() => {
-    if (isOwnProfile && evmAddress) {
+    if (isOwnProfile && referrerId) {
       setLoadingRef(true);
-      getReferralStats(evmAddress).then(res => {
+      getReferralStats(referrerId).then(res => {
         if (res.success && res.stats) setRefStats(res.stats);
       }).finally(() => setLoadingRef(false));
     }
@@ -488,7 +492,7 @@ export default function UserProfile() {
             )}
 
             {/* Referral Link + Stats */}
-            {isOwnProfile && evmAddress && (
+            {isOwnProfile && referrerId && (
               <Card className="bg-gradient-to-r from-yellow-400/10 to-orange-400/10 border-yellow-400/20 mb-4">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
@@ -497,10 +501,10 @@ export default function UserProfile() {
                       <div className="min-w-0">
                         <h4 className="text-white font-semibold text-sm">Your Referral Link</h4>
                         <p className="text-gray-300 text-xs mt-0.5">
-                          Share this link — when a friend mints with it, you earn +200 leaderboard votes per referral.
+                          Share this link — when a friend saves or mints with it, you earn +200 leaderboard votes per referral.
                         </p>
                         <code className="block mt-2 text-[11px] text-yellow-300 bg-yellow-400/10 rounded px-2 py-1 truncate font-mono">
-                          {`https://magiclens.vercel.app?ref=${evmAddress}`}
+                          {`https://magiclens.vercel.app?ref=${referrerId}`}
                         </code>
                         {refStats && (
                           <div className="flex gap-4 mt-3 text-[11px]">
@@ -524,7 +528,7 @@ export default function UserProfile() {
                     <Button
                       onClick={async () => {
                         try {
-                          await navigator.clipboard.writeText(`https://magiclens.vercel.app?ref=${evmAddress}`);
+                          await navigator.clipboard.writeText(`https://magiclens.vercel.app?ref=${referrerId}`);
                           toast.success('Referral link copied!');
                         } catch {
                           toast.error('Could not copy link');

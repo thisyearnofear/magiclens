@@ -2322,15 +2322,18 @@ class ReferralClaimRequest(BaseModel):
     referrer_address: str
     referee_address: str
     day: int = 1
-    xlayer_token_id: int
-    xlayer_tx_hash: str
+    # Optional for guest entries: guests save to the leaderboard without minting,
+    # so there is no token yet. The referee may be a `guest:<id>` identity.
+    xlayer_token_id: int | None = None
+    xlayer_tx_hash: str | None = None
 
 
 @app.post("/api/referral/claim")
 async def claim_referral(body: ReferralClaimRequest):
-    """Record that a remix was minted via a referral link.
+    """Record that a remix was saved/minted via a referral link.
     
     The referrer earns a leaderboard vote boost for this day.
+    Works for wallet referees (mint) and guest referees (`guest:<id>`, save).
     """
     from core.database import execute_update, execute_query
     import uuid

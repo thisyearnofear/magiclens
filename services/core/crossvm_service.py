@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS iconic_moments (
     flow_tx_hash VARCHAR(128),
     flow_minted_at TIMESTAMP,
     promoted_by VARCHAR(64),
+    media_url TEXT,
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -61,6 +62,7 @@ class CrossVMMintRequest:
         day: int,
         rank: int,
         promoted_by: str,
+        media_url: Optional[str] = None,
     ):
         self.id = uuid4()
         self.xlayer_token_id = xlayer_token_id
@@ -71,6 +73,7 @@ class CrossVMMintRequest:
         self.day = day
         self.rank = rank
         self.promoted_by = promoted_by
+        self.media_url = media_url
         self.status = "pending"
         self.created_at = datetime.utcnow()
 
@@ -84,6 +87,7 @@ class CrossVMMintRequest:
             "overlay_ids": self.overlay_ids,
             "day": self.day,
             "rank": self.rank,
+            "media_url": self.media_url,
             "status": self.status,
             "flow_nft_id": None,
             "flow_tx_hash": None,
@@ -124,6 +128,7 @@ class CrossVMService:
         try:
             with conn.cursor() as cur:
                 cur.execute(ICONIC_MOMENTS_TABLE)
+                cur.execute("ALTER TABLE iconic_moments ADD COLUMN IF NOT EXISTS media_url TEXT")
             conn.commit()
         except Exception as e:
             logger.error(f"Failed to create iconic_moments table: {e}")
@@ -137,8 +142,8 @@ class CrossVMService:
         execute_update(
             """INSERT INTO iconic_moments
                (id, xlayer_token_id, xlayer_tx_hash, xlayer_creator_address,
-                title, overlay_ids, day, rank, promoted_by, status, created_at)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                title, overlay_ids, day, rank, promoted_by, media_url, status, created_at)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
             (
                 str(request.id),
                 request.xlayer_token_id,
@@ -149,6 +154,7 @@ class CrossVMService:
                 request.day,
                 request.rank,
                 request.promoted_by,
+                request.media_url,
                 request.status,
                 request.created_at,
             ),
@@ -515,6 +521,7 @@ class CrossVMService:
                 else None
             ),
             "promoted_by": row.get("promoted_by"),
+            "media_url": row.get("media_url"),
             "status": row["status"],
             "created_at": row.get("created_at").isoformat()
             if row.get("created_at")

@@ -11,6 +11,8 @@ export interface CrossVMPromotion {
   flow_tx_hash: string | null;
   flow_minted_at: string | null;
   promoted_by: string;
+  /** Source clip URL for Screening Room premieres; null falls back to the house reel. */
+  media_url?: string | null;
   status: 'pending' | 'minted' | 'failed';
   created_at: string;
   flow_mint?: {

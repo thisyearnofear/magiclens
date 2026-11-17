@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS leaderboard_entries (
     xlayer_token_id BIGINT NOT NULL,
     xlayer_tx_hash VARCHAR(128) NOT NULL,
     xlayer_creator_address VARCHAR(64) NOT NULL,
+    media_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(day, rank)
 );
@@ -59,6 +60,8 @@ class LeaderboardService:
             with conn.cursor() as cur:
                 cur.execute(LEADERBOARD_CYCLES_TABLE)
                 cur.execute(LEADERBOARD_ENTRIES_TABLE)
+                # Backfill for pre-existing deployments (CREATE TABLE IF NOT EXISTS is a no-op there)
+                cur.execute("ALTER TABLE leaderboard_entries ADD COLUMN IF NOT EXISTS media_url TEXT")
             conn.commit()
         except Exception as e:
             logger.error(f"Failed to create leaderboard tables: {e}")
@@ -105,8 +108,8 @@ class LeaderboardService:
             execute_update(
                 """INSERT INTO leaderboard_entries
                    (id, day, rank, title, creator, votes, reward,
-                    xlayer_token_id, xlayer_tx_hash, xlayer_creator_address)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    xlayer_token_id, xlayer_tx_hash, xlayer_creator_address, media_url)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                    ON CONFLICT (day, rank) DO UPDATE SET
                        title = EXCLUDED.title,
                        creator = EXCLUDED.creator,
@@ -114,7 +117,8 @@ class LeaderboardService:
                        reward = EXCLUDED.reward,
                        xlayer_token_id = EXCLUDED.xlayer_token_id,
                        xlayer_tx_hash = EXCLUDED.xlayer_tx_hash,
-                       xlayer_creator_address = EXCLUDED.xlayer_creator_address""",
+                       xlayer_creator_address = EXCLUDED.xlayer_creator_address,
+                       media_url = EXCLUDED.media_url""",
                 (
                     str(uuid.uuid4()),
                     day,
@@ -126,6 +130,7 @@ class LeaderboardService:
                     entry["xlayer_token_id"],
                     entry["xlayer_tx_hash"],
                     entry["xlayer_creator_address"],
+                    entry.get("media_url"),
                 ),
             )
 
@@ -177,9 +182,23 @@ class LeaderboardService:
         # Check which are already promoted
         already_promoted = 0
         promoted_count = 0
+        skipped_guests = 0
         errors = []
 
         for entry in entries:
+            # Guest entries have no on-chain mint yet (`guest:<id>` creator,
+            # `guest-…` tx hash, or negative placeholder token id). They close
+            # with the day but must never trigger a Flow mint — the owner
+            # promotes after connecting a wallet and minting on X Layer.
+            creator = str(entry.get("xlayer_creator_address") or "")
+            tx_hash = str(entry.get("xlayer_tx_hash") or "")
+            if (
+                creator.startswith("guest:")
+                or tx_hash.startswith("guest-")
+                or (entry.get("xlayer_token_id") or 0) < 0
+            ):
+                skipped_guests += 1
+                continue
             # Check if already promoted
             existing = await crossvm_service.get_iconic_moment(
                 entry["xlayer_token_id"], day
@@ -202,6 +221,7 @@ class LeaderboardService:
                     day=day,
                     rank=entry["rank"],
                     promoted_by="auto-scheduler",
+                    media_url=entry.get("media_url"),
                 )
                 result = await crossvm_service.promote_to_iconic(request)
                 if result.get("flow_mint", {}).get("success"):
@@ -225,6 +245,7 @@ class LeaderboardService:
             "day": day,
             "promoted": promoted_count,
             "already_promoted": already_promoted,
+            "skipped_guests": skipped_guests,
             "errors": errors,
         }
 

@@ -119,9 +119,10 @@ export default function LandingPage() {
           <span>Stadium sound</span>
           <FerroSoundToggle />
         </div>
-        <p className="text-lg sm:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+        <p className="text-lg sm:text-xl text-gray-300 mb-3 max-w-2xl mx-auto">
           Drop pose-aware AR overlays on match clips. Mint as NFTs on X Layer. Earn daily rewards. Top remixes become Flow Iconic Moments.
         </p>
+        <p className="text-sm text-green-300 mb-10">Free to play. No wallet needed. Mint only if you win.</p>
         {inviter && (
           <div className="mx-auto mb-6 flex max-w-md items-center justify-center gap-2 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-xs text-yellow-200">
             <span aria-hidden="true">🎟️</span>
@@ -133,7 +134,7 @@ export default function LandingPage() {
         <div className="flex gap-4 justify-center flex-wrap mb-12">
           <ConnectWallet />
           <Button onClick={continueAsGuest} variant="ghost" size="lg" className="text-white hover:bg-white/10">
-            Explore as Guest
+            Start Creating — No Wallet Needed
           </Button>
         </div>
 

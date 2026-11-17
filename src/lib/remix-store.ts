@@ -9,9 +9,11 @@ export interface Remix {
   votes: number;
   createdAt: number;
   referredBy?: string;
+  /** Source clip URL, when known — premiered in the Screening Room if promoted. */
+  clipUrl?: string;
 }
 
-export function addRemix(remix: { title: string; txHash: string; creator: string; referredBy?: string }): void {
+export function addRemix(remix: { title: string; txHash: string; creator: string; referredBy?: string; clipUrl?: string }): void {
   const existing = getUserRemixes();
   const newRemix: Remix = {
     ...remix,

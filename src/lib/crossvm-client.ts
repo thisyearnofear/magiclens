@@ -121,13 +121,20 @@ interface LeaderboardEntryInput {
   xlayer_token_id: number;
   xlayer_tx_hash: string;
   xlayer_creator_address: string;
+  media_url?: string | null;
 }
 
 export async function closeLeaderboardDay(day: number, entries: LeaderboardEntryInput[], idempotencyKey?: string) {
   const res = await safeFetch(`${API_BASE}/api/leaderboard/close-day`, {
     method: 'POST',
     headers: withIdempotencyKey(getAuthHeaders(), idempotencyKey),
-    body: JSON.stringify({ day, entries }),
+    body: JSON.stringify({
+      day,
+      entries: entries.map(e => ({
+        ...e,
+        media_url: e.media_url ?? null,
+      })),
+    }),
     timeoutMs: 30_000,
   });
   return readJson(res, { success: false, error: 'Backend unavailable' });
@@ -204,8 +211,9 @@ export async function claimReferral(params: {
   referrerAddress: string;
   refereeAddress: string;
   day?: number;
-  xlayerTokenId: number;
-  xlayerTxHash: string;
+  // Optional: guest saves have no on-chain mint yet.
+  xlayerTokenId?: number;
+  xlayerTxHash?: string;
 }): Promise<{ success: boolean; bonus_votes?: number; total_referrals?: number; error?: string }> {
   const res = await safeFetch(`${API_BASE}/api/referral/claim`, {
     method: 'POST',
@@ -214,8 +222,8 @@ export async function claimReferral(params: {
       referrer_address: params.referrerAddress,
       referee_address: params.refereeAddress,
       day: params.day || 1,
-      xlayer_token_id: params.xlayerTokenId,
-      xlayer_tx_hash: params.xlayerTxHash,
+      xlayer_token_id: params.xlayerTokenId ?? null,
+      xlayer_tx_hash: params.xlayerTxHash ?? null,
     }),
     timeoutMs: 30_000,
   });

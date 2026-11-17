@@ -145,6 +145,7 @@ export default function RemixFlow() {
     chain,
     evmAddress,
     isWrongNetwork,
+    isGuest,
     connectEVM,
     switchToTargetNetwork,
   } = useAuthContext();
@@ -224,7 +225,7 @@ export default function RemixFlow() {
       const creator = addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : '@you';
       setMintTx(hash);
       setMintTokenId(tokenId);
-      addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined });
+      addRemix({ title: clipTitle, txHash: hash, creator, referredBy: referrerAddress || undefined, clipUrl: clip?.videoUrl || undefined });
       sound.celebrate();
       setMintStage('complete');
       setShowCelebration(true);
@@ -254,6 +255,41 @@ export default function RemixFlow() {
       setMintError(fail.error);
       if (fail.hash) setMintTx(fail.hash);
     }
+  };
+
+  const handleSaveGuestEntry = async () => {
+    const clipTitle = clip?.title || 'Match Moment';
+    addRemix({
+      title: clipTitle,
+      txHash: `guest-${Date.now().toString(16)}`,
+      creator: '@you (guest)',
+      referredBy: referrerAddress || undefined,
+      clipUrl: clip?.videoUrl || undefined,
+    });
+    sound.celebrate();
+    // Credit the inviter even though there is no mint yet — the backend
+    // accepts guest referee ids with no token fields.
+    const { getGuestAddress } = await import('@/lib/guest-identity');
+    const guestAddress = getGuestAddress();
+    if (referrerAddress && referrerAddress.toLowerCase() !== guestAddress.toLowerCase()) {
+      claimReferral({
+        referrerAddress,
+        refereeAddress: guestAddress,
+        day: 1,
+      }).then(res => {
+        if (res.success && res.total_referrals !== undefined) {
+          import('sonner').then(({ toast }) =>
+            toast.success(`Your inviter gets +${res.bonus_votes} leaderboard votes! (${res.total_referrals} total)`)
+          );
+        }
+      });
+      clearReferrer();
+    }
+    const { toast } = await import('sonner');
+    toast.success('Entry saved to the leaderboard!', {
+      description: 'Free to play — connect a wallet later to mint it on-chain and claim rewards.',
+    });
+    router.push('/leaderboard');
   };
 
   const handleRetryMint = () => {
@@ -379,7 +415,13 @@ export default function RemixFlow() {
 
                 {step === 2 && clip && (
                   <div>
-                    {(!isConnected || chain !== 'evm') && (
+                    {isGuest ? (
+                      <div className="max-w-4xl mx-auto px-4 pt-4">
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-center text-green-300 text-sm">
+                          You&apos;re playing as a guest — saving is free and needs no wallet. Minting on-chain is optional, only if you want to claim rewards.
+                        </div>
+                      </div>
+                    ) : (!isConnected || chain !== 'evm') && (
                       <div className="max-w-4xl mx-auto px-4 pt-4">
                         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-center text-yellow-300 text-sm">
                           Connect an EVM wallet to mint this remix on X Layer. Your clip and overlays will stay ready.
@@ -427,13 +469,13 @@ export default function RemixFlow() {
                       overlayStyles={overlayStyles}
                       overlaySourceSize={overlaySourceSize}
                       onBack={goBack}
-                      onMint={handleMint}
+                      onMint={isGuest ? handleSaveGuestEntry : handleMint}
                       isMinting={isMinting || isConnectingWallet}
-                      mintButtonLabel={!evmAddress || chain !== 'evm' ? 'Connect Wallet to Mint' : isWrongNetwork ? 'Switch Network to Mint' : 'Mint Remix on X Layer'}
-                      mintLoadingText={isConnectingWallet ? 'Opening wallet...' : 'Minting...'}
+                      mintButtonLabel={isGuest ? 'Save Entry to Leaderboard — Free' : !evmAddress || chain !== 'evm' ? 'Connect Wallet to Mint' : isWrongNetwork ? 'Switch Network to Mint' : 'Mint Remix on X Layer'}
+                      mintLoadingText={isGuest ? 'Saving...' : isConnectingWallet ? 'Opening wallet...' : 'Minting...'}
+                      progressSubtitle={isGuest ? 'Saving your remix entry — no wallet or network switch needed.' : 'MagicLens is preparing metadata, waiting for wallet approval, and submitting your remix NFT.'}
                       progressSteps={mintProgressSteps(mintStage)}
-                      progressTitle="Minting on X Layer"
-                      progressSubtitle="MagicLens is preparing metadata, waiting for wallet approval, and submitting your remix NFT."
+                      progressTitle={isGuest ? 'Saving your entry' : 'Minting on X Layer'}
                     />
                   </div>
                 )}
