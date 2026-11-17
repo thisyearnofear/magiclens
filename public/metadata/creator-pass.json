@@ -1,0 +1,10 @@
+{
+  "name": "MagicLens Creator Pass",
+  "description": "Unlocks Pro export features in MagicLens — watermark-free remixes, longer clips, and every future creator tool added to the pass. Holding one pass covers every sport and overlay pack.",
+  "image": "https://magiclens.vercel.app/packs/match-day/thumb-player-card.svg",
+  "external_url": "https://magiclens.vercel.app",
+  "attributes": [
+    { "trait_type": "Tier", "value": "Pro" },
+    { "trait_type": "Unlocks", "value": "Watermark-free export, extended export length" }
+  ]
+}

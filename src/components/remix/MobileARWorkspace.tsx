@@ -7,6 +7,7 @@ import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
 import { TrackedOverlayLayer, type AnchorId } from './TrackedOverlayLayer';
 import { exportRemixVideo } from '@/lib/remix-exporter';
 import { useReferrer } from '@/hooks/useReferrer';
+import { useIsPro } from '@/hooks/useIsPro';
 import { toast } from 'sonner';
 import type { OverlayStyle } from './EditorOverlay';
 import {
@@ -62,6 +63,8 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
   const trackVideoRef = useRef<HTMLVideoElement | null>(null);
   const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
   const { referrerAddress } = useReferrer();
+  const { isPro, priceEth, buyPass, isPending: proPending, isConfirming: proConfirming, isConfirmed: proConfirmed, refetchPro, connected } = useIsPro();
+  const exportCap = isPro ? 60 : 30;
 
   const {
     status: trackStatus,
@@ -72,13 +75,32 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
     poseAt,
     subjectsAt,
     track: startTracking,
-  } = useClipPoseTracker(clipVideoUrl || null);
+  } = useClipPoseTracker(clipVideoUrl || null, exportCap);
 
   // Mobile is magic-first: analysis starts the moment the workspace mounts,
   // so overlays lock on as the user picks them.
   useEffect(() => {
     if (trackStatus === 'idle') startTracking();
   }, [trackStatus, startTracking]);
+
+  useEffect(() => {
+    if (proConfirmed) {
+      refetchPro();
+      toast.success('Creator Pass active', {
+        description: 'Watermark-free exports + 60s clips unlocked.',
+      });
+    }
+  }, [proConfirmed, refetchPro]);
+
+  const handleBuyPro = useCallback(() => {
+    if (!connected) {
+      toast.info('Connect a wallet to buy the Creator Pass');
+      return;
+    }
+    buyPass()?.catch((e) => {
+      toast.error('Purchase failed', { description: e instanceof Error ? e.message.split('\n')[0] : 'Try again' });
+    });
+  }, [connected, buyPass]);
 
   const toggleOverlay = (overlay: OverlayDefinition) => {
     setSelected(prev => {
@@ -109,7 +131,8 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
         opacities: Object.fromEntries(selected.map((o) => [o.id, styles[o.id]?.opacity ?? 1])),
         poseAt,
         onProgress: setExportProgress,
-        watermark: !referrerAddress,
+        maxDuration: exportCap,
+        watermark: !(isPro || referrerAddress),
       });
       const url = URL.createObjectURL(result.blob);
       const a = document.createElement('a');
@@ -126,7 +149,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
       setExportState('idle');
       toast.error('Export failed', { description: err instanceof Error ? err.message : 'Try again' });
     }
-  }, [exportState, selected, styles, poseAt, referrerAddress]);
+  }, [exportState, selected, styles, poseAt, referrerAddress, isPro, exportCap]);
 
   const sourceSize = () =>
     elementRef.current ? { w: elementRef.current.clientWidth, h: elementRef.current.clientHeight } : undefined;
@@ -216,6 +239,18 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
           <span className="flex items-center gap-1.5 text-[11px] text-gray-400">
             <Crosshair className="h-3 w-3" /> Preparing player tracking…
           </span>
+        )}
+        {trackStatus === 'ready' && !isPro && (
+          <button
+            onClick={handleBuyPro}
+            disabled={proPending || proConfirming}
+            className="text-[10px] text-amber-300/80 hover:text-amber-200 underline underline-offset-2 decoration-amber-400/30 shrink-0 disabled:opacity-50"
+          >
+            {proPending || proConfirming ? 'Buying…' : `Pro${priceEth ? ` ${priceEth} OKB` : ''}`}
+          </button>
+        )}
+        {trackStatus === 'ready' && isPro && (
+          <span className="text-[9px] font-bold text-yellow-300 bg-yellow-400/15 border border-yellow-400/30 rounded px-1.5 py-0.5 shrink-0">⚡ PRO</span>
         )}
         {trackStatus === 'ready' && selected.length > 0 && (
           <button

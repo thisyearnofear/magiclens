@@ -17,26 +17,36 @@ sports fandom, with a daily on-chain ritual no editor app has.**
 
 ## Ranked models
 
-### 1. Creator Pro tier — primary line
+### 1. Creator Pro tier — primary line — ✅ LIVE (v1, Nov 2026)
 
-Gate the things creators actually pay for:
+**Shipped:** `CreatorPass.sol` on X Layer testnet
+(`0x02b07d2043263d579C4E1Ac5Abe79C07Ad3b7D2D`) — a priced ERC-1155 pass
+(0.01 OKB, unlimited supply). Holding the pass = Pro. `useIsPro` reads the
+entitlement on-chain; both workspaces gate on it and show a priced
+"Go Pro" purchase affordance next to Export.
 
-- Watermark-free export
-- Longer clips (>30s) and higher-resolution export
+Pro perks live now:
+
+- **Watermark-free export** — free exports carry the subtle MAGICLENS mark
+- **60s clips** — pose analysis + export cap lifts from 30s to 60s
+
+Roadmap perks (documented, not built):
+
 - Audio tracks in remixes (the #1 product gap vs. TikTok edits anyway)
 - More tracked subjects, finer tracking controls
 - Custom/private overlay packs, batch renders
+- Higher-resolution export
 
 Free tier keeps everything needed to *compete* — mints, daily battles,
-leaderboard, standard export. Never tax the battle loop itself.
+leaderboard, standard watermarked export. Never tax the battle loop itself.
 
 ### 2. Premium overlay packs — cosmetic sales
 
 `match-day` stays free forever. Sell themed drops: Retro Broadcast, Anime
 FX, Neon Trails, per-sport packs, seasonal events. This is the one Web3
 sales mechanic that works at scale — it's Fortnite cosmetics, not Top
-Shot moments. `WorldCupPack` (ERC-1155) already models purchasable packs;
-the frontend purchase flow doesn't exist yet.
+Shot moments. Note: `WorldCupPack` is free-claim only (no payment rail) —
+`CreatorPass`'s priced-mint pattern is the template future packs reuse.
 
 ### 3. Sponsor / brand activations — B2B
 
@@ -60,10 +70,13 @@ metadata. Treat as upside, not a plan — needs volume to matter.
 
 ## Sequencing
 
-1. **Now:** free loop + creator seeding (TikTok playbook in
-   `docs/GROWTH_INTEL.md`). Watermark = free distribution (see below).
-2. **When export demand is proven:** Creator Pro tier.
-3. **When there's pack envy:** premium pack drops + purchase flow.
+1. **Done:** free loop + creator seeding tooling. Watermark = free
+   distribution (see below).
+2. **Done (earlier than planned — the gate was cheap):** Creator Pro v1
+   via `CreatorPass`. The pass shipped ahead of proven export demand
+   because the entitlement read is a single on-chain boolean.
+3. **When there's pack envy:** premium pack drops reusing the priced-mint
+   pattern.
 4. **When there's a measurable daily audience:** sponsor activations.
 5. **Rights unlock (B2B2C):** license the AR engine to clubs/leagues who
    own footage rights — they get a fan-engagement layer, we get official
@@ -72,12 +85,12 @@ metadata. Treat as upside, not a plan — needs volume to matter.
 ## Decision: export watermark
 
 Exported videos carry a small "MagicLens" mark (bottom-right, ~45%
-opacity) by default. Exports are **clean when the creator arrived via a
-referral link** (`?ref=`) — the seeded-creator channel heuristic: seeded
-creators produce portfolio-grade clips for TikTok where a watermark hurts,
-organic users provide free distribution. Implemented in
-`remix-exporter.ts` (`watermark` option) + `ARWorkspace` (referrer check).
-Revisit when Creator Pro ships — Pro becomes the clean-export gate.
+opacity) by default. Exports are **clean for Creator Pass holders (Pro)
+and creators who arrived via a referral link** (`?ref=`) — the seeded-
+creator channel heuristic: seeded creators produce portfolio-grade clips
+for TikTok where a watermark hurts, organic users provide free
+distribution. Implemented in `remix-exporter.ts` (`watermark` option) +
+both workspaces (`useIsPro` + `useReferrer` checks).
 
 ## Cross-sport expansion
 

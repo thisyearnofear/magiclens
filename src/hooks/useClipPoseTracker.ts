@@ -100,7 +100,7 @@ function sampleTrack(track: SubjectTrack, t: number): NormalizedLandmark[] | nul
  * time-indexed trajectories sampled during playback.
  * See docs/AR_EXPERIENCE_PLAN.md Phase 2.
  */
-export function useClipPoseTracker(clipVideoUrl: string | null): ClipPoseTracker {
+export function useClipPoseTracker(clipVideoUrl: string | null, maxDuration = MAX_DURATION): ClipPoseTracker {
   const [status, setStatus] = useState<TrackerStatus>('idle');
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -182,7 +182,7 @@ export function useClipPoseTracker(clipVideoUrl: string | null): ClipPoseTracker
         return;
       }
 
-      const duration = Math.min(video.duration || 0, MAX_DURATION);
+      const duration = Math.min(video.duration || 0, maxDuration);
       if (!duration) {
         landmarker.close();
         if (alive()) {
@@ -292,7 +292,7 @@ export function useClipPoseTracker(clipVideoUrl: string | null): ClipPoseTracker
       setProgress(1);
       setStatus('ready');
     })();
-  }, [clipVideoUrl]);
+  }, [clipVideoUrl, maxDuration]);
 
   // Re-track when the clip changes
   useEffect(() => {

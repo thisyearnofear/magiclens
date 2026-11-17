@@ -6,6 +6,10 @@ export const WORLDCUP_PACK_ADDRESS =
   (process.env.NEXT_PUBLIC_WORLDCUP_PACK_ADDRESS as `0x${string}`) ||
   '0xff52Adf73e19fCd2B79784154CFf23b218CCEdfB'
 
+export const CREATOR_PASS_ADDRESS =
+  (process.env.NEXT_PUBLIC_CREATOR_PASS_ADDRESS as `0x${string}`) ||
+  '0x02b07d2043263d579C4E1Ac5Abe79C07Ad3b7D2D'
+
 export const REMIX_NFT_ABI = [
   {
     inputs: [
@@ -50,6 +54,30 @@ export const WORLDCUP_PACK_ABI = [
     inputs: [{ internalType: 'address', name: '', type: 'address' }],
     name: 'hasClaimedStarter',
     outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const
+
+export const CREATOR_PASS_ABI = [
+  {
+    inputs: [],
+    name: 'mint',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'account', type: 'address' }],
+    name: 'isPro',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'price',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },

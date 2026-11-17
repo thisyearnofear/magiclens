@@ -16,6 +16,7 @@ import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
 import { exportRemixVideo } from '@/lib/remix-exporter';
 import { useReferrer } from '@/hooks/useReferrer';
+import { useIsPro } from '@/hooks/useIsPro';
 import { toast } from 'sonner';
 
 const DEFAULT_STYLES: Record<string, OverlayStyle> = {
@@ -103,7 +104,10 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   // Default to Track mode — pose analysis starts on mount and overlays lock on
   // as the user picks them. Editor stays one tab away for manual placement.
   const [mode, setMode] = useState<'preview' | 'live' | 'track'>('track');
-  const tracker = useClipPoseTracker(clipVideoUrl || null);
+  // Pro perks: watermark-free exports + 60s cap (free tier: 30s).
+  const { isPro, priceEth, buyPass, isPending: proPending, isConfirming: proConfirming, isConfirmed: proConfirmed, refetchPro, connected } = useIsPro();
+  const exportCap = isPro ? 60 : 30;
+  const tracker = useClipPoseTracker(clipVideoUrl || null, exportCap);
   const {
     status: trackStatus,
     progress: trackProgress,
@@ -136,8 +140,10 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
         opacities: Object.fromEntries(selected.map((o) => [o.id, styles[o.id]?.opacity ?? 1])),
         poseAt,
         onProgress: setExportProgress,
-        // Seeded creators (arrived via a ?ref= link) get clean exports — see docs/MONETIZATION.md
-        watermark: !referrerAddress,
+        maxDuration: exportCap,
+        // Pro pass holders + seeded creators (arrived via ?ref=) get clean
+        // exports — see docs/MONETIZATION.md
+        watermark: !(isPro || referrerAddress),
       });
       const url = URL.createObjectURL(result.blob);
       const a = document.createElement('a');
@@ -157,7 +163,27 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
       });
       setTimeout(() => setExportState('idle'), 4000);
     }
-  }, [exportState, selected, anchorOverrides, styles, poseAt, trackVideoRef, referrerAddress]);
+  }, [exportState, selected, anchorOverrides, styles, poseAt, trackVideoRef, referrerAddress, isPro, exportCap]);
+
+  // Creator Pass confirmed on-chain → refresh entitlement and celebrate
+  React.useEffect(() => {
+    if (proConfirmed) {
+      refetchPro();
+      toast.success('Creator Pass active', {
+        description: 'Watermark-free exports + 60s clips unlocked.',
+      });
+    }
+  }, [proConfirmed, refetchPro]);
+
+  const handleBuyPro = useCallback(() => {
+    if (!connected) {
+      toast.info('Connect a wallet to buy the Creator Pass');
+      return;
+    }
+    buyPass()?.catch((e) => {
+      toast.error('Purchase failed', { description: e instanceof Error ? e.message.split('\n')[0] : 'Try again' });
+    });
+  }, [connected, buyPass]);
 
   // Kick off clip pose analysis when Track mode is entered
   React.useEffect(() => {
@@ -787,6 +813,20 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                       <Button onClick={startTracking} size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
                         Re-analyze
                       </Button>
+                      {isPro ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-yellow-400/15 border border-yellow-400/30 px-2 py-1 text-[10px] font-bold text-yellow-300">
+                          ⚡ PRO
+                        </span>
+                      ) : (
+                        <button
+                          onClick={handleBuyPro}
+                          disabled={proPending || proConfirming}
+                          className="text-[11px] text-amber-300/80 hover:text-amber-200 transition-colors underline underline-offset-2 decoration-amber-400/30 disabled:opacity-50"
+                          title="Creator Pass: watermark-free exports + 60s clips"
+                        >
+                          {proPending || proConfirming ? 'Buying…' : `Go Pro${priceEth ? ` · ${priceEth} OKB` : ''}`}
+                        </button>
+                      )}
                       {selected.length > 0 && (
                         <Button
                           onClick={handleExport}

@@ -10,7 +10,7 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
 - One connect button (wagmi + FCL RainbowKit adapter) — no chain pickers
 
 ## Current State
-- Contracts deployed: RemixNFT/WorldCupPack/FanCastRewards on X Layer testnet, ARAssetNFT/CollaborationHub/ForteAutomation on Flow testnet at `0x4520a5a7b69ee3ac`
+- Contracts deployed: RemixNFT/WorldCupPack/FanCastRewards/CreatorPass (`0x02b07d2043263d579C4E1Ac5Abe79C07Ad3b7D2D` — priced Pro pass, 0.01 OKB) on X Layer testnet, ARAssetNFT/CollaborationHub/ForteAutomation on Flow testnet at `0x4520a5a7b69ee3ac`
 - Cross-VM mint confirmed working — 8 real Flow NFTs minted (tx history: `194be9eb`, `0ad06068`, `30549047`, `e82eb00`, `e307e5a`, `2bbed12`, `ef323d05`, `28b6c6e6`)
 - Backend live at `https://magiclens.thisyearnofear.com` (FastAPI, 4 workers, PM2) — deployed on **nuncio-vultr** (migrated from snel-bot July 2026)
 - Frontend live at `https://magiclens.vercel.app` (Next.js 16.2.6, React 19, Tailwind 3.4)
