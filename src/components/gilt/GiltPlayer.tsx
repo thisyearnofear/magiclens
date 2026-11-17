@@ -26,9 +26,13 @@ interface GiltPlayerProps {
   poster?: string;
   /** Keyed by the host when the feature changes so Video.js reloads the source. */
   featureKey?: string | number;
+  /** Fired when the current source ends — the Marathon view uses this to advance. */
+  onEnded?: () => void;
+  /** Attempt autoplay on load/source change (browsers may still block with sound). */
+  autoPlay?: boolean;
 }
 
-export function GiltPlayer({ src = GILT_DEMO_SRC, poster, featureKey }: GiltPlayerProps) {
+export function GiltPlayer({ src = GILT_DEMO_SRC, poster, featureKey, onEnded, autoPlay }: GiltPlayerProps) {
   const isMuxStream = src.includes('.m3u8');
   // The Mux thumbnail only belongs to the house reel; premiere clips get no
   // poster rather than a mismatched one.
@@ -39,9 +43,9 @@ export function GiltPlayer({ src = GILT_DEMO_SRC, poster, featureKey }: GiltPlay
         <VideoJsPlayer key={featureKey ?? src} poster={resolvedPoster}>
           <VideoSkin>
             {isMuxStream ? (
-              <MuxVideo src={src} playsInline crossOrigin="" />
+              <MuxVideo src={src} playsInline crossOrigin="" autoPlay={autoPlay} onEnded={onEnded} />
             ) : (
-              <VideoJsMedia src={src} playsInline crossOrigin="" preload="metadata" />
+              <VideoJsMedia src={src} playsInline crossOrigin="" preload="metadata" autoPlay={autoPlay} onEnded={onEnded} />
             )}
           </VideoSkin>
         </VideoJsPlayer>
