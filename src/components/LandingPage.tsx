@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Check, Zap, Play, Pause, TrendingUp, Trophy, Medal, ArrowRight } from 'lucide-react';
 import { StatsBar } from '@/components/StatsBar';
 import { OnboardingWizard } from '@/components/onboarding/OnboardingWizard';
-import { ScrollRevealSection } from '@/components/ScrollRevealSection';
+import { CompeteSection } from '@/components/CompeteSection';
 import { useSound } from '@/hooks/useSound';
 import { KineticHeroTitle } from '@/components/KineticHeroTitle';
 import { KineticHeader } from '@/components/motion/KineticHeader';
@@ -277,7 +277,7 @@ export default function LandingPage() {
 
       <GiantTypeDivider word="COMPETE" label="daily battles" />
 
-      <ScrollRevealSection />
+      <CompeteSection />
 
       <GiantTypeDivider word="PREMIERE" label="screening room" />
 
