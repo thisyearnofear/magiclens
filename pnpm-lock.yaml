@@ -113,6 +113,15 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.100.11
         version: 5.100.11(react@19.2.6)
+      '@videojs/core':
+        specifier: 10.5.0
+        version: 10.5.0(react@19.2.6)
+      '@videojs/mux-video':
+        specifier: 10.5.0
+        version: 10.5.0
+      '@videojs/react':
+        specifier: 10.5.0
+        version: 10.5.0(@videojs/hlsjs-video@10.5.0)(@videojs/mux-video@10.5.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       axios:
         specifier: ^1.7.2
         version: 1.16.1
@@ -128,6 +137,9 @@ importers:
       cmdk:
         specifier: 1.0.0
         version: 1.0.0(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      cn:
+        specifier: ^0.4.0
+        version: 0.4.0
       date-fns:
         specifier: ^4.1.0
         version: 4.2.1
@@ -2300,6 +2312,16 @@ packages:
       typescript:
         optional: true
 
+  '@svta/cml-error-codes@0.1.2':
+    resolution: {integrity: sha512-q1xL8W9JR0Yj7h2kAyRWqb7iT7UlOb/rXMDSVpY5EcXUR5w0zHfl22YG4+dYVqtV9XpoIxhp+nXSqZkTo3TSTg==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@svta/cml-utils': ^1.6.2
+
+  '@svta/cml-utils@1.7.0':
+    resolution: {integrity: sha512-NNa9v5CxrmULRAu5zx1ENHVwF4xKfclEdm+OmaIZDwoTNLVpf7JGgwbxkYsbRQYPCZrQTTLlR4sVjwgS6gcmug==}
+    engines: {node: '>=20'}
+
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
@@ -2459,6 +2481,102 @@ packages:
     resolution: {integrity: sha512-HOYidLONR/SeGk8NBAeI64I4gYdsMX9vJmniL13ZcLVwawyK0s2GUENEAcGA+GYLIoeyQB61UqmhqPodJry7zA==}
     peerDependencies:
       '@vanilla-extract/css': ^1.0.0
+
+  '@videojs/core@10.5.0':
+    resolution: {integrity: sha512-HzmbJntv2HC9MjNgebwjrb2P63cBLUtzp0XhetSrs5kLRC607W25JFYMd0/f8TJEFGPIFL96sizN5sodSQBiag==}
+
+  '@videojs/hlsjs-video@10.5.0':
+    resolution: {integrity: sha512-X+laYuEFyQ1My99zeIpiA2xIElOBVbHawDmN/+LMcK24AzpugwWUsUaHYs0NrkKpLfF+3EPACl9tXkknXPrbQg==}
+
+  '@videojs/media@10.5.0':
+    resolution: {integrity: sha512-Yls10cLVOpIjBrlBFr7iaLaKg49MzSwu4beJaQZwP2WJrSmrLiR1ivnLFj6YwHlPVg/UJtQUz6fpUB/AkSpZ/g==}
+
+  '@videojs/mux-video@10.5.0':
+    resolution: {integrity: sha512-6Rqbi0Zj7sdztD5d90LssQaN+eItozpAmzOrLrEKm769yg+jvkUQ2gBiPPQEQUTNvNakxSNKrEaxVk9Fp8dYMA==}
+
+  '@videojs/native-hls-video@10.5.0':
+    resolution: {integrity: sha512-m+Q/FKdlVlo+skdIbnXiY92vBKI9sY/A3wgunhUnVd/Z2BPXdaSFJ6LnGnf9D44TqLU4Cs7J579QWy2AkEoCeA==}
+
+  '@videojs/react@10.5.0':
+    resolution: {integrity: sha512-Dy2Uerozb2SRb3E92HOhqrYlJUEOAIKMSSgEnRPczIOu8uT4N2agFuAY7pq9fqMCsa+xdlyDlhi1tjpdKkTCXA==}
+    peerDependencies:
+      '@videojs/cloudflare-video': 10.5.0
+      '@videojs/dailymotion-video': 10.5.0
+      '@videojs/dash-video': 10.5.0
+      '@videojs/google-analytics': 10.5.0
+      '@videojs/google-cast': 10.5.0
+      '@videojs/hlsjs-video': 10.5.0
+      '@videojs/mixcloud-audio': 10.5.0
+      '@videojs/mux-audio': 10.5.0
+      '@videojs/mux-data': 10.5.0
+      '@videojs/mux-video': 10.5.0
+      '@videojs/playerjs-video': 10.5.0
+      '@videojs/shaka-video': 10.5.0
+      '@videojs/soundcloud-audio': 10.5.0
+      '@videojs/spotify-audio': 10.5.0
+      '@videojs/tiktok-video': 10.5.0
+      '@videojs/twitch-video': 10.5.0
+      '@videojs/vimeo-video': 10.5.0
+      '@videojs/wistia-video': 10.5.0
+      '@videojs/youtube-video': 10.5.0
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@videojs/cloudflare-video':
+        optional: true
+      '@videojs/dailymotion-video':
+        optional: true
+      '@videojs/dash-video':
+        optional: true
+      '@videojs/google-analytics':
+        optional: true
+      '@videojs/google-cast':
+        optional: true
+      '@videojs/hlsjs-video':
+        optional: true
+      '@videojs/mixcloud-audio':
+        optional: true
+      '@videojs/mux-audio':
+        optional: true
+      '@videojs/mux-data':
+        optional: true
+      '@videojs/mux-video':
+        optional: true
+      '@videojs/playerjs-video':
+        optional: true
+      '@videojs/shaka-video':
+        optional: true
+      '@videojs/soundcloud-audio':
+        optional: true
+      '@videojs/spotify-audio':
+        optional: true
+      '@videojs/tiktok-video':
+        optional: true
+      '@videojs/twitch-video':
+        optional: true
+      '@videojs/vimeo-video':
+        optional: true
+      '@videojs/wistia-video':
+        optional: true
+      '@videojs/youtube-video':
+        optional: true
+
+  '@videojs/spf@10.5.0':
+    resolution: {integrity: sha512-wKnM0jyvqKHC/BrYhGLRv+MrrcNPuwZ4tgcPFDvFshsAHMDhLIUw5iWCmt2kLxJXFIVR2CvpzM4GQ5JZXMEXEA==}
+
+  '@videojs/store@10.5.0':
+    resolution: {integrity: sha512-j1zoWvVU9I9DlXe/aTamptsO82xxyDQHlcKXhcQrW/NSDM4xAs7rlji4yWh+s6cGW/YaA4tSjC7CUHDhSeNRwg==}
+    peerDependencies:
+      '@videojs/element': 10.5.0
+      react: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@videojs/element':
+        optional: true
+      react:
+        optional: true
+
+  '@videojs/utils@10.5.0':
+    resolution: {integrity: sha512-hW/8JqUxjVfYlZskkTm73uOX4vtJKHABSp3Xtcrp59MqPU81mIISRkRUqKt1keUUJRHk9ZKhmN/o66lYbuXH9A==}
 
   '@wagmi/connectors@6.2.0':
     resolution: {integrity: sha512-2NfkbqhNWdjfibb4abRMrn7u6rPjEGolMfApXss6HCDVt9AW2oVC6k8Q5FouzpJezElxLJSagWz9FW1zaRlanA==}
@@ -2941,6 +3059,11 @@ packages:
     peerDependencies:
       react: ^18.0.0
       react-dom: ^18.0.0
+
+  cn@0.4.0:
+    resolution: {integrity: sha512-qOAeUhPwPzBxx6jaeQdo646XIKliKHc2j1ZF7Ngb1o0pJZKH5gq8FkA0aVdUdPFUDXNXyUCXpCtoJISo6dhizg==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
@@ -3696,6 +3819,9 @@ packages:
 
   hey-listen@1.0.8:
     resolution: {integrity: sha512-COpmrF2NOg4TBWUJ5UVyaCU2A88wEMkUPK4hNqyCkqHbxT92BbvfjoSozkAIIm6XhicGlJHhFdullInrdhwU8Q==}
+
+  hls.js@1.7.4:
+    resolution: {integrity: sha512-3GlxGdPvT2YHvQYOt+yOzT/DEior/qJVNIylHA77kgeoBTdQQqi70GwefNEUmHQeNGyjC8U62+bruqW/Tpm+tg==}
 
   hono@4.12.22:
     resolution: {integrity: sha512-7fvVPbB92zNRsQke+uiRGwtTuef0tB2Dg4hWxYfFNvkQhIltWoyi0ONReM5LWA+jJWS3nfT5lTq+qbsIpX0IQw==}
@@ -4620,6 +4746,11 @@ packages:
   rc9@2.1.2:
     resolution: {integrity: sha512-btXCnMmRIBINM2LDZoEmOogIZU7Qe7zn4BpomSKZ/ykbLObuBdvG+mFq11DL6fjH1DRwHhrlgtYWG96bJiC7Cg==}
 
+  react-compiler-runtime@1.0.0:
+    resolution: {integrity: sha512-rRfjYv66HlG8896yPUDONgKzG5BxZD1nV9U6rkm+7VCuvQc903C4MjcoZR4zPw53IKSOX9wMQVpA1IAbRtzQ7w==}
+    peerDependencies:
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0 || ^0.0.0-experimental
+
   react-day-picker@8.10.1:
     resolution: {integrity: sha512-TMx7fNbhLk15eqcMt+7Z7S2KF7mfTId/XJDjKE8f+IUcFn0l08/kI4FiYTL/0yuOLmEcbR4Fwe3GJf/NiiMnPA==}
     peerDependencies:
@@ -4883,6 +5014,9 @@ packages:
 
   signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
+
+  signal-polyfill@0.2.3:
+    resolution: {integrity: sha512-9lnybFqkhtuH5xJ0IoRMs+k0HhiNEHAqcedRL2gKGI9bLyPWqlhrNSXTi8PRTwx5XiMktQh954gR5q3dBimwXA==}
 
   simple-concat@1.0.1:
     resolution: {integrity: sha512-cSFtAPtRhljv69IK0hTVZQ+OfE9nePi/rtJmw5UjHeVyVroEqJXP1sFztKUy1qU+xvz3u/sfYJLa947b7nAN2Q==}
@@ -5349,6 +5483,9 @@ packages:
 
   victory-vendor@36.9.2:
     resolution: {integrity: sha512-PnpQQMuxlwYdocC8fIJqVXvkeViHYzotI+NJrCuav0ZYFoq912ZHBk3mCeuj+5/VpodOjPe1z0Fk2ihgzlXqjQ==}
+
+  video.js@10.5.0:
+    resolution: {integrity: sha512-QWNQ8MgF5C1T4E1D3zyhnC/9ouA7XmEkjqUH7LI59w24SUoeKBB/P+Fva413DO0N1RKxIJxwxBOsFYiRTnJKtw==}
 
   viem@2.23.2:
     resolution: {integrity: sha512-NVmW/E0c5crMOtbEAqMF0e3NmvQykFXhLOc/CkLIXOlzHSA6KXVz3CYVmaKqBF8/xtjsjHAGjdJN3Ru1kFJLaA==}
@@ -8222,6 +8359,12 @@ snapshots:
     transitivePeerDependencies:
       - fastestsmallesttextencoderdecoder
 
+  '@svta/cml-error-codes@0.1.2(@svta/cml-utils@1.7.0)':
+    dependencies:
+      '@svta/cml-utils': 1.7.0
+
+  '@svta/cml-utils@1.7.0': {}
+
   '@swc/helpers@0.5.15':
     dependencies:
       tslib: 2.8.1
@@ -8421,6 +8564,75 @@ snapshots:
   '@vanilla-extract/sprinkles@1.6.5(@vanilla-extract/css@1.20.1)':
     dependencies:
       '@vanilla-extract/css': 1.20.1
+
+  '@videojs/core@10.5.0(react@19.2.6)':
+    dependencies:
+      '@videojs/media': 10.5.0
+      '@videojs/store': 10.5.0(react@19.2.6)
+      '@videojs/utils': 10.5.0
+      video.js: 10.5.0
+    transitivePeerDependencies:
+      - '@videojs/element'
+      - react
+
+  '@videojs/hlsjs-video@10.5.0':
+    dependencies:
+      '@videojs/media': 10.5.0
+      '@videojs/native-hls-video': 10.5.0
+      '@videojs/spf': 10.5.0
+      '@videojs/utils': 10.5.0
+      hls.js: 1.7.4
+
+  '@videojs/media@10.5.0':
+    dependencies:
+      '@videojs/utils': 10.5.0
+
+  '@videojs/mux-video@10.5.0':
+    dependencies:
+      '@videojs/hlsjs-video': 10.5.0
+      '@videojs/media': 10.5.0
+      '@videojs/spf': 10.5.0
+      '@videojs/utils': 10.5.0
+
+  '@videojs/native-hls-video@10.5.0':
+    dependencies:
+      '@videojs/media': 10.5.0
+      '@videojs/spf': 10.5.0
+      '@videojs/utils': 10.5.0
+
+  '@videojs/react@10.5.0(@videojs/hlsjs-video@10.5.0)(@videojs/mux-video@10.5.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      '@videojs/core': 10.5.0(react@19.2.6)
+      '@videojs/media': 10.5.0
+      '@videojs/native-hls-video': 10.5.0
+      '@videojs/spf': 10.5.0
+      '@videojs/store': 10.5.0(react@19.2.6)
+      '@videojs/utils': 10.5.0
+      react: 19.2.6
+      react-compiler-runtime: 1.0.0(react@19.2.6)
+      react-dom: 19.2.6(react@19.2.6)
+    optionalDependencies:
+      '@videojs/hlsjs-video': 10.5.0
+      '@videojs/mux-video': 10.5.0
+    transitivePeerDependencies:
+      - '@videojs/element'
+
+  '@videojs/spf@10.5.0':
+    dependencies:
+      '@svta/cml-error-codes': 0.1.2(@svta/cml-utils@1.7.0)
+      '@svta/cml-utils': 1.7.0
+      '@videojs/media': 10.5.0
+      '@videojs/utils': 10.5.0
+      signal-polyfill: 0.2.3
+
+  '@videojs/store@10.5.0(react@19.2.6)':
+    dependencies:
+      '@videojs/utils': 10.5.0
+      react-compiler-runtime: 1.0.0(react@19.2.6)
+    optionalDependencies:
+      react: 19.2.6
+
+  '@videojs/utils@10.5.0': {}
 
   '@wagmi/connectors@6.2.0(@tanstack/react-query@5.100.11(react@19.2.6))(@types/react@19.2.15)(@wagmi/core@2.22.1(@tanstack/query-core@5.100.11)(@types/react@19.2.15)(react@19.2.6)(typescript@5.6.3)(use-sync-external-store@1.4.0(react@19.2.6))(viem@2.50.4(bufferutil@4.1.0)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.25.76)))(bufferutil@4.1.0)(react@19.2.6)(typescript@5.6.3)(use-sync-external-store@1.4.0(react@19.2.6))(utf-8-validate@5.0.10)(viem@2.50.4(bufferutil@4.1.0)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.25.76))(wagmi@2.19.5(@tanstack/query-core@5.100.11)(@tanstack/react-query@5.100.11(react@19.2.6))(@types/react@19.2.15)(bufferutil@4.1.0)(react@19.2.6)(typescript@5.6.3)(utf-8-validate@5.0.10)(viem@2.50.4(bufferutil@4.1.0)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.25.76))(zod@3.25.76))(zod@3.25.76)':
     dependencies:
@@ -9603,6 +9815,8 @@ snapshots:
       - '@types/react'
       - '@types/react-dom'
 
+  cn@0.4.0: {}
+
   color-convert@2.0.1:
     dependencies:
       color-name: 1.1.4
@@ -10372,6 +10586,8 @@ snapshots:
 
   hey-listen@1.0.8: {}
 
+  hls.js@1.7.4: {}
+
   hono@4.12.22: {}
 
   html-encoding-sniffer@3.0.0:
@@ -10983,10 +11199,10 @@ snapshots:
   ox@0.6.7(typescript@5.6.3)(zod@3.25.76):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
-      '@noble/curves': 1.8.1
-      '@noble/hashes': 1.7.1
-      '@scure/bip32': 1.6.2
-      '@scure/bip39': 1.5.4
+      '@noble/curves': 1.9.7
+      '@noble/hashes': 1.8.0
+      '@scure/bip32': 1.7.0
+      '@scure/bip39': 1.6.0
       abitype: 1.0.8(typescript@5.6.3)(zod@3.25.76)
       eventemitter3: 5.0.1
     optionalDependencies:
@@ -11356,6 +11572,10 @@ snapshots:
       defu: 6.1.7
       destr: 2.0.5
 
+  react-compiler-runtime@1.0.0(react@19.2.6):
+    dependencies:
+      react: 19.2.6
+
   react-day-picker@8.10.1(date-fns@4.2.1)(react@19.2.6):
     dependencies:
       date-fns: 4.2.1
@@ -11675,6 +11895,8 @@ snapshots:
 
   signal-exit@3.0.7:
     optional: true
+
+  signal-polyfill@0.2.3: {}
 
   simple-concat@1.0.1:
     optional: true
@@ -12113,6 +12335,8 @@ snapshots:
       d3-shape: 3.2.0
       d3-time: 3.1.0
       d3-timer: 3.0.1
+
+  video.js@10.5.0: {}
 
   viem@2.23.2(bufferutil@4.1.0)(typescript@5.6.3)(utf-8-validate@5.0.10)(zod@3.25.76):
     dependencies:

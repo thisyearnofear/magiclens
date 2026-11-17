@@ -1,0 +1,17 @@
+/* The Screening Room — host page for the Gilt Video.js skin.
+   Player elements only provide state; the skin inside them is the box that gets sized. */
+media-i18n,
+video-player,
+live-video-player,
+audio-player,
+live-audio-player {
+  display: contents;
+}
+
+.gilt-player {
+  width: 100%;
+}
+
+.gilt-player .media-skin {
+  aspect-ratio: 16 / 9;
+}
