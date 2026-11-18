@@ -41,6 +41,21 @@ export interface RemixExportResult {
 
 const MAX_W = 1280;
 
+/**
+ * Static-export normalization: each overlay's DOM footprint in the editor
+ * (base px, from StaticOverlayArt) and the ratio that converts a DOM-px
+ * base size into drawArt's normalized-frame-fraction `s` parameter
+ * (k = domBasePx / drawArtBaseFrac). w/h are the unscaled DOM footprint
+ * used to convert the editor's top-left origin to drawArt's center origin.
+ */
+const STATIC_ART: Record<string, { k: number; w: number; h: number }> = {
+  'flag-halos': { k: 40 / 0.064, w: 80, h: 80 },       // w-20 halo, drawArt r=0.064W
+  'goal-lower-third': { k: 230 / 0.2, w: 230, h: 64 },  // px-8 py-4 GOAL!, drawArt w=0.2W
+  'commentary-bubble': { k: 190 / 0.16, w: 190, h: 80 }, // max-w-[200px], drawArt w=0.16W
+  'ref-card': { k: 76 / 0.055, w: 76, h: 65 },          // p-3 card, drawArt w=0.055W
+  'player-card': { k: 160 / 0.13, w: 160, h: 74 },      // w-40 card, drawArt w=0.13W
+};
+
 function pickMime(): { mimeType: string; extension: 'webm' | 'mp4' } {
   const candidates: { mimeType: string; extension: 'webm' | 'mp4' }[] = [
     { mimeType: 'video/webm;codecs=vp9', extension: 'webm' },
@@ -256,7 +271,7 @@ export async function exportRemixVideo(opts: RemixExportOptions): Promise<RemixE
         ctx.fillText('LIVE', -w / 2 + h * 0.52, -h * 0.18);
         ctx.fillStyle = '#fff';
         ctx.font = `${Math.round(h * 0.2)}px sans-serif`;
-        ctx.fillText('What a moment!', -w / 2 + h * 0.18, h * 0.22);
+        ctx.fillText(texts?.[ov.id] || 'What a moment!', -w / 2 + h * 0.18, h * 0.22);
         break;
       }
       case 'ref-card': {
@@ -411,15 +426,22 @@ export async function exportRemixVideo(opts: RemixExportOptions): Promise<RemixE
       const wallT = (now - t0) / 1000;
       for (const ov of overlays) {
         const st = opts.staticPlacements?.styles[ov.id];
-        if (st) {
+        const art = st ? STATIC_ART[ov.id] : undefined;
+        if (st && art) {
           // Editor/manual placement — fixed position, not pose-anchored.
-          const px = (st.x / opts.staticPlacements!.srcW) * W;
-          const py = (st.y / opts.staticPlacements!.srcH) * H;
+          // style.x/y is the art's top-left in container px (transform
+          // origin 0 0); drawArt positions by center, so offset by half
+          // the scaled DOM footprint. s = st.scale * domBasePx/drawFrac
+          // normalizes drawArt's frame-fraction base to the DOM's px base.
+          const sp = opts.staticPlacements!;
+          const cx = ((st.x + (art.w * st.scale) / 2) / sp.srcW) * W;
+          const cy = ((st.y + (art.h * st.scale) / 2) / sp.srcH) * H;
           const alpha = st.opacity * (opacities?.[ov.id] ?? 1);
           if (alpha <= 0.02) continue;
-          drawArt(ov, px, py, st.scale * (W / opts.staticPlacements!.srcW), st.rotation, alpha, wallT);
+          drawArt(ov, cx, cy, (st.scale * art.k) / sp.srcW, st.rotation, alpha, wallT);
           continue;
         }
+        if (st) continue; // static mode, pose-only overlay — nothing to draw
         const xform = resolveOverlayTransform(ov.id, lms, anchors);
         const alpha = xform.alpha * (opacities?.[ov.id] ?? 1);
         if (!xform.pos || alpha <= 0.02) continue;
