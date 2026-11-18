@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Grip } from 'lucide-react';
 
 export interface OverlayStyle {
@@ -19,6 +20,9 @@ export interface EditorOverlayProps {
   onSelect: (id: string | null) => void;
   onRemove: (id: string) => void;
   onDoubleClick?: (id: string) => void;
+  /** Snap targets in container px — evaluated once at drag start
+   *  (e.g. tracked-player landmarks) so guides follow live data */
+  getSnapPoints?: () => { x: number; y: number }[];
   children: React.ReactNode;
   className?: string;
 }
@@ -35,10 +39,12 @@ export function EditorOverlay({
   onSelect,
   onRemove,
   onDoubleClick,
+  getSnapPoints,
   children,
   className,
 }: EditorOverlayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [guides, setGuides] = useState<{ vx: number | null; hy: number | null; pt: { x: number; y: number } | null } | null>(null);
   const dragRef = useRef<{
     mode: DragMode;
     startMouseX: number;
@@ -52,6 +58,7 @@ export function EditorOverlay({
     centerY: number;
     elW: number;
     elH: number;
+    snapPoints: { x: number; y: number }[];
   } | null>(null);
 
   const startDrag = useCallback(
@@ -80,9 +87,10 @@ export function EditorOverlay({
         centerY,
         elW: rect?.width ?? 0,
         elH: rect?.height ?? 0,
+        snapPoints: getSnapPoints?.() ?? [],
       };
     },
-    [overlayId, onSelect, style],
+    [overlayId, onSelect, style, getSnapPoints],
   );
 
   useEffect(() => {
@@ -101,8 +109,45 @@ export function EditorOverlay({
       switch (d.mode) {
         case 'move': {
           // Keep at least 40px of the overlay reachable inside the frame.
-          const newX = Math.max(-d.elW + 40, Math.min(rect.width - 40, d.startX + dx));
-          const newY = Math.max(-d.elH + 40, Math.min(rect.height - 40, d.startY + dy));
+          let newX = Math.max(-d.elW + 40, Math.min(rect.width - 40, d.startX + dx));
+          let newY = Math.max(-d.elH + 40, Math.min(rect.height - 40, d.startY + dy));
+
+          // ── smart guides: frame center/edges, then landmark points ──
+          const FRAME_SNAP = 6, POINT_SNAP = 12, INSET = 8;
+          let vx: number | null = null, hy: number | null = null;
+          let pt: { x: number; y: number } | null = null;
+          // [value-moving, snap-target] — center first, then edges
+          const xTargets = [
+            [newX + d.elW / 2, rect.width / 2],
+            [newX, INSET],
+            [newX + d.elW, rect.width - INSET],
+          ] as const;
+          for (const [v, t] of xTargets) {
+            if (Math.abs(t - v) <= FRAME_SNAP) { newX += t - v; vx = t; break; }
+          }
+          const yTargets = [
+            [newY + d.elH / 2, rect.height / 2],
+            [newY, INSET],
+            [newY + d.elH, rect.height - INSET],
+          ] as const;
+          for (const [v, t] of yTargets) {
+            if (Math.abs(t - v) <= FRAME_SNAP) { newY += t - v; hy = t; break; }
+          }
+          // Landmark snap — stronger pull, snaps the overlay center
+          if (vx === null) {
+            for (const p of d.snapPoints) {
+              const off = p.x - (newX + d.elW / 2);
+              if (Math.abs(off) <= POINT_SNAP) { newX += off; vx = p.x; pt = p; break; }
+            }
+          }
+          if (hy === null) {
+            for (const p of d.snapPoints) {
+              const off = p.y - (newY + d.elH / 2);
+              if (Math.abs(off) <= POINT_SNAP) { newY += off; hy = p.y; pt = p; break; }
+            }
+          }
+          setGuides(vx !== null || hy !== null ? { vx, hy, pt } : null);
+
           onStyleChange(overlayId, { x: newX, y: newY });
           break;
         }
@@ -136,7 +181,7 @@ export function EditorOverlay({
       e.preventDefault();
       handleMove(e.touches[0].clientX, e.touches[0].clientY);
     };
-    const onEnd = () => { dragRef.current = null; };
+    const onEnd = () => { dragRef.current = null; setGuides(null); };
 
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onEnd);
@@ -154,6 +199,7 @@ export function EditorOverlay({
   const transform = `translate(${style.x}px, ${style.y}px) rotate(${style.rotation}deg) scale(${style.scale})`;
 
   return (
+    <>
     <div
       ref={containerRef}
       className={`absolute pointer-events-auto select-none ${isSelected ? 'z-20' : 'z-10'} ${className ?? ''}`}
@@ -225,6 +271,24 @@ export function EditorOverlay({
         </div>
       )}
     </div>
+
+    {/* Smart-guide lines — rendered in container space via portal so
+        they aren't warped by this overlay's rotate/scale transform */}
+    {guides && containerRef.current?.parentElement && createPortal(
+      <>
+        {guides.vx !== null && (
+          <div className="absolute top-0 bottom-0 w-px bg-cyan-400/80 pointer-events-none z-40" style={{ left: guides.vx }} />
+        )}
+        {guides.hy !== null && (
+          <div className="absolute left-0 right-0 h-px bg-cyan-400/80 pointer-events-none z-40" style={{ top: guides.hy }} />
+        )}
+        {guides.pt && (
+          <div className="absolute w-2 h-2 -ml-1 -mt-1 rounded-full bg-cyan-300 ring-2 ring-cyan-400/40 pointer-events-none z-40" style={{ left: guides.pt.x, top: guides.pt.y }} />
+        )}
+      </>,
+      containerRef.current.parentElement,
+    )}
+    </>
   );
 }
 

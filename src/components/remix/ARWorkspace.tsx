@@ -15,7 +15,7 @@ import { LockOnReticle } from './LockOnReticle';
 import { ExportSuccess } from './ExportSuccess';
 import { playTick, playUntick, playSuccess } from '@/lib/ui-sound';
 import { TrackedOverlayLayer, ANCHOR_OPTIONS, type AnchorId } from './TrackedOverlayLayer';
-import { coverFit } from '@/lib/pose-frames';
+import { coverFit, LM } from '@/lib/pose-frames';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
@@ -650,6 +650,17 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                       onSelect={setSelectedOverlayId}
                       onRemove={handleRemoveOverlay}
                       onDoubleClick={handleDoubleClick}
+                      getSnapPoints={() => {
+                        const c = elementRef.current;
+                        const v = trackVideoRef.current;
+                        const lms = tracks.length > 0 ? poseAt(v?.currentTime ?? 0) : null;
+                        if (!c || !v || !lms || !v.videoWidth) return [];
+                        const { w, h, x, y } = coverFit(v.videoWidth, v.videoHeight, c.clientWidth, c.clientHeight);
+                        return [LM.NOSE, LM.L_SHOULDER, LM.R_SHOULDER, LM.L_HIP, LM.R_HIP]
+                          .map(i => lms[i])
+                          .filter((l): l is NonNullable<typeof l> => !!l)
+                          .map(l => ({ x: x + l.x * w, y: y + l.y * h }));
+                      }}
                     >
                       {children}
                     </EditorOverlay>

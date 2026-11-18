@@ -10,6 +10,7 @@ import { StaticOverlayArt } from './StaticOverlayArt';
 import { ExportSuccess } from './ExportSuccess';
 import { playTick, playUntick, playSuccess } from '@/lib/ui-sound';
 import { exportRemixVideo } from '@/lib/remix-exporter';
+import { coverFit, LM } from '@/lib/pose-frames';
 import { useReferrer } from '@/hooks/useReferrer';
 import { useIsPro } from '@/hooks/useIsPro';
 import { toast } from 'sonner';
@@ -434,6 +435,17 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
                     isSelected={selectedOverlayId === ov.id}
                     onSelect={setSelectedOverlayId}
                     onRemove={(id) => setSelected((prev) => prev.filter((s) => s.id !== id))}
+                    getSnapPoints={() => {
+                      const c = elementRef.current;
+                      const v = trackVideoRef.current;
+                      const lms = tracks.length > 0 ? poseAt(v?.currentTime ?? 0) : null;
+                      if (!c || !v || !lms || !v.videoWidth) return [];
+                      const { w, h, x, y } = coverFit(v.videoWidth, v.videoHeight, c.clientWidth, c.clientHeight);
+                      return [LM.NOSE, LM.L_SHOULDER, LM.R_SHOULDER, LM.L_HIP, LM.R_HIP]
+                        .map(i => lms[i])
+                        .filter((l): l is NonNullable<typeof l> => !!l)
+                        .map(l => ({ x: x + l.x * w, y: y + l.y * h }));
+                    }}
                   >
                     {/* Neutralized style — EditorOverlay owns the transforms,
                         StaticOverlayArt only provides the artwork */}
