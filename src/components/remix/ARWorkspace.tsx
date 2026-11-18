@@ -10,7 +10,10 @@ import {
 } from 'lucide-react';
 import { LiveDemoView } from './LiveDemoView';
 import { EditorOverlay, InlineTextEditor, OverlayStyle } from './EditorOverlay';
+import { StaticOverlayArt } from './StaticOverlayArt';
+import { LockOnReticle } from './LockOnReticle';
 import { TrackedOverlayLayer, ANCHOR_OPTIONS, type AnchorId } from './TrackedOverlayLayer';
+import { coverFit } from '@/lib/pose-frames';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
@@ -245,6 +248,40 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   const { push, undo, redo, canUndo, canRedo } = useUndoStack(styles, setStyles);
   const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
 
+  // Lock-on reveal: when tracking resolves with a subject, play the
+  // reticle converge once over the subject's bounding box.
+  const [lockBox, setLockBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const prevTrackStatus = React.useRef(trackStatus);
+  React.useEffect(() => {
+    const wasReady = prevTrackStatus.current === 'ready';
+    prevTrackStatus.current = trackStatus;
+    if (wasReady || trackStatus !== 'ready') return;
+    const container = elementRef.current;
+    const video = trackVideoRef.current;
+    const lms = tracks.length > 0 ? poseAt(video?.currentTime ?? 0) : null;
+    if (!container || !video || !lms || lms.length === 0) return;
+    const { w, h, x, y } = coverFit(video.videoWidth, video.videoHeight, container.clientWidth, container.clientHeight);
+    const xs = lms.map(l => l.x), ys = lms.map(l => l.y);
+    setLockBox({
+      x: x + Math.min(...xs) * w,
+      y: y + Math.min(...ys) * h,
+      w: (Math.max(...xs) - Math.min(...xs)) * w,
+      h: (Math.max(...ys) - Math.min(...ys)) * h,
+    });
+    const t = setTimeout(() => setLockBox(null), 1400);
+    return () => clearTimeout(t);
+  }, [trackStatus, tracks.length, poseAt]);
+
+  // No subject found — auto-route to manual placement once, with a reason.
+  const autoSwitched = React.useRef(false);
+  React.useEffect(() => {
+    if (trackStatus === 'ready' && tracks.length === 0 && selected.length > 0 && !autoSwitched.current) {
+      autoSwitched.current = true;
+      setMode('preview');
+      toast('No player detected — place your overlays manually', { icon: '👆' });
+    }
+  }, [trackStatus, tracks.length, selected.length]);
+
   const handleStyleChange = useCallback(
     (id: string, partial: Partial<OverlayStyle>) => {
       setStyles(prev => {
@@ -377,7 +414,15 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
         </div>
         <div className="flex gap-2 flex-wrap justify-end">
           <Button variant="ghost" onClick={onBack} className="text-white whitespace-nowrap">Back</Button>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            animate={selected.length > 0
+              ? { boxShadow: ['0 0 0px rgba(250,204,21,0)', '0 0 18px rgba(250,204,21,0.45)', '0 0 0px rgba(250,204,21,0)'] }
+              : { boxShadow: '0 0 0px rgba(250,204,21,0)' }}
+            transition={selected.length > 0 ? { duration: 2.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+            className="rounded-md"
+          >
             <Button
               onClick={() => { const r = elementRef.current; onNext(selected, styles, r ? { w: r.clientWidth, h: r.clientHeight } : undefined, { mode: replayMode, anchors: anchorOverrides, subjectId: selectedTrackId }); }}
               disabled={selected.length === 0}
@@ -404,8 +449,9 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
                   mode === 'preview' ? 'bg-yellow-400/20 text-yellow-300 shadow-sm' : 'text-gray-300 hover:text-gray-300'
                 }`}
+                title="Drag overlays anywhere on the frame"
               >
-                <span>🎬</span> Editor
+                <span>🎬</span> Place manually
               </button>
               <button
                 onClick={() => setMode('track')}
@@ -415,7 +461,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 title="Overlays follow the player through the clip"
               >
                 <Crosshair className={`h-3 w-3 ${mode === 'track' ? 'text-purple-400' : 'text-gray-600'}`} />
-                Track Player
+                Follow player
               </button>
               {/* Fullscreen toggle */}
               <button
@@ -436,6 +482,14 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
             >
               {mode === 'live' ? '← Exit webcam' : 'Try on webcam →'}
             </button>
+
+            <p className="text-[11px] text-gray-500 hidden md:block">
+              {mode === 'track'
+                ? 'Overlays follow the detected player'
+                : mode === 'live'
+                ? 'Trying overlays on your webcam'
+                : 'Drag overlays anywhere on the frame'}
+            </p>
 
             {/* Opacity slider for selected overlay */}
             {selectedOverlayId && selectedStyle && (
@@ -806,7 +860,13 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                     ) : (
                       <>
                         <AlertTriangle className="h-4 w-4 text-amber-400" />
-                        <span className="text-sm font-medium text-amber-300">No player detected — try a clip with a close-up player, or place overlays in Editor</span>
+                        <span className="text-sm font-medium text-amber-300">No player detected</span>
+                        <button
+                          onClick={() => setMode('preview')}
+                          className="text-xs font-semibold text-amber-200 bg-amber-400/15 border border-amber-400/30 rounded-md px-2 py-1 hover:bg-amber-400/25 transition-colors"
+                        >
+                          Place overlays manually →
+                        </button>
                       </>
                     )
                   ) : trackStatus === 'tracking' || trackStatus === 'loading' ? (
@@ -928,28 +988,51 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 )}
                 {trackStatus === 'ready' && tracks.length === 0 && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
-                    <p className="text-gray-300 text-sm">No player detected — switch to Editor to place overlays manually</p>
+                    <p className="text-gray-300 text-sm">No player detected — place overlays in Place manually</p>
                   </div>
                 )}
 
-                {/* Loading overlay */}
-                {(trackStatus === 'loading' || trackStatus === 'tracking') && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
-                    <div className="text-center">
-                      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}>
-                        <Crosshair className="h-10 w-10 text-purple-400 mx-auto mb-3" />
-                      </motion.div>
-                      <p className="text-white text-sm font-medium">
-                        {trackStatus === 'loading' ? 'Loading Pose AI...' : 'Tracking player...'}
-                      </p>
-                      <p className="text-gray-400 text-xs mt-1 max-w-[260px]">
-                        {trackStatus === 'loading'
-                          ? 'Downloading MediaPipe model (one-time)'
-                          : 'Scanning each frame for pose landmarks — overlays will lock on'}
-                      </p>
-                    </div>
+                {/* Ghost overlays — visible the moment they're picked,
+                    while the tracker is still scanning */}
+                {(trackStatus === 'loading' || trackStatus === 'tracking') && selected.length > 0 && (
+                  <div className="absolute inset-0 pointer-events-none z-10">
+                    {selected.map(ov => {
+                      const st = styles[ov.id];
+                      if (!st) return null;
+                      return (
+                        <motion.div
+                          key={ov.id}
+                          className="absolute left-0 top-0"
+                          style={{ transformOrigin: '0 0' }}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: [0.35, 0.55, 0.35], scale: 1 }}
+                          transition={{ opacity: { duration: 1.6, repeat: Infinity, ease: 'easeInOut' }, scale: { duration: 0.4, ease: 'backOut' } }}
+                        >
+                          <div style={{ transform: `translate(${st.x}px, ${st.y}px) rotate(${st.rotation}deg) scale(${st.scale})`, transformOrigin: '0 0' }}>
+                            <StaticOverlayArt overlay={ov} style={{ x: 0, y: 0, scale: 1, rotation: 0, opacity: 1 }} posScale={0} />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 )}
+
+                {/* Scan indicator — slim chip, video stays visible */}
+                {(trackStatus === 'loading' || trackStatus === 'tracking') && (
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full bg-black/70 backdrop-blur px-4 py-2 pointer-events-none">
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}>
+                      <Crosshair className="h-4 w-4 text-purple-400" />
+                    </motion.div>
+                    <p className="text-white text-xs font-medium">
+                      {trackStatus === 'loading'
+                        ? 'Loading Pose AI (one-time)…'
+                        : `Scanning frames… ${Math.round(trackProgress * 100)}% — overlays will lock on`}
+                    </p>
+                  </div>
+                )}
+
+                {/* Lock-on reveal */}
+                {lockBox && <LockOnReticle box={lockBox} />}
               </div>
 
               {/* Subject + anchor controls */}
