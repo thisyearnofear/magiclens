@@ -61,6 +61,14 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
   const [searchResults, setSearchResults] = useState<PexelsVideo[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  // Two-step selection: first tap arms a card, second tap (or the sticky
+  // CTA) commits — so browsing never silently jumps into the editor.
+  const [pending, setPending] = useState<Video | null>(null);
+
+  const choose = (v: Video) => {
+    if (pending?.id === v.id) onSelect(v);
+    else setPending(v);
+  };
 
   const doSearch = useCallback(async (query: string) => {
     if (!query.trim()) return;
@@ -99,7 +107,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
   }, []);
 
   const selectPexelsClip = (v: PexelsVideo) => {
-    onSelect({
+    choose({
       id: `pexels-${v.id}`,
       title: v.title,
       file_path: v.video_url,
@@ -113,7 +121,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">Choose Your Match Moment</h2>
-        <p className="text-gray-300">Pick a clip — our AI tracks the player and locks overlays onto them automatically</p>
+        <p className="text-gray-300">Tap a clip to preview it, then confirm — our AI tracks the player and locks overlays onto them automatically</p>
       </div>
 
       {/* Demo clips */}
@@ -123,8 +131,8 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
           {DEMO_CLIPS.map((clip) => (
             <ScrollRotateCard key={clip.id} intensity={0.5}>
             <Card
-              className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-yellow-400/50 transition-all cursor-pointer group overflow-hidden"
-              onClick={() => onSelect({ ...clip, file_path: clip.videoUrl, category: 'sports', duration: 12, uploader_id: 'demo' } as unknown as Video)}
+              className={`bg-white/5 border-white/10 hover:bg-white/10 hover:border-yellow-400/50 transition-all cursor-pointer group overflow-hidden ${pending?.id === clip.id ? 'ring-2 ring-yellow-400 border-yellow-400/50' : ''}`}
+              onClick={() => choose({ ...clip, file_path: clip.videoUrl, category: 'sports', duration: 12, uploader_id: 'demo' } as unknown as Video)}
               onMouseEnter={(e) => {
                 const video = e.currentTarget.querySelector('video') as HTMLVideoElement | null;
                 if (video) { video.currentTime = 0; video.play().catch(() => {}); }
@@ -150,9 +158,15 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-colors">
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 group-hover:scale-110 transition-transform">
-                      {clip.icon}
-                    </div>
+                    {pending?.id === clip.id ? (
+                      <span className="bg-yellow-400 text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg">
+                        Use this clip →
+                      </span>
+                    ) : (
+                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 group-hover:scale-110 transition-transform">
+                        {clip.icon}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="p-4 text-center">
@@ -174,8 +188,8 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
             {recentClips.map((clip) => (
               <Card
                 key={clip.id}
-                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-yellow-400/50 transition-all cursor-pointer group"
-                onClick={() => onSelect(clip)}
+                className={`bg-white/5 border-white/10 hover:bg-white/10 hover:border-yellow-400/50 transition-all cursor-pointer group ${pending?.id === clip.id ? 'ring-2 ring-yellow-400 border-yellow-400/50' : ''}`}
+                onClick={() => choose(clip)}
               >
                 <CardContent className="p-4">
                   <div className="aspect-video bg-gray-800 rounded-lg mb-3 flex items-center justify-center">
@@ -246,7 +260,7 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
             {searchResults.map((v) => (
               <ScrollRotateCard key={v.id} intensity={0.5}>
               <Card
-                className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-yellow-400/50 transition-all cursor-pointer group overflow-hidden"
+                className={`bg-white/5 border-white/10 hover:bg-white/10 hover:border-yellow-400/50 transition-all cursor-pointer group overflow-hidden ${pending?.id === `pexels-${v.id}` ? 'ring-2 ring-yellow-400 border-yellow-400/50' : ''}`}
                 onClick={() => selectPexelsClip(v)}
                 onMouseEnter={(e) => {
                   const video = e.currentTarget.querySelector('video') as HTMLVideoElement | null;
@@ -270,9 +284,15 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-colors">
-                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 group-hover:scale-110 transition-transform">
-                        <Play className="h-6 w-6 text-white" />
-                      </div>
+                      {pending?.id === `pexels-${v.id}` ? (
+                        <span className="bg-yellow-400 text-black text-xs font-bold px-4 py-2 rounded-full shadow-lg">
+                          Use this clip →
+                        </span>
+                      ) : (
+                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 group-hover:scale-110 transition-transform">
+                          <Play className="h-6 w-6 text-white" />
+                        </div>
+                      )}
                     </div>
                     <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded px-1.5 py-0.5 text-[10px] text-white flex items-center gap-1">
                       <Clock className="h-3 w-3" /> {v.duration}s
@@ -309,6 +329,30 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
           Upload Your Own Clip
         </Button>
       </div>
+
+      {/* Sticky commit bar — the explicit "yes, this clip" step */}
+      {pending && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-md">
+          <div className="flex items-center gap-3 rounded-2xl border border-yellow-400/40 bg-gray-950/95 backdrop-blur px-4 py-3 shadow-2xl">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-gray-400 uppercase tracking-wider">Selected</p>
+              <p className="text-white text-sm font-semibold truncate">{pending.title || 'Untitled clip'}</p>
+            </div>
+            <button
+              onClick={() => setPending(null)}
+              className="text-gray-400 text-xs hover:text-white transition-colors px-2"
+            >
+              Clear
+            </button>
+            <Button
+              onClick={() => onSelect(pending)}
+              className="bg-yellow-400 text-black hover:bg-yellow-500 font-bold"
+            >
+              Use this clip →
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

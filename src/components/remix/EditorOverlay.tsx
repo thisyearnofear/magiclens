@@ -47,6 +47,11 @@ export function EditorOverlay({
     startY: number;
     startScale: number;
     startRotation: number;
+    startPointerAngle: number;
+    centerX: number;
+    centerY: number;
+    elW: number;
+    elH: number;
   } | null>(null);
 
   const startDrag = useCallback(
@@ -58,6 +63,10 @@ export function EditorOverlay({
       const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
 
+      const rect = containerRef.current?.getBoundingClientRect();
+      const centerX = rect ? rect.left + rect.width / 2 : clientX;
+      const centerY = rect ? rect.top + rect.height / 2 : clientY;
+
       dragRef.current = {
         mode,
         startMouseX: clientX,
@@ -66,6 +75,11 @@ export function EditorOverlay({
         startY: style.y,
         startScale: style.scale,
         startRotation: style.rotation,
+        startPointerAngle: Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI),
+        centerX,
+        centerY,
+        elW: rect?.width ?? 0,
+        elH: rect?.height ?? 0,
       };
     },
     [overlayId, onSelect, style],
@@ -75,49 +89,39 @@ export function EditorOverlay({
     const parent = containerRef.current?.parentElement;
     if (!parent) return;
 
-    const getDelta = (clientX: number, clientY: number) => {
-      const d = dragRef.current;
-      if (!d) return null;
-      const rect = parent.getBoundingClientRect();
-      const scaleX = rect.width / 640;
-      const scaleY = rect.height / 480;
-      const dx = (clientX - d.startMouseX) / scaleX;
-      const dy = (clientY - d.startMouseY) / scaleY;
-      return { dx, dy, rect, scaleX, scaleY };
-    };
-
+    // Styles are stored in container pixels — deltas stay in the same
+    // space so the overlay tracks the pointer 1:1 at any render size.
     const handleMove = (clientX: number, clientY: number) => {
       const d = dragRef.current;
       if (!d) return;
-      const delta = getDelta(clientX, clientY);
-      if (!delta) return;
-
-      const { dx, dy, rect } = delta;
+      const rect = parent.getBoundingClientRect();
+      const dx = clientX - d.startMouseX;
+      const dy = clientY - d.startMouseY;
 
       switch (d.mode) {
         case 'move': {
-          const newX = Math.max(0, Math.min(rect.width - 50, d.startX + dx));
-          const newY = Math.max(0, Math.min(rect.height - 50, d.startY + dy));
+          // Keep at least 40px of the overlay reachable inside the frame.
+          const newX = Math.max(-d.elW + 40, Math.min(rect.width - 40, d.startX + dx));
+          const newY = Math.max(-d.elH + 40, Math.min(rect.height - 40, d.startY + dy));
           onStyleChange(overlayId, { x: newX, y: newY });
           break;
         }
         case 'rotate': {
-          const centerX = d.startX + 60;
-          const centerY = d.startY + 10;
-          const mouseX = centerX + dx;
-          const mouseY = centerY + dy;
-          const angle = Math.atan2(mouseY - centerY, mouseX - centerX) * (180 / Math.PI);
-          const newRotation = Math.round(angle / 15) * 15; // snap to 15°
-          onStyleChange(overlayId, { rotation: newRotation });
+          const cx = d.centerX;
+          const cy = d.centerY;
+          const angle = Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI) - d.startPointerAngle + d.startRotation;
+          onStyleChange(overlayId, { rotation: Math.round(angle) });
           break;
         }
+        case 'resize-nw':
+        case 'resize-ne':
+        case 'resize-sw':
         case 'resize-se': {
-          const newScale = Math.max(0.3, Math.min(3, d.startScale + dx / 150));
-          onStyleChange(overlayId, { scale: newScale });
-          break;
-        }
-        case 'resize-nw': {
-          const newScale = Math.max(0.3, Math.min(3, d.startScale - dx / 150));
+          // Corner sign: which direction pulls the corner away from center.
+          const sx = d.mode.endsWith('e') ? 1 : -1;
+          const sy = d.mode.includes('s') ? 1 : -1;
+          const pull = (dx * sx + dy * sy) / 2;
+          const newScale = Math.max(0.3, Math.min(3, d.startScale + pull / 150));
           onStyleChange(overlayId, { scale: newScale });
           break;
         }
@@ -198,21 +202,21 @@ export function EditorOverlay({
             <X className="h-3 w-3 text-white" />
           </button>
 
-          {/* Resize handle — bottom-right */}
-          <div
-            className="absolute -bottom-1 -right-1 w-3 h-3 bg-yellow-400 rounded-sm pointer-events-auto cursor-se-resize hover:bg-yellow-300 transition-colors shadow-lg"
-            onMouseDown={(e) => startDrag(e, 'resize-se')}
-            onTouchStart={(e) => startDrag(e, 'resize-se')}
-            style={{ width: HANDLE_SIZE, height: HANDLE_SIZE }}
-          />
-
-          {/* Resize handle — bottom-left */}
-          <div
-            className="absolute -bottom-1 -left-1 w-3 h-3 bg-yellow-400 rounded-sm pointer-events-auto cursor-sw-resize hover:bg-yellow-300 transition-colors shadow-lg"
-            onMouseDown={(e) => startDrag(e, 'resize-nw')}
-            onTouchStart={(e) => startDrag(e, 'resize-nw')}
-            style={{ width: HANDLE_SIZE, height: HANDLE_SIZE }}
-          />
+          {/* Resize handles — all four corners */}
+          {([
+            ['nw', '-top-1 -left-1', 'cursor-nw-resize'],
+            ['ne', '-top-1 -right-8', 'cursor-ne-resize'],
+            ['sw', '-bottom-1 -left-1', 'cursor-sw-resize'],
+            ['se', '-bottom-1 -right-1', 'cursor-se-resize'],
+          ] as const).map(([corner, pos, cursor]) => (
+            <div
+              key={corner}
+              className={`absolute ${pos} bg-yellow-400 rounded-sm pointer-events-auto ${cursor} hover:bg-yellow-300 transition-colors shadow-lg`}
+              onMouseDown={(e) => startDrag(e, `resize-${corner}`)}
+              onTouchStart={(e) => startDrag(e, `resize-${corner}`)}
+              style={{ width: HANDLE_SIZE, height: HANDLE_SIZE }}
+            />
+          ))}
 
           {/* Rotation indicator */}
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 text-[9px] text-yellow-400 bg-black/60 px-1.5 py-0.5 rounded pointer-events-none font-mono">

@@ -5,6 +5,8 @@ import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
 import { TrackedOverlayLayer, type AnchorId } from './TrackedOverlayLayer';
+import { EditorOverlay } from './EditorOverlay';
+import { StaticOverlayArt } from './StaticOverlayArt';
 import { exportRemixVideo } from '@/lib/remix-exporter';
 import { useReferrer } from '@/hooks/useReferrer';
 import { useIsPro } from '@/hooks/useIsPro';
@@ -55,6 +57,8 @@ const SVG_MAP: Record<string, string> = {
 export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }: MobileARWorkspaceProps) {
   const { manifest, loading } = usePack();
   const [selected, setSelected] = useState<SelectedOverlay[]>([]);
+  const [manualMode, setManualMode] = useState(false);
+  const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null);
   const [styles, setStyles] = useState<Record<string, OverlayStyle>>({});
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [refCardColor, setRefCardColor] = useState<'yellow' | 'red'>('yellow');
@@ -133,6 +137,9 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
         onProgress: setExportProgress,
         maxDuration: exportCap,
         watermark: !(isPro || referrerAddress),
+        ...(manualMode && elementRef.current
+          ? { staticPlacements: { styles, srcW: elementRef.current.clientWidth, srcH: elementRef.current.clientHeight } }
+          : {}),
       });
       const url = URL.createObjectURL(result.blob);
       const a = document.createElement('a');
@@ -156,7 +163,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
 
   const handleNext = () =>
     onNext(selected, styles, sourceSize(), {
-      mode: trackStatus === 'ready' ? 'track' : 'static',
+      mode: trackStatus === 'ready' && !manualMode ? 'track' : 'static',
       anchors: {},
       subjectId: selectedTrackId,
     });
@@ -212,7 +219,11 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
 
       {/* Track status bar */}
       <div className="px-3 pb-1.5 shrink-0 flex items-center justify-between gap-2">
-        {trackStatus === 'ready' ? (
+        {manualMode ? (
+          <span className="flex items-center gap-1.5 text-[11px] font-medium text-yellow-300 min-w-0">
+            <span className="truncate">Manual placement — drag overlays onto the clip</span>
+          </span>
+        ) : trackStatus === 'ready' ? (
           tracks.length > 0 ? (
             <span className="flex items-center gap-1.5 text-[11px] font-medium text-purple-300 min-w-0">
               <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse shrink-0" />
@@ -221,10 +232,13 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
               </span>
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 text-[11px] font-medium text-amber-300 min-w-0">
+            <button
+              onClick={() => setManualMode(true)}
+              className="flex items-center gap-1.5 text-[11px] font-medium text-amber-300 min-w-0 text-left"
+            >
               <AlertTriangle className="h-3 w-3 shrink-0" />
-              <span className="truncate">No player detected — try another clip</span>
-            </span>
+              <span className="truncate">No player detected — <span className="underline">place overlays manually</span></span>
+            </button>
           )
         ) : analyzing ? (
           <span className="flex items-center gap-1.5 text-[11px] font-medium text-purple-300">
@@ -240,6 +254,22 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
             <Crosshair className="h-3 w-3" /> Preparing player tracking…
           </span>
         )}
+        {trackStatus === 'ready' && !manualMode && tracks.length > 0 && (
+          <button
+            onClick={() => setManualMode(true)}
+            className="text-[10px] text-gray-400 hover:text-gray-200 underline underline-offset-2 shrink-0"
+          >
+            Manual
+          </button>
+        )}
+        {manualMode && trackStatus === 'ready' && tracks.length > 0 && (
+          <button
+            onClick={() => setManualMode(false)}
+            className="text-[10px] text-purple-300 hover:text-purple-200 underline underline-offset-2 shrink-0"
+          >
+            Auto-track
+          </button>
+        )}
         {trackStatus === 'ready' && !isPro && (
           <button
             onClick={handleBuyPro}
@@ -252,7 +282,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
         {trackStatus === 'ready' && isPro && (
           <span className="text-[9px] font-bold text-yellow-300 bg-yellow-400/15 border border-yellow-400/30 rounded px-1.5 py-0.5 shrink-0">⚡ PRO</span>
         )}
-        {trackStatus === 'ready' && selected.length > 0 && (
+        {selected.length > 0 && (
           <button
             onClick={handleExport}
             disabled={exportState === 'recording'}
@@ -367,8 +397,33 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
             </div>
           )}
 
+          {/* Manual placement layer — drag/resize/rotate via EditorOverlay */}
+          {manualMode && (
+            <>
+              <div className="absolute inset-0 z-0" onClick={() => setSelectedOverlayId(null)} />
+              {selected.map((ov) => {
+                const st = styles[ov.id] ?? DEFAULT_STYLES[ov.id] ?? { x: 100, y: 100, scale: 1, rotation: 0, opacity: 1 };
+                return (
+                  <EditorOverlay
+                    key={ov.id}
+                    overlayId={ov.id}
+                    style={st}
+                    onStyleChange={(id, partial) => setStyles((s) => ({ ...s, [id]: { ...st, ...partial } }))}
+                    isSelected={selectedOverlayId === ov.id}
+                    onSelect={setSelectedOverlayId}
+                    onRemove={(id) => setSelected((prev) => prev.filter((s) => s.id !== id))}
+                  >
+                    {/* Neutralized style — EditorOverlay owns the transforms,
+                        StaticOverlayArt only provides the artwork */}
+                    <StaticOverlayArt overlay={ov} style={{ x: 0, y: 0, scale: 1, rotation: 0, opacity: 1 }} posScale={0} />
+                  </EditorOverlay>
+                );
+              })}
+            </>
+          )}
+
           {/* Pose-tracked overlay layer — same renderer as desktop */}
-          {trackStatus === 'ready' && selected.length > 0 && (
+          {!manualMode && trackStatus === 'ready' && selected.length > 0 && (
             <TrackedOverlayLayer
               videoRef={trackVideoRef}
               poseAt={poseAt}
@@ -381,10 +436,12 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
             />
           )}
 
-          {/* Prompt to pick overlays once tracking is live */}
-          {trackStatus === 'ready' && tracks.length > 0 && selected.length === 0 && (
+          {/* Prompt to pick overlays once tracking is live (or in manual mode) */}
+          {selected.length === 0 && (manualMode || (trackStatus === 'ready' && tracks.length > 0)) && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
-              <p className="text-gray-200 text-xs text-center px-6">Pick an overlay below — it locks onto the player</p>
+              <p className="text-gray-200 text-xs text-center px-6">
+                {manualMode ? 'Pick an overlay below — then drag it into place' : 'Pick an overlay below — it locks onto the player'}
+              </p>
             </div>
           )}
 

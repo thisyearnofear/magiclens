@@ -144,6 +144,11 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
         // Pro pass holders + seeded creators (arrived via ?ref=) get clean
         // exports — see docs/MONETIZATION.md
         watermark: !(isPro || referrerAddress),
+        // Editor placements are fixed — without this the exported file
+        // drops every manually-placed overlay (pose anchors only).
+        ...(mode !== 'track' && elementRef.current
+          ? { staticPlacements: { styles, srcW: elementRef.current.clientWidth, srcH: elementRef.current.clientHeight } }
+          : {}),
       });
       const url = URL.createObjectURL(result.blob);
       const a = document.createElement('a');
@@ -329,8 +334,8 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
             <h2 className="text-2xl font-bold text-white">Add AR Overlays</h2>
             <p className="text-gray-300 text-sm">Remixing: <span className="text-white font-medium">{clipTitle}</span></p>
           </div>
-          {/* Undo/Redo */}
-          <div className="flex gap-1 ml-4">
+          {/* Undo/Redo — hidden until there's history to navigate */}
+          <div className={`flex gap-1 ml-4 transition-opacity ${canUndo || canRedo ? '' : 'opacity-0 pointer-events-none'}`}>
             <button
               onClick={undo}
               disabled={!canUndo}
@@ -817,7 +822,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                         <span className="inline-flex items-center gap-1 rounded-md bg-yellow-400/15 border border-yellow-400/30 px-2 py-1 text-[10px] font-bold text-yellow-300">
                           ⚡ PRO
                         </span>
-                      ) : (
+                      ) : selected.length > 0 ? (
                         <button
                           onClick={handleBuyPro}
                           disabled={proPending || proConfirming}
@@ -826,7 +831,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                         >
                           {proPending || proConfirming ? 'Buying…' : `Go Pro${priceEth ? ` · ${priceEth} OKB` : ''}`}
                         </button>
-                      )}
+                      ) : null}
                       {selected.length > 0 && (
                         <Button
                           onClick={handleExport}

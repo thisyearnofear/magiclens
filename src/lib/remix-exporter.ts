@@ -19,6 +19,17 @@ export interface RemixExportOptions {
   maxDuration?: number;
   /** draw a small MagicLens mark bottom-right (default true — free-tier distribution) */
   watermark?: boolean;
+  /**
+   * Static mode: per-overlay editor placements in container px plus the
+   * container size they were authored against. When provided for an
+   * overlay, its fixed placement wins over pose anchoring — this is what
+   * Editor mode (and mobile manual placement) exports.
+   */
+  staticPlacements?: {
+    styles: Record<string, { x: number; y: number; scale: number; rotation: number; opacity: number }>;
+    srcW: number;
+    srcH: number;
+  };
 }
 
 export interface RemixExportResult {
@@ -399,6 +410,16 @@ export async function exportRemixVideo(opts: RemixExportOptions): Promise<RemixE
 
       const wallT = (now - t0) / 1000;
       for (const ov of overlays) {
+        const st = opts.staticPlacements?.styles[ov.id];
+        if (st) {
+          // Editor/manual placement — fixed position, not pose-anchored.
+          const px = (st.x / opts.staticPlacements!.srcW) * W;
+          const py = (st.y / opts.staticPlacements!.srcH) * H;
+          const alpha = st.opacity * (opacities?.[ov.id] ?? 1);
+          if (alpha <= 0.02) continue;
+          drawArt(ov, px, py, st.scale * (W / opts.staticPlacements!.srcW), st.rotation, alpha, wallT);
+          continue;
+        }
         const xform = resolveOverlayTransform(ov.id, lms, anchors);
         const alpha = xform.alpha * (opacities?.[ov.id] ?? 1);
         if (!xform.pos || alpha <= 0.02) continue;
