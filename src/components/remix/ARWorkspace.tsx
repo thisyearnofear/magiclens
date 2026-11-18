@@ -14,6 +14,7 @@ import { StaticOverlayArt } from './StaticOverlayArt';
 import { LockOnReticle } from './LockOnReticle';
 import { ExportSuccess } from './ExportSuccess';
 import { playTick, playUntick, playSuccess } from '@/lib/ui-sound';
+import { logFunnel } from '@/lib/funnel';
 import { TrackedOverlayLayer, ANCHOR_OPTIONS, type AnchorId } from './TrackedOverlayLayer';
 import { coverFit, LM } from '@/lib/pose-frames';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
@@ -185,6 +186,8 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
       setExportState('done');
       setExported({ url, extension: result.extension, duration: result.duration });
       playSuccess();
+      logFunnel('export_done', { surface: 'desktop', duration: result.duration, overlays: selected.length });
+      logFunnel('payoff_shown', { surface: 'desktop' });
     } catch (e) {
       setExportState('error');
       toast.error('Export failed', {
@@ -272,6 +275,15 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
     return () => clearTimeout(t);
   }, [trackStatus, tracks.length, poseAt]);
 
+  // Funnel: tracking resolved (once per clip session)
+  const loggedReady = React.useRef(false);
+  React.useEffect(() => {
+    if (trackStatus === 'ready' && !loggedReady.current) {
+      loggedReady.current = true;
+      logFunnel('tracking_ready', { surface: 'desktop', subjects: tracks.length });
+    }
+  }, [trackStatus, tracks.length]);
+
   // No subject found — auto-route to manual placement once, with a reason.
   const autoSwitched = React.useRef(false);
   React.useEffect(() => {
@@ -321,7 +333,8 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   }, []);
 
   const toggleOverlay = (overlay: OverlayDefinition) => {
-    if (selected.some(s => s.id === overlay.id)) playUntick(); else playTick();
+    if (selected.some(s => s.id === overlay.id)) { playUntick(); logFunnel('overlay_deselected', { surface: 'desktop', overlayId: overlay.id }); }
+    else { playTick(); logFunnel('overlay_selected', { surface: 'desktop', overlayId: overlay.id }); }
     setSelected(prev => {
       const exists = prev.find(s => s.id === overlay.id);
       if (exists) {
@@ -1231,6 +1244,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
               a.click();
             }}
             onMint={() => {
+              logFunnel('mint_cta', { surface: 'desktop' });
               const r = elementRef.current;
               const url = exported.url;
               setExported(null);

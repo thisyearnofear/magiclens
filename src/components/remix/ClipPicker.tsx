@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, Play, Trophy, Flag, Search, Clock, User } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/api-base';
+import { logFunnel } from '@/lib/funnel';
 import { ScrollRotateCard } from '@/components/motion/ScrollRotateCard';
 import { PixelImage } from '@/components/motion/PixelImage';
 import type { Video } from '@/lib/sdk';
@@ -66,8 +67,13 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
   const [pending, setPending] = useState<Video | null>(null);
 
   const choose = (v: Video) => {
-    if (pending?.id === v.id) onSelect(v);
-    else setPending(v);
+    if (pending?.id === v.id) {
+      logFunnel('clip_committed', { clipId: v.id });
+      onSelect(v);
+    } else {
+      logFunnel('clip_armed', { clipId: v.id });
+      setPending(v);
+    }
   };
 
   const doSearch = useCallback(async (query: string) => {
@@ -339,13 +345,13 @@ export function ClipPicker({ recentClips, onSelect, onUploadNew }: ClipPickerPro
               <p className="text-white text-sm font-semibold truncate">{pending.title || 'Untitled clip'}</p>
             </div>
             <button
-              onClick={() => setPending(null)}
+              onClick={() => { logFunnel('clip_cleared', { clipId: pending.id }); setPending(null); }}
               className="text-gray-400 text-xs hover:text-white transition-colors px-2"
             >
               Clear
             </button>
             <Button
-              onClick={() => onSelect(pending)}
+              onClick={() => { logFunnel('clip_committed', { clipId: pending.id }); onSelect(pending); }}
               className="bg-yellow-400 text-black hover:bg-yellow-500 font-bold"
             >
               Use this clip →

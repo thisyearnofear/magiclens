@@ -9,6 +9,7 @@ import { EditorOverlay } from './EditorOverlay';
 import { StaticOverlayArt } from './StaticOverlayArt';
 import { ExportSuccess } from './ExportSuccess';
 import { playTick, playUntick, playSuccess } from '@/lib/ui-sound';
+import { logFunnel } from '@/lib/funnel';
 import { exportRemixVideo } from '@/lib/remix-exporter';
 import { coverFit, LM } from '@/lib/pose-frames';
 import { useReferrer } from '@/hooks/useReferrer';
@@ -16,8 +17,7 @@ import { useIsPro } from '@/hooks/useIsPro';
 import { toast } from 'sonner';
 import type { OverlayStyle } from './EditorOverlay';
 import {
-  Flag, Sparkles, Image, MessageCircle, AlertTriangle,
-  Check, Eye, Trophy, Maximize2, Minimize, Loader2, Download, Crosshair
+  AlertTriangle, Check, Eye, Trophy, Maximize2, Minimize, Loader2, Download, Crosshair
 } from 'lucide-react';
 
 const DEFAULT_STYLES: Record<string, OverlayStyle> = {
@@ -61,11 +61,6 @@ interface MobileARWorkspaceProps {
   ) => void;
   onBack: () => void;
 }
-
-const ICON_MAP: Record<string, React.ElementType> = {
-  flag: Flag, sparkles: Sparkles, image: Image,
-  'message-circle': MessageCircle, 'alert-triangle': AlertTriangle,
-};
 
 const SVG_MAP: Record<string, string> = {
   'flag-halos': '/packs/match-day/thumb-flag-halos.svg',
@@ -112,6 +107,14 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
     if (trackStatus === 'idle') startTracking();
   }, [trackStatus, startTracking]);
 
+  const loggedReady = useRef(false);
+  useEffect(() => {
+    if (trackStatus === 'ready' && !loggedReady.current) {
+      loggedReady.current = true;
+      logFunnel('tracking_ready', { surface: 'mobile', subjects: tracks.length });
+    }
+  }, [trackStatus, tracks.length]);
+
   useEffect(() => {
     if (proConfirmed) {
       refetchPro();
@@ -132,7 +135,8 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
   }, [connected, buyPass]);
 
   const toggleOverlay = (overlay: OverlayDefinition) => {
-    if (selected.some(s => s.id === overlay.id)) playUntick(); else playTick();
+    if (selected.some(s => s.id === overlay.id)) { playUntick(); logFunnel('overlay_deselected', { surface: 'mobile', overlayId: overlay.id }); }
+    else { playTick(); logFunnel('overlay_selected', { surface: 'mobile', overlayId: overlay.id }); }
     setSelected(prev => {
       const exists = prev.find(s => s.id === overlay.id);
       if (exists) return prev.filter(s => s.id !== overlay.id);
@@ -175,6 +179,8 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
       setExportState('done');
       setExported({ url, extension: result.extension, duration: result.duration });
       playSuccess();
+      logFunnel('export_done', { surface: 'mobile', duration: result.duration, overlays: selected.length });
+      logFunnel('payoff_shown', { surface: 'mobile' });
     } catch (err) {
       setExportState('idle');
       toast.error('Export failed', { description: err instanceof Error ? err.message : 'Try again' });
@@ -497,6 +503,41 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
         </div>
       </div>
 
+      {/* Overlay carousel — one-thumb discovery pinned under the canvas */}
+      <div className="shrink-0 px-3 pt-2">
+        <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {overlays.map((overlay) => {
+            const isSelected = selectedIds.has(overlay.id);
+            const thumbSrc = SVG_MAP[overlay.id] || overlay.thumbnail;
+            return (
+              <motion.button
+                key={overlay.id}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => toggleOverlay(overlay)}
+                className={`snap-start shrink-0 w-24 rounded-xl border overflow-hidden text-left transition-colors ${
+                  isSelected ? 'border-yellow-400/60 bg-yellow-400/10' : 'border-white/10 bg-white/5'
+                }`}
+              >
+                <div className="relative h-14 bg-gray-800">
+                  <img src={thumbSrc} alt={overlay.name} className="w-full h-full object-cover" />
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                      className="absolute top-1 right-1 w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center"
+                    >
+                      <Check className="h-2.5 w-2.5 text-black" />
+                    </motion.div>
+                  )}
+                </div>
+                <div className="px-2 py-1.5 text-[10px] font-medium text-white truncate">{overlay.name}</div>
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Drawer handle */}
       <button
         onClick={() => setDrawerOpen(!drawerOpen)}
@@ -515,93 +556,68 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
       >
         <div className="px-3 h-full overflow-y-auto pb-6">
           <div className="flex items-center justify-between mb-2 sticky top-0 bg-gradient-to-b from-purple-900 via-blue-900/95 to-transparent backdrop-blur-md pt-1 pb-2 z-10">
-            <h3 className="text-xs font-semibold text-gray-300 uppercase tracking-wider">AR Overlay Packs</h3>
+            <h3 className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Overlay Options</h3>
             <Trophy className="h-3.5 w-3.5 text-yellow-400" />
           </div>
 
-          <div className="space-y-2">
-            {overlays.map((overlay) => {
-              const IconComp = ICON_MAP[overlay.icon] || Flag;
-              const isSelected = selectedIds.has(overlay.id);
-              const thumbSrc = SVG_MAP[overlay.id] || overlay.thumbnail;
+          <div className="space-y-3">
+            {selected.length === 0 && (
+              <p className="text-[11px] text-gray-400">Pick overlays above — options for them appear here.</p>
+            )}
+            {selected.map((overlay) => (
+              <div key={overlay.id} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <div className="flex items-center gap-2">
+                  <img src={SVG_MAP[overlay.id] || overlay.thumbnail} alt="" className="w-7 h-7 rounded-md object-cover bg-gray-800" />
+                  <span className="text-white text-xs font-medium flex-1">{overlay.name}</span>
+                  <button onClick={() => toggleOverlay(overlay)} className="text-[10px] text-gray-400 underline underline-offset-2">Remove</button>
+                </div>
 
-              return (
-                <motion.div
-                  key={overlay.id}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <button
-                    onClick={() => toggleOverlay(overlay)}
-                    className={`w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3 ${
-                      isSelected
-                        ? 'border-yellow-400/50 bg-yellow-400/10'
-                        : 'border-white/10 bg-white/5 active:bg-white/10'
-                    }`}
-                  >
-                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-800">
-                      <img src={thumbSrc} alt={overlay.name} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1 rounded ${isSelected ? 'bg-yellow-400/20' : 'bg-white/10'}`}>
-                          <IconComp className={`h-3 w-3 ${isSelected ? 'text-yellow-400' : 'text-gray-300'}`} />
-                        </div>
-                        <span className="text-white font-medium text-sm">{overlay.name}</span>
-                        {isSelected && <Check className="h-4 w-4 text-yellow-400 flex-shrink-0 ml-auto" />}
-                      </div>
-                      <p className="text-gray-300 text-[11px] mt-0.5">{overlay.description}</p>
-                    </div>
-                  </button>
+                {overlay.id === 'flag-halos' && overlay.variants && (
+                  <div className="mt-2 flex gap-1.5 flex-wrap">
+                    {overlay.variants.map((v) => {
+                      const isActive = selected.find(s => s.id === 'flag-halos')?.chosenVariant?.code === v.code;
+                      return (
+                        <button
+                          key={v.code}
+                          onClick={(e) => { e.stopPropagation(); selectVariant('flag-halos', v); }}
+                          className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all ${
+                            isActive ? 'border-yellow-400 scale-110' : 'border-transparent'
+                          }`}
+                          title={v.name}
+                        >
+                          {v.flagUrl && (
+                            <img src={v.flagUrl} alt={v.name || ''} className="w-full h-full object-cover" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
-                  {/* Flag halo variant picker */}
-                  {isSelected && overlay.id === 'flag-halos' && overlay.variants && (
-                    <div className="mt-1 ml-[60px] mr-1 flex gap-1.5 flex-wrap">
-                      {overlay.variants.map((v) => {
-                        const isActive = selected.find(s => s.id === 'flag-halos')?.chosenVariant?.code === v.code;
-                        return (
-                          <button
-                            key={v.code}
-                            onClick={(e) => { e.stopPropagation(); selectVariant('flag-halos', v); }}
-                            className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all ${
-                              isActive ? 'border-yellow-400 scale-110' : 'border-transparent'
-                            }`}
-                            title={v.name}
-                          >
-                            {v.flagUrl && (
-                              <img src={v.flagUrl} alt={v.name || ''} className="w-full h-full object-cover" />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Ref-card color toggle for mobile */}
-                  {isSelected && overlay.id === 'ref-card' && (
-                    <div className="mt-1 ml-[60px] flex gap-2">
-                      {(['yellow', 'red'] as const).map(color => {
-                        const isActive = refCardColor === color;
-                        return (
-                          <button
-                            key={color}
-                            onClick={(e) => { e.stopPropagation(); setRefCardColor(color); }}
-                            className={`px-2 py-1 text-[10px] rounded font-medium transition-all ${
-                              isActive
-                                ? color === 'yellow'
-                                  ? 'bg-yellow-400 text-black shadow'
-                                  : 'bg-red-500 text-white shadow'
-                                : 'bg-white/10 text-gray-300'
-                            }`}
-                          >
-                            {color === 'yellow' ? '🟨 Yellow' : '🟥 Red'}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </motion.div>
-              );
-            })}
+                {overlay.id === 'ref-card' && (
+                  <div className="mt-2 flex gap-2">
+                    {(['yellow', 'red'] as const).map(color => {
+                      const isActive = refCardColor === color;
+                      return (
+                        <button
+                          key={color}
+                          onClick={(e) => { e.stopPropagation(); setRefCardColor(color); }}
+                          className={`px-2 py-1 text-[10px] rounded font-medium transition-all ${
+                            isActive
+                              ? color === 'yellow'
+                                ? 'bg-yellow-400 text-black shadow'
+                                : 'bg-red-500 text-white shadow'
+                              : 'bg-white/10 text-gray-300'
+                          }`}
+                        >
+                          {color === 'yellow' ? '🟨 Yellow' : '🟥 Red'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </motion.div>
@@ -622,6 +638,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
               a.click();
             }}
             onMint={() => {
+              logFunnel('mint_cta', { surface: 'mobile' });
               const url = exported.url;
               setExported(null);
               setExportState('idle');
