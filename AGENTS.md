@@ -15,6 +15,7 @@ A platform for pose-aware AR sports remixes minted as NFTs on **X Layer (EVM)** 
 - Backend live at `https://magiclens.thisyearnofear.com` (FastAPI, 4 workers, PM2) — deployed on **nuncio-vultr** (migrated from snel-bot July 2026)
 - Frontend live at `https://magiclens.vercel.app` (Next.js 16.2.6, React 19, Tailwind 3.4)
 - "Seed Demo Data" button at `/iconic-moments` creates leaderboard + triggers cross-VM mint
+- UX delight overhaul shipped (`docs/UX_DELIGHT_PLAN.md`): two-step clip consent, ghost-while-tracking + lock-on reticle, "Place manually"/"Follow player" modes, `ExportSuccess` payoff panel, editor smart guides (frame + pose-landmark snap), mobile snap carousel, anonymous funnel events via `src/lib/funnel.ts` (`window.__mlFunnel`, beacon gated on `NEXT_PUBLIC_FUNNEL_ENDPOINT`)
 - Pre-commit hook fixed (removed broken `lint-staged@17.0.5`, uses direct eslint + hardhat)
 
 ## Server Infrastructure (nuncio-vultr)

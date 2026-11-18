@@ -48,6 +48,15 @@ broadcast AR (wTVision/Vizrt), CapCut velocity-edit breakdowns.
 > server-side track preprocessing. Live webcam mode shares the same
 > One Euro smoothing.
 >
+> **UX overhaul shipped (Nov 2026):** the interaction layer on top of
+> this pipeline was rebuilt for intuitiveness — two-step clip consent,
+> ghost-while-tracking + lock-on reticle, "Place manually"/"Follow
+> player" modes, an export payoff panel replaying the real WEBM,
+> magnetic smart guides in the editor, and a mobile snap carousel.
+> Full detail: `docs/UX_DELIGHT_PLAN.md`. Manual placements now export
+> correctly via `staticPlacements` (container-px → frame coords,
+> `STATIC_ART` size normalization in `remix-exporter.ts`).
+>
 > **Harvested overlays shipped:** two concepts borrowed from
 > consumption-side AR ideas (Ghost Player + AR Sports Lens), reworked
 > for creation-side use — `ghost-trail` replays the selected subject's

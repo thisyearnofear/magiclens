@@ -1,5 +1,19 @@
 # UX Delight Plan — Making the Remix Flow Intuitive
 
+> **Status (Nov 2026): all four phases shipped and browser-verified.**
+> `46b8fb5` Phase 1 (ghost-while-tracking, lock-on reticle, intent-named
+> modes, no-player auto-routing, CTA pulse) · `11cbbdc` Phase 2
+> (`ExportSuccess` panel replaying the real WEBM + confetti + Post to X;
+> card/spring/WebAudio tactility via `ui-sound.ts`) · `bf00cc2` Phase 3
+> (smart guides — implemented inside `EditorOverlay.tsx` with a
+> `getSnapPoints` prop rather than a separate `smart-guides.ts`; frame
+> center/insets at 6px, pose landmarks at 12px, cyan guide lines + dot
+> portal-rendered during drag) · `93a1b93` Phase 4 (mobile snap-x
+> carousel pinned under the canvas; drawer repurposed as "Overlay
+> Options"; anonymous funnel instrumentation in `src/lib/funnel.ts` —
+> ring buffer on `window.__mlFunnel` + console.debug, sendBeacon gated
+> behind `NEXT_PUBLIC_FUNNEL_ENDPOINT`).
+
 **Context:** User feedback (Nov 2026): "the flow doesn't yet feel intuitive and delightful."
 Written from verified behavior — the core complaint maps to a real dead-air moment, not taste.
 
