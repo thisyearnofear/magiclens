@@ -7,6 +7,8 @@ import { useClipPoseTracker } from '@/hooks/useClipPoseTracker';
 import { TrackedOverlayLayer, type AnchorId } from './TrackedOverlayLayer';
 import { EditorOverlay } from './EditorOverlay';
 import { StaticOverlayArt } from './StaticOverlayArt';
+import { ExportSuccess } from './ExportSuccess';
+import { playTick, playUntick, playSuccess } from '@/lib/ui-sound';
 import { exportRemixVideo } from '@/lib/remix-exporter';
 import { useReferrer } from '@/hooks/useReferrer';
 import { useIsPro } from '@/hooks/useIsPro';
@@ -84,6 +86,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [refCardColor, setRefCardColor] = useState<'yellow' | 'red'>('yellow');
   const [exportState, setExportState] = useState<'idle' | 'recording' | 'done'>('idle');
+  const [exported, setExported] = useState<{ url: string; extension: string; duration: number } | null>(null);
   const [exportProgress, setExportProgress] = useState(0);
   const trackVideoRef = useRef<HTMLVideoElement | null>(null);
   const { elementRef, isFullscreen, controlsVisible, setControlsVisible, toggle } = useFullscreen();
@@ -128,6 +131,7 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
   }, [connected, buyPass]);
 
   const toggleOverlay = (overlay: OverlayDefinition) => {
+    if (selected.some(s => s.id === overlay.id)) playUntick(); else playTick();
     setSelected(prev => {
       const exists = prev.find(s => s.id === overlay.id);
       if (exists) return prev.filter(s => s.id !== overlay.id);
@@ -167,12 +171,9 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
       a.href = url;
       a.download = `magiclens-remix.${result.extension}`;
       a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 10_000);
       setExportState('done');
-      toast.success('Remix exported', {
-        description: `${result.extension.toUpperCase()} · ${result.duration.toFixed(0)}s — ready to post.`,
-      });
-      setTimeout(() => setExportState('idle'), 4000);
+      setExported({ url, extension: result.extension, duration: result.duration });
+      playSuccess();
     } catch (err) {
       setExportState('idle');
       toast.error('Export failed', { description: err instanceof Error ? err.message : 'Try again' });
@@ -592,6 +593,37 @@ export default function MobileARWorkspace({ clipTitle, clipVideoUrl, onNext, onB
           </div>
         </div>
       </motion.div>
+
+      {/* Export payoff — replays the real exported video */}
+      <AnimatePresence>
+        {exported && (
+          <ExportSuccess
+            videoUrl={exported.url}
+            extension={exported.extension}
+            duration={exported.duration}
+            clipTitle={clipTitle}
+            watermarked={!(isPro || referrerAddress)}
+            onDownloadAgain={() => {
+              const a = document.createElement('a');
+              a.href = exported.url;
+              a.download = `magiclens-remix.${exported.extension}`;
+              a.click();
+            }}
+            onMint={() => {
+              const url = exported.url;
+              setExported(null);
+              setExportState('idle');
+              URL.revokeObjectURL(url);
+              handleNext();
+            }}
+            onClose={() => {
+              URL.revokeObjectURL(exported.url);
+              setExported(null);
+              setExportState('idle');
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

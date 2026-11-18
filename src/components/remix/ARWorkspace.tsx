@@ -12,6 +12,8 @@ import { LiveDemoView } from './LiveDemoView';
 import { EditorOverlay, InlineTextEditor, OverlayStyle } from './EditorOverlay';
 import { StaticOverlayArt } from './StaticOverlayArt';
 import { LockOnReticle } from './LockOnReticle';
+import { ExportSuccess } from './ExportSuccess';
+import { playTick, playUntick, playSuccess } from '@/lib/ui-sound';
 import { TrackedOverlayLayer, ANCHOR_OPTIONS, type AnchorId } from './TrackedOverlayLayer';
 import { coverFit } from '@/lib/pose-frames';
 import { usePack, OverlayDefinition, SelectedOverlay } from '@/hooks/usePack';
@@ -148,6 +150,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   const replayMode: 'track' | 'static' = mode === 'track' ? 'track' : 'static';
   const { referrerAddress } = useReferrer();
   const [exportProgress, setExportProgress] = useState(0);
+  const [exported, setExported] = useState<{ url: string; extension: string; duration: number } | null>(null);
   const trackVideoRef = React.useRef<HTMLVideoElement | null>(null);
 
   const handleExport = useCallback(async () => {
@@ -179,12 +182,9 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
       a.href = url;
       a.download = `magiclens-remix.${result.extension}`;
       a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 10_000);
       setExportState('done');
-      toast.success('Remix exported', {
-        description: `${result.extension.toUpperCase()} · ${result.duration.toFixed(0)}s — ready to post.`,
-      });
-      setTimeout(() => setExportState('idle'), 4000);
+      setExported({ url, extension: result.extension, duration: result.duration });
+      playSuccess();
     } catch (e) {
       setExportState('error');
       toast.error('Export failed', {
@@ -321,6 +321,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
   }, []);
 
   const toggleOverlay = (overlay: OverlayDefinition) => {
+    if (selected.some(s => s.id === overlay.id)) playUntick(); else playTick();
     setSelected(prev => {
       const exists = prev.find(s => s.id === overlay.id);
       if (exists) {
@@ -1093,7 +1094,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
             const thumbSrc = SVG_MAP[overlay.id] || overlay.thumbnail;
 
             return (
-              <motion.div key={overlay.id} variants={itemAnim}>
+              <motion.div key={overlay.id} variants={itemAnim} whileTap={{ scale: 0.96 }} layout>
                 <Card
                   className={`cursor-pointer transition-all overflow-hidden ${
                     isSelected
@@ -1113,7 +1114,11 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                             <IconComp className={`h-3.5 w-3.5 ${isSelected ? 'text-yellow-400' : 'text-gray-300'}`} />
                           </div>
                           <span className="text-white font-medium text-sm truncate">{overlay.name}</span>
-                          {isSelected && <Check className="h-4 w-4 text-yellow-400 flex-shrink-0" />}
+                          {isSelected && (
+                            <motion.span initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }} className="flex-shrink-0">
+                              <Check className="h-4 w-4 text-yellow-400" />
+                            </motion.span>
+                          )}
                         </div>
                         <p className="text-gray-300 text-xs mt-0.5 truncate">{overlay.description}</p>
                       </div>
@@ -1198,6 +1203,38 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
           })}
         </motion.div>
       </div>
+
+      {/* Export payoff — replays the real exported video */}
+      <AnimatePresence>
+        {exported && (
+          <ExportSuccess
+            videoUrl={exported.url}
+            extension={exported.extension}
+            duration={exported.duration}
+            clipTitle={clipTitle}
+            watermarked={!(isPro || referrerAddress)}
+            onDownloadAgain={() => {
+              const a = document.createElement('a');
+              a.href = exported.url;
+              a.download = `magiclens-remix.${exported.extension}`;
+              a.click();
+            }}
+            onMint={() => {
+              const r = elementRef.current;
+              const url = exported.url;
+              setExported(null);
+              setExportState('idle');
+              URL.revokeObjectURL(url);
+              onNext(selected, styles, r ? { w: r.clientWidth, h: r.clientHeight } : undefined, { mode: replayMode, anchors: anchorOverrides, subjectId: selectedTrackId });
+            }}
+            onClose={() => {
+              URL.revokeObjectURL(exported.url);
+              setExported(null);
+              setExportState('idle');
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
