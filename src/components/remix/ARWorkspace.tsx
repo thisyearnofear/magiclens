@@ -28,6 +28,27 @@ const DEFAULT_STYLES: Record<string, OverlayStyle> = {
   'player-card': { x: 500, y: 60, scale: 1, rotation: -2, opacity: 1, text: 'STAR PLAYER' },
 };
 
+// Approximate DOM footprint (px) — used to clamp the seeded spawn
+// position so a default can't land outside the visible container.
+const SPAWN_SIZE: Record<string, { w: number; h: number }> = {
+  'flag-halos': { w: 80, h: 80 },
+  'goal-lower-third': { w: 240, h: 78 },
+  'commentary-bubble': { w: 190, h: 80 },
+  'ref-card': { w: 76, h: 65 },
+  'player-card': { w: 160, h: 74 },
+};
+
+function seedStyle(id: string, container: HTMLElement | null): OverlayStyle {
+  const base = DEFAULT_STYLES[id] ?? { x: 200, y: 180, scale: 1, rotation: 0, opacity: 1 };
+  if (!container) return base;
+  const fp = SPAWN_SIZE[id] ?? { w: 160, h: 80 };
+  return {
+    ...base,
+    x: Math.min(Math.max(base.x, 4), Math.max(4, container.clientWidth - fp.w - 8)),
+    y: Math.min(Math.max(base.y, 4), Math.max(4, container.clientHeight - fp.h - 8)),
+  };
+}
+
 interface ARWorkspaceProps {
   clipTitle: string;
   clipVideoUrl: string;
@@ -271,8 +292,8 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
       }
 
       if (!styles[overlay.id]) {
-        const defaultStyle = DEFAULT_STYLES[overlay.id] ?? { x: 200, y: 180, scale: 1, rotation: 0, opacity: 1 };
-        setStyles(s => ({ ...s, [overlay.id]: defaultStyle }));
+        const seeded = seedStyle(overlay.id, elementRef.current);
+        setStyles(s => ({ ...s, [overlay.id]: seeded }));
       }
 
       const chosenVariant = overlay.variants && overlay.variants.length > 0
@@ -868,7 +889,7 @@ export default function ARWorkspace({ clipTitle, clipVideoUrl, onNext, onBack }:
                 </div>
               )}
 
-              <div className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-purple-500/20">
+              <div ref={elementRef} className="relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-purple-500/20">
                 {clipVideoUrl ? (
                   <video
                     ref={trackVideoRef}
